@@ -6,7 +6,6 @@ if (env === 'development') {
 } else if (env === 'test') {
   process.env.PORT = 3000;
   process.env.MONGODB_URI = 'mongodb://localhost:27017/Section508DashTest'; //modified
-} else {
-  process.env.PORT = 3000;
-  process.env.MONGODB_URI = 'lbisson:GSA_SRT@ec2-54-210-59-149.compute-1.amazonaws.com:27017/Section508Dash';
 }
+  // process.env.PORT = 3000;
+  // process.env.MONGODB_URI = 'SRT:SRT@ec2-54-210-59-149.compute-1.amazonaws.com:27017/Section508Dash';

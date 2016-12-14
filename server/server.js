@@ -7,7 +7,6 @@ const {ObjectID} = require('mongodb');
 
 var {mongoose} = require('./db/mongoose');
 var {Prediction} = require('./models/prediction');
-//var {User} = require('./models/user');
 
 var app = express();
 const port = process.env.PORT;
@@ -34,7 +33,11 @@ app.post('/predictions', (req, res) => {
   var pred = new Prediction({
     url: req.body.url,
     predictions: req.body.predictions,
-    agency: req.body.agency
+    agency: req.body.agency,
+    office: req.body.office,
+    eitLikelihood: req.body.eitLikelihood,
+    contact: req.body.contact,
+    isReadable: req.body.isReadable
   });
 
   pred.save().then((doc) => {
@@ -43,15 +46,6 @@ app.post('/predictions', (req, res) => {
     res.status(400).send(e);
   });
 });
-
-app.get('/todos', (req, res) => {
-  Todo.find().then((todos) => {
-    res.send({todos});
-  }, (e) => {
-    res.status(400).send(e);
-  });
-});
-
 
 app.listen(port, () => {
   console.log(`Started up at port ${port}`);
