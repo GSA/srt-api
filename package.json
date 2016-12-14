@@ -4,7 +4,9 @@
   "description": "Web services to see 508 compliance predictions for solicitations posted to FBO",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server/server.js",
+    "test": "export NODE_ENV=test || SET NODE_ENV=test && mocha server/**/*.test.js",
+    "test-watch": "nodemon --exec 'npm test'"
   },
   "author": "Bisson",
   "license": "ISC",
