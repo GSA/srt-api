@@ -31,13 +31,19 @@ app.get('/predictions', (req, res) => {
 
 app.post('/predictions', (req, res) => {
   var pred = new Prediction({
+    solNum: req.body.solNum,
+    title: req.body.title,
     url: req.body.url,
     predictions: req.body.predictions,
+    reviewRec: true,
+    date: Date.now(),
+    isReadable: req.body.isReadable,
+    eitLikelihood: req.body.eitLikelihood,
     agency: req.body.agency,
     office: req.body.office,
-    eitLikelihood: req.body.eitLikelihood,
     contact: req.body.contact,
-    isReadable: req.body.isReadable
+    position: req.body.position,
+    reviewStatus: false
   });
 
   pred.save().then((doc) => {

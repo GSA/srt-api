@@ -1,6 +1,9 @@
 var mongoose = require('mongoose');
 
 var Prediction = mongoose.model('Prediction', {
+  solNum: {
+    type: Number
+  },
   title: {
     type: String
   },
@@ -14,12 +17,21 @@ var Prediction = mongoose.model('Prediction', {
     RED: Number,
     GREEN: Number
   },
-  agency: {
-    type: String,
-    required: true
+  reviewRec: {
+    type: Boolean
   },
   date: {
     type: Date
+  },
+  isReadable: {
+    type: Boolean
+  },
+  eitLikelihood: {
+    type: Boolean
+  },
+  agency: {
+    type: String,
+    required: true
   },
   office: {
     type: String
@@ -30,7 +42,10 @@ var Prediction = mongoose.model('Prediction', {
   contact: {
     type: String
   },
-  isReadable: {
+  position: {
+    type: String
+  },
+  reviewStatus: {
     type: Boolean
   }
 
