@@ -21,12 +21,51 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.get('/predictions', (req, res) => {
+app.get('/predictions/:agency?/:contact?', (req, res) => {
   Prediction.find().then((preds) => {
     res.send(preds);
   }, (e) => {
     res.status(400).send(e);
   });
+});
+
+app.post('/predictions/filter', (req, res) => {
+  var filterParams = {};
+    var agency = req.body.agency;
+    var office = req.body.office;
+    var contact = req.body.contact;
+    var solNum = req.body.solNum;
+    var reviewRec = req.body.reviewRec;
+    var eitLikelihood = req.body.eitLikelihood;
+    var reviewStatus = req.body.reviewStatus;
+    if (agency) {
+      _.merge(filterParams, {agency: agency});
+    }
+    if (contact) {
+      _.merge(filterParams, {contact: contact});    
+    }
+    if (office) {
+      _.merge(filterParams, {office: office});
+    }
+    if (solNum) {
+      _.merge(filterParams, {solNum: solNum});
+    }
+    if (reviewRec) {
+      _.merge(filterParams, {reviewRec: reviewRec});
+    }
+    if (eitLikelihood) {
+      _.merge(filterParams, {eitLikelihood: eitLikelihood});
+    }
+    if (reviewStatus) {
+      _.merge(filterParams, {reviewStatus: reviewStatus});
+    }
+
+    Prediction.find(filterParams).then((predictions) => {
+      res.send(predictions);
+    }, (e) => {
+      res.status(400).send(e);
+    });
+
 });
 
 app.post('/predictions', (req, res) => {
