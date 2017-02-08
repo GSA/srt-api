@@ -38,6 +38,7 @@ app.post('/predictions/filter', (req, res) => {
     var reviewRec = req.body.reviewRec;
     var eitLikelihood = req.body.eitLikelihood;
     var reviewStatus = req.body.reviewStatus;
+    var isReadable = req.body.isReadable;
     if (agency) {
       _.merge(filterParams, {agency: agency});
     }
@@ -58,6 +59,9 @@ app.post('/predictions/filter', (req, res) => {
     }
     if (reviewStatus) {
       _.merge(filterParams, {reviewStatus: reviewStatus});
+    }
+    if (isReadable) {
+      _.merge(filterParams, {isReadable: isReadable});
     }
 
     Prediction.find(filterParams).then((predictions) => {
