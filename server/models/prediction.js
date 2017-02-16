@@ -18,7 +18,7 @@ var Prediction = mongoose.model('Prediction', {
     GREEN: Number
   },
   reviewRec: {
-    type: Boolean
+    type: String
   },
   date: {
     type: Date
@@ -46,7 +46,7 @@ var Prediction = mongoose.model('Prediction', {
     type: String
   },
   reviewStatus: {
-    type: Boolean
+    type: String
   }
 
 });
