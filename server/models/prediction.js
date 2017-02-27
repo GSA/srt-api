@@ -48,6 +48,9 @@ var Prediction = mongoose.model('Prediction', {
   },
   reviewStatus: {
     type: String
+  },
+  noticeType: {
+    type: String
   }
 
 });

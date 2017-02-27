@@ -91,7 +91,7 @@ app.post('/predictions', (req, res) => {
     title: req.body.title,
     url: req.body.url,
     predictions: req.body.predictions,
-    reviewRec: "Yes",
+    reviewRec: req.body.reviewRec,
     date: Date.now(),
     isReadable: req.body.isReadable,
     eitLikelihood: req.body.eitLikelihood,
@@ -99,7 +99,8 @@ app.post('/predictions', (req, res) => {
     office: req.body.office,
     contact: req.body.contact,
     position: req.body.position,
-    reviewStatus: "Incomplete"
+    reviewStatus: "Incomplete",
+    noticeType: req.body.noticeType
   });
 
   pred.save().then((doc) => {
