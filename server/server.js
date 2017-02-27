@@ -8,6 +8,8 @@ const {ObjectID} = require('mongodb');
 var {mongoose} = require('./db/mongoose');
 var {Prediction} = require('./models/prediction');
 
+var userRoutes = require('./routes/user.routes');
+
 var app = express();
 const port = process.env.PORT;
 
@@ -21,9 +23,20 @@ app.use(function (req, res, next) {
   next();
 });
 
+app.use('/user', userRoutes);
+
 app.get('/predictions/:agency?/:contact?', (req, res) => {
   Prediction.find().then((preds) => {
     res.send(preds);
+  }, (e) => {
+    res.status(400).send(e);
+  });
+});
+
+app.get('/solicitation/:id', (req, res) => {
+  console.log(req);
+  Prediction.findById(req.params.id).then((solicitation) => {
+    res.send(solicitation);
   }, (e) => {
     res.status(400).send(e);
   });
@@ -43,7 +56,7 @@ app.post('/predictions/filter', (req, res) => {
       _.merge(filterParams, {agency: agency});
     }
     if (contact) {
-      _.merge(filterParams, {contact: contact});    
+      _.merge(filterParams, {contact: contact});
     }
     if (office) {
       _.merge(filterParams, {office: office});

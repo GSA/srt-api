@@ -14,8 +14,9 @@ var Prediction = mongoose.model('Prediction', {
     trim: true
   },
   predictions: {
-    RED: Number,
-    GREEN: Number
+    RED: String,
+    GREEN: String,
+    value: String
   },
   reviewRec: {
     type: String
