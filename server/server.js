@@ -34,7 +34,6 @@ app.get('/predictions/:agency?/:contact?', (req, res) => {
 });
 
 app.get('/solicitation/:id', (req, res) => {
-  console.log(req);
   Prediction.findById(req.params.id).then((solicitation) => {
     res.send(solicitation);
   }, (e) => {
