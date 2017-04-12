@@ -24,7 +24,7 @@ var Prediction = mongoose.model('Prediction', {
   date: {
     type: String
   },
-  isReadable: {
+  numDocs: {
     type: String
   },
   eitLikelihood: {
@@ -52,9 +52,6 @@ var Prediction = mongoose.model('Prediction', {
   },
   actionStatus: {
     type: String
-  },
-  parsingReport: {
-    type: {}
   }
 
 });

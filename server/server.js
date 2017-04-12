@@ -50,7 +50,7 @@ app.post('/predictions/filter', (req, res) => {
     var reviewRec = req.body.reviewRec;
     var eitLikelihood = req.body.eitLikelihood;
     var reviewStatus = req.body.reviewStatus;
-    var isReadable = req.body.isReadable;
+    var numDocs = req.body.numDocs;
     if (agency) {
       _.merge(filterParams, {agency: agency});
     }
@@ -72,8 +72,8 @@ app.post('/predictions/filter', (req, res) => {
     if (reviewStatus) {
       _.merge(filterParams, {reviewStatus: reviewStatus});
     }
-    if (isReadable) {
-      _.merge(filterParams, {isReadable: isReadable});
+    if (numDocs) {
+      _.merge(filterParams, {numDocs: numDocs});
     }
 
     Prediction.find(filterParams).then((predictions) => {
@@ -92,7 +92,7 @@ app.post('/predictions', (req, res) => {
     predictions: req.body.predictions,
     reviewRec: req.body.reviewRec,
     date: req.body.datePosted,
-    isReadable: req.body.isReadable,
+    numDocs: req.body.numDocs,
     eitLikelihood: req.body.eitLikelihood,
     agency: req.body.agency,
     office: req.body.office,
@@ -101,7 +101,7 @@ app.post('/predictions', (req, res) => {
     reviewStatus: "Incomplete",
     noticeType: req.body.noticeType,
     actionStatus: req.body.actionStatus,
-    parsingReport: req.body.parsing_report
+    //parsingReport: req.body.parsing_report
   });
 
   pred.save().then((doc) => {
