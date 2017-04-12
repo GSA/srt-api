@@ -22,22 +22,20 @@ var Prediction = mongoose.model('Prediction', {
     type: String
   },
   date: {
-    type: Date
+    type: String
   },
   isReadable: {
     type: String
   },
   eitLikelihood: {
-    type: String
+    naics: String,
+    value: String
   },
   agency: {
     type: String,
     required: true
   },
   office: {
-    type: String
-  },
-  eitLikelihood: {
     type: String
   },
   contact: {
@@ -51,6 +49,12 @@ var Prediction = mongoose.model('Prediction', {
   },
   noticeType: {
     type: String
+  },
+  actionStatus: {
+    type: String
+  },
+  parsingReport: {
+    type: {}
   }
 
 });
