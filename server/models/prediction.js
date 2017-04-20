@@ -52,7 +52,11 @@ var Prediction = mongoose.model('Prediction', {
   },
   actionStatus: {
     type: String
-  }
+  },
+  parseStatus: [{
+    name: String,
+    status: String
+  }]
 
 });
 
