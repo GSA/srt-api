@@ -5,15 +5,18 @@ var jwt = require('jsonwebtoken');
 
 var User = require('../models/user.js');
 
+// This is the route set up for registering a new SRT user.
+// All of the fields listed here are required to set up the account
 router.post('/', (req, res, next) => {
+  // User is a mongoose schema used to enforce data being entered into Mongo
   var srt_user = new User({
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, 10),
+    password: bcrypt.hashSync(req.body.password, 10), // bcrypt is used to encrypt the password
     agency: req.body.agency
   });
-  srt_user.save((err, result) => {
+  srt_user.save((err, result) => { // saves user to Mongo
     if (err) {
       return res.status(500).json({
         title: 'An error occurred',
@@ -48,11 +51,11 @@ router.post('/', (req, res, next) => {
         });
       }
 
-      var token = jwt.sign({user: user}, 'innovation', {expiresIn: 7200});
+      var token = jwt.sign({user: user}, 'innovation', {expiresIn: 7200}); // token is good for 2 hours
       res.status(200).json({
         message: 'Successfully logged in',
         token: token,
-        firstName: user.firstName,
+        firstName: user.firstName, // save name and agency to local browser storage
         agency: user.agency
       });
 

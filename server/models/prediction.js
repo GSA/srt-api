@@ -27,8 +27,8 @@ var Prediction = mongoose.model('Prediction', {
   numDocs: {
     type: String
   },
-  eitLikelihood: {
-    naics: String,
+  eitLikelihood: { // is the solicitation ICT?  is 508 required?
+    naics: String,  // initial version uses NAICS code to determine
     value: String
   },
   agency: {
@@ -38,8 +38,11 @@ var Prediction = mongoose.model('Prediction', {
   office: {
     type: String
   },
-  contact: {
-    type: String
+  contactInfo: {  // contact information associated with the soliciation
+    contact: String,
+    name: String,
+    position: String,
+    email: String
   },
   position: {
     type: String
@@ -50,10 +53,10 @@ var Prediction = mongoose.model('Prediction', {
   noticeType: {
     type: String
   },
-  actionStatus: {
+  actionStatus: {  // internal field to track 508 workflow
     type: String
   },
-  parseStatus: [{
+  parseStatus: [{ // array of documents found for solicitation and whether they are able to be parsed.
     name: String,
     status: String
   }]

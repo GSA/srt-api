@@ -1,3 +1,4 @@
+// MongoDB and mongoose configuration
 var mongoose = require('mongoose');
 
 mongoose.Promise = global.Promise;

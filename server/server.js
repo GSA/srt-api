@@ -15,6 +15,8 @@ const port = process.env.PORT;
 
 app.use(bodyParser.json());
 
+// The headers must be sent to allow Cross Origin Resource Sharing
+// Requests to connect will be denied without this
 app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
@@ -25,7 +27,7 @@ app.use(function (req, res, next) {
 
 app.use('/user', userRoutes);
 
-app.get('/predictions/:agency?/:contact?', (req, res) => {
+app.get('/predictions/:agency?', (req, res) => {
   Prediction.find().then((preds) => {
     res.send(preds);
   }, (e) => {
@@ -33,6 +35,7 @@ app.get('/predictions/:agency?/:contact?', (req, res) => {
   });
 });
 
+// Route to get the selected solicitation for detailed display
 app.get('/solicitation/:id', (req, res) => {
   Prediction.findById(req.params.id).then((solicitation) => {
     res.send(solicitation);
@@ -41,11 +44,13 @@ app.get('/solicitation/:id', (req, res) => {
   });
 });
 
+// This post is used to get the data from Mongo
+// Filter is used to ensure a user is only able to see their agency data
 app.post('/predictions/filter', (req, res) => {
   var filterParams = {};
     var agency = req.body.agency;
     var office = req.body.office;
-    var contact = req.body.contact;
+    var contactInfo = req.body.contactInfo;
     var solNum = req.body.solNum;
     var reviewRec = req.body.reviewRec;
     var eitLikelihood = req.body.eitLikelihood;
@@ -55,8 +60,8 @@ app.post('/predictions/filter', (req, res) => {
     if (agency) {
       _.merge(filterParams, {agency: agency});
     }
-    if (contact) {
-      _.merge(filterParams, {contact: contact});
+    if (contactInfo) {
+      _.merge(filterParams, {contactInfo: contactInfo});
     }
     if (office) {
       _.merge(filterParams, {office: office});
@@ -88,6 +93,7 @@ app.post('/predictions/filter', (req, res) => {
 
 });
 
+// Get all solicitaitons.  This is not currently being used.  Use filter instead.
 app.post('/predictions', (req, res) => {
   var pred = new Prediction({
     solNum: req.body.solNum,
@@ -100,7 +106,7 @@ app.post('/predictions', (req, res) => {
     eitLikelihood: req.body.eitLikelihood,
     agency: req.body.agency,
     office: req.body.office,
-    contact: req.body.contact,
+    contactInfo: req.body.contactInfo,
     position: req.body.position,
     reviewStatus: "Incomplete",
     noticeType: req.body.noticeType,
