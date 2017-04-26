@@ -9,6 +9,7 @@ var {mongoose} = require('./db/mongoose');
 var {Prediction} = require('./models/prediction');
 
 var userRoutes = require('./routes/user.routes');
+var emailRoutes = require('./routes/email.routes');
 
 var app = express();
 const port = process.env.PORT;
@@ -26,6 +27,7 @@ app.use(function (req, res, next) {
 });
 
 app.use('/user', userRoutes);
+app.use('/email', emailRoutes);
 
 app.get('/predictions/:agency?', (req, res) => {
   Prediction.find().then((preds) => {
