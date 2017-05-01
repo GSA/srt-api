@@ -14,7 +14,7 @@ router.post('/', (req, res, next) => {
     emailServer.send({
       text: req.body.text,
       from: 'Solicitation Review',
-      to: 'srttestuser@gmail.com'//req.body.email,
+      to: 'srttestuser@gmail.com',//req.body.email,
       cc: '',
       subject: 'Solicitation Review - Action Requested'
     }, function (err, message) {

@@ -4,6 +4,7 @@ const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
+const date = require('date-and-time');
 
 var {mongoose} = require('./db/mongoose');
 var {Prediction} = require('./models/prediction');
@@ -41,9 +42,28 @@ app.get('/predictions/:agency?', (req, res) => {
 app.get('/solicitation/:id', (req, res) => {
   Prediction.findById(req.params.id).then((solicitation) => {
     res.send(solicitation);
+  //  console.log(solicitation);
   }, (e) => {
     res.status(400).send(e);
   });
+});
+
+// Route to update the history when email is sent to PoC
+app.post('/solicitation', (req, res) => {
+  var now = date.format(new Date(), 'YYYY/MM/DD').toString();
+  var history= req.body.history;
+  var r = history.push({'date': now, 'action': 'Email Sent to PoC'});
+
+  Prediction.findById(req.body._id).then((solicitation) => {
+    solicitation.history = history;
+    solicitation.actionStatus = 'Email Sent to PoC';
+    solicitation.actionDate = now;
+    solicitation.save().then((doc) => {
+      res.send(doc);
+    }, (e) => {
+      res.status(400).send(e);
+    })
+  })
 });
 
 // This post is used to get the data from Mongo
@@ -87,7 +107,8 @@ app.post('/predictions/filter', (req, res) => {
       _.merge(filterParams, {parseStatus: parseStatus});
     }
 
-    Prediction.find(filterParams).then((predictions) => {
+
+    Prediction.find({'eitLikelihood.value': 'Yes'}).then((predictions) => {
       res.send(predictions);
     }, (e) => {
       res.status(400).send(e);
@@ -95,7 +116,6 @@ app.post('/predictions/filter', (req, res) => {
 
 });
 
-// Get all solicitaitons.  This is not currently being used.  Use filter instead.
 app.post('/predictions', (req, res) => {
   var pred = new Prediction({
     solNum: req.body.solNum,
@@ -113,7 +133,8 @@ app.post('/predictions', (req, res) => {
     reviewStatus: "Incomplete",
     noticeType: req.body.noticeType,
     actionStatus: req.body.actionStatus,
-    parseStatus: req.body.parsing_report
+    parseStatus: req.body.parsing_report,
+    history: req.body.history
   });
 
   pred.save().then((doc) => {
@@ -122,6 +143,66 @@ app.post('/predictions', (req, res) => {
     res.status(400).send(e);
   });
 });
+
+app.put('/predictions', (req, res) => {
+  var now = date.format(new Date(), 'YYYY/MM/DD').toString();
+  Prediction.findOne({solNum: req.body.solNum}, function (err, solicitation) {
+    if (err)
+      res.send(err);
+    if (solicitation) {
+    // Update the solicitation fields with new FBO data
+    solicitation.url = req.body.url;
+    solicitation.predicitons = req.body.predicitons;
+    solicitation.reviewRec = req.body.reviewRec;
+    solicitation.date = req.body.datePosted;
+    solicitation.numDocs = req.body.numDocs;
+    solicitation.eitLikelihood= req.body.eitLikelihood;
+    solicitation.agency= req.body.agency;
+    solicitation.office= req.body.office;
+    solicitation.contactInfo= req.body.contactInfo;
+    solicitation.position= req.body.position;
+    solicitation.reviewStatus= "Incomplete";
+    solicitation.noticeType= req.body.noticeType;
+    solicitation.actionStatus= req.body.actionStatus;
+    solicitation.parseStatus= req.body.parsing_report;
+    var history= req.body.history;
+    var r = history.push({'date': now, 'action': 'Solicitation Updated on FBO'});
+    solicitation.history = history;
+    solicitation.save().then((doc) => {
+      res.send(doc);
+    }, (e) => {
+      res.status(400).send(e);
+    })
+  } else {
+    var history= [];
+    var r = history.push({'date': now, 'action': 'Pending 508 Coordinator Review.'});
+
+    var pred = new Prediction({
+    solNum: req.body.solNum,
+    title: req.body.title,
+    url: req.body.url,
+    predictions: req.body.predictions,
+    reviewRec: req.body.reviewRec,
+    date: req.body.datePosted,
+    numDocs: req.body.numDocs,
+    eitLikelihood: req.body.eitLikelihood,
+    agency: req.body.agency,
+    office: req.body.office,
+    contactInfo: req.body.contactInfo,
+    position: req.body.position,
+    reviewStatus: "Incomplete",
+    noticeType: req.body.noticeType,
+    actionStatus: req.body.actionStatus,
+    parseStatus: req.body.parsing_report,
+    history: history
+  });
+
+  pred.save().then((doc) => {
+    res.send(doc);
+  }, (e) => {
+    res.status(400).send(e);
+  });
+}})});
 
 app.listen(port, () => {
   console.log(`Started up at port ${port}`);

@@ -13,6 +13,8 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.15.2",
+    "date-and-time": "^0.4.0",
+    "emailjs": "^1.0.8",
     "express": "^4.14.0",
     "jsonwebtoken": "^7.3.0",
     "lodash": "^4.17.4",

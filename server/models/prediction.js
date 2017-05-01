@@ -56,9 +56,16 @@ var Prediction = mongoose.model('Prediction', {
   actionStatus: {  // internal field to track 508 workflow
     type: String
   },
+  actionDate: {
+    type: String
+  },
   parseStatus: [{ // array of documents found for solicitation and whether they are able to be parsed.
     name: String,
     status: String
+  }],
+  history: [{
+    date: String,
+    action: String
   }]
 
 });
