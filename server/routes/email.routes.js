@@ -14,9 +14,9 @@ router.post('/', (req, res, next) => {
     emailServer.send({
       text: req.body.text,
       from: 'Solicitation Review',
-      to: 'srttestuser@gmail.com',//req.body.email,
+      to: req.body.emailTo,//req.body.email,
       cc: '',
-      subject: 'Solicitation Review - Action Requested'
+      subject: req.body.subject
     }, function (err, message) {
       if (err) {
         return res.status(500).json({

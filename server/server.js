@@ -146,29 +146,18 @@ app.post('/predictions', (req, res) => {
 
 app.put('/predictions', (req, res) => {
   var now = date.format(new Date(), 'YYYY/MM/DD').toString();
+  console.log("body: ", req.body);
   Prediction.findOne({solNum: req.body.solNum}, function (err, solicitation) {
     if (err)
       res.send(err);
     if (solicitation) {
     // Update the solicitation fields with new FBO data
-    solicitation.url = req.body.url;
-    solicitation.predicitons = req.body.predicitons;
-    solicitation.reviewRec = req.body.reviewRec;
-    solicitation.date = req.body.datePosted;
-    solicitation.numDocs = req.body.numDocs;
-    solicitation.eitLikelihood= req.body.eitLikelihood;
-    solicitation.agency= req.body.agency;
-    solicitation.office= req.body.office;
-    solicitation.contactInfo= req.body.contactInfo;
-    solicitation.position= req.body.position;
-    solicitation.reviewStatus= "Incomplete";
-    solicitation.noticeType= req.body.noticeType;
-    solicitation.actionStatus= req.body.actionStatus;
-    solicitation.parseStatus= req.body.parsing_report;
     var history= req.body.history;
     var r = history.push({'date': now, 'action': 'Solicitation Updated on FBO'});
-    solicitation.history = history;
-    solicitation.save().then((doc) => {
+    req.body.history = history;
+    req.body.actionStatus = 'Solicitation Updated on FBO';
+  //  console.log("updated sol from fbo: ", solicitation);
+    Prediction.update({solNum: req.body.solNum}, req.body).then((doc) => {
       res.send(doc);
     }, (e) => {
       res.status(400).send(e);
