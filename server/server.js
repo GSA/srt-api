@@ -30,7 +30,7 @@ app.use(function (req, res, next) {
 app.use('/user', userRoutes);
 app.use('/email', emailRoutes);
 
-app.get('/predictions/:agency?', (req, res) => {
+app.get('/predictions', (req, res) => {
   Prediction.find().then((preds) => {
     res.send(preds);
   }, (e) => {
