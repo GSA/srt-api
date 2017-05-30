@@ -146,7 +146,7 @@ app.post('/predictions', (req, res) => {
 app.put('/predictions', (req, res) => {
   //var now = date.format(new Date(), 'YYYY/MM/DD').toString();
   var now = new Date().toLocaleDateString();
-  console.log("body: ", req.body);
+  //console.log("body: ", req.body);
   Prediction.findOne({solNum: req.body.solNum}, function (err, solicitation) {
     if (err)
       res.send(err);
@@ -156,7 +156,7 @@ app.put('/predictions', (req, res) => {
     var r = history.push({'date': now, 'action': 'Solicitation Updated on FBO'});
     req.body.history = history;
     req.body.actionStatus = 'Solicitation Updated on FBO';
-  //  console.log("updated sol from fbo: ", solicitation);
+    // console.log("updated sol from fbo: ", solicitation);
     Prediction.update({solNum: req.body.solNum}, req.body).then((doc) => {
       res.send(doc);
     }, (e) => {
