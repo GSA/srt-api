@@ -50,6 +50,7 @@ app.get('/solicitation/:id', (req, res) => {
 
 // Route to update the history when email is sent to PoC
 app.post('/solicitation', (req, res) => {
+
   var length = req.body.history.length;
 
   Prediction.findById(req.body._id).then((solicitation) => {
@@ -144,8 +145,10 @@ app.post('/predictions', (req, res) => {
 });
 
 app.put('/predictions', (req, res) => {
+
   //var now = date.format(new Date(), 'YYYY/MM/DD').toString();
   var now = new Date().toLocaleDateString();
+
   //console.log("body: ", req.body);
   Prediction.findOne({solNum: req.body.solNum}, function (err, solicitation) {
     if (err)
