@@ -13,12 +13,13 @@ var emailServer = email.server.connect({
 router.post('/', (req, res, next) => {
     emailServer.send({
       text: req.body.text,
-      from: 'Solicitation Review',
+      from: "Solicitation Review Tool <solicitationreview@gmail.com>",
       to: req.body.emailTo,//req.body.email,
-      cc: '',
+      cc: req.body.emailCC,
       subject: req.body.subject
     }, function (err, message) {
-      if (err) {
+      
+      if (err) {        
         return res.status(500).json({
           title: 'An error occurred',
           error: err
@@ -27,6 +28,7 @@ router.post('/', (req, res, next) => {
       res.status(200).json({
         message: 'Email sent'
       });
+      
     });
   });
 

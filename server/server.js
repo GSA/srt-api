@@ -50,14 +50,13 @@ app.get('/solicitation/:id', (req, res) => {
 
 // Route to update the history when email is sent to PoC
 app.post('/solicitation', (req, res) => {
-  var now = date.format(new Date(), 'YYYY/MM/DD').toString();
-  var history= req.body.history;
-  var r = history.push({'date': now, 'action': 'Email Sent to PoC'});
+  var length = req.body.history.length;
 
   Prediction.findById(req.body._id).then((solicitation) => {
-    solicitation.history = history;
-    solicitation.actionStatus = 'Email Sent to PoC';
-    solicitation.actionDate = now;
+    // update history 
+    solicitation.history = req.body.history;
+    solicitation.actionStatus = req.body.history[length-1]["action"];
+    solicitation.actionDate = req.body.history[length-1]["date"];
     solicitation.save().then((doc) => {
       res.send(doc);
     }, (e) => {
@@ -145,7 +144,8 @@ app.post('/predictions', (req, res) => {
 });
 
 app.put('/predictions', (req, res) => {
-  var now = date.format(new Date(), 'YYYY/MM/DD').toString();
+  //var now = date.format(new Date(), 'YYYY/MM/DD').toString();
+  var now = new Date().toLocaleDateString();
   console.log("body: ", req.body);
   Prediction.findOne({solNum: req.body.solNum}, function (err, solicitation) {
     if (err)

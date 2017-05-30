@@ -31,7 +31,7 @@ router.post('/', (req, res, next) => {
   });
 
   router.post('/login', (req, res, next) => {
-    User.findOne({email: req.body.email}, (err, user) => {
+    User.findOne({email: req.body.email}, (err, user) => {      
       if (err) {
         return res.status(500).json({
           title: 'An error occurred',
@@ -56,7 +56,10 @@ router.post('/', (req, res, next) => {
         message: 'Successfully logged in',
         token: token,
         firstName: user.firstName, // save name and agency to local browser storage
-        agency: user.agency
+        lastName: user.lastName,
+        email: user.email,
+        agency: user.agency,
+        position: user.position
       });
 
     });
