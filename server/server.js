@@ -167,7 +167,7 @@ app.put('/predictions', (req, res) => {
     })
   } else {
     var history= [];
-    var r = history.push({'date': now, 'action': 'Pending 508 Coordinator Review.'});
+    var r = history.push({'date': now, 'action': 'Pending 508 Coordinator Review'});
 
     var pred = new Prediction({
     solNum: req.body.solNum,
