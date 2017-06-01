@@ -69,7 +69,6 @@ router.post('/', (req, res, next) => {
   router.get('/', function (req, res)  {
 
       var filterParams = {};
-      console.log(req.body);
       User.find().then((users) => {
           res.send(users);
       }, (e) => {
