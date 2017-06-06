@@ -58,8 +58,11 @@ app.post('/solicitation', (req, res) => {
   Prediction.findById(req.body._id).then((solicitation) => {
     // update history 
     solicitation.history = req.body.history;   
-    solicitation.actionStatus = status[status.length-1]["status"];
-    solicitation.actionDate = status[status.length-1]["date"];
+    if (status.length > 1) 
+    {
+        solicitation.actionStatus = status[status.length-1]["status"];
+        solicitation.actionDate = status[status.length-1]["date"];
+    }
     solicitation.save().then((doc) => {
       res.send(doc);
     }, (e) => {
@@ -81,6 +84,7 @@ app.post('/predictions/filter', (req, res) => {
     var reviewStatus = req.body.reviewStatus;
     var numDocs = req.body.numDocs;
     var parseStatus = req.body.parsing_report;
+   
     if (agency) {
       _.merge(filterParams, {agency: agency});
     }
@@ -169,7 +173,7 @@ app.put('/predictions', (req, res) => {
     })
   } else {
     var history= [];
-    var r = history.push({'date': now, 'action': 'Pending Section 508 Coordinator review', 'user': '', 'status' : 'Pending Section 508 Coordinator review'});
+    var r = history.push({'date': now, 'action': 'Pending Section 508 Coordinator review', 'user': '', 'status' : 'Pending Section 508 Coordinator Review'});
 
     var pred = new Prediction({
     solNum: req.body.solNum,
