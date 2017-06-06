@@ -51,13 +51,15 @@ app.get('/solicitation/:id', (req, res) => {
 // Route to update the history when email is sent to PoC
 app.post('/solicitation', (req, res) => {
 
-  var length = req.body.history.length;
+  var status =  req.body.history.filter(function(e){
+      return e["status"] != '';
+  })
 
   Prediction.findById(req.body._id).then((solicitation) => {
     // update history 
-    solicitation.history = req.body.history;
-    solicitation.actionStatus = req.body.history[length-1]["action"];
-    solicitation.actionDate = req.body.history[length-1]["date"];
+    solicitation.history = req.body.history;   
+    solicitation.actionStatus = status[status.length-1]["status"];
+    solicitation.actionDate = status[status.length-1]["date"];
     solicitation.save().then((doc) => {
       res.send(doc);
     }, (e) => {
@@ -156,9 +158,9 @@ app.put('/predictions', (req, res) => {
     if (solicitation) {
     // Update the solicitation fields with new FBO data
     var history= req.body.history;
-    var r = history.push({'date': now, 'action': 'Solicitation Updated on FBO'});
+    var r = history.push({'date': now, 'action': 'Solicitation Updated on FBO.gov', 'user': '', 'status' : 'Solicitation Updated on FBO.gov'});
     req.body.history = history;
-    req.body.actionStatus = 'Solicitation Updated on FBO';
+    req.body.actionStatus = 'Solicitation Updated on FBO.gov';
     // console.log("updated sol from fbo: ", solicitation);
     Prediction.update({solNum: req.body.solNum}, req.body).then((doc) => {
       res.send(doc);
@@ -167,7 +169,7 @@ app.put('/predictions', (req, res) => {
     })
   } else {
     var history= [];
-    var r = history.push({'date': now, 'action': 'Pending 508 Coordinator Review'});
+    var r = history.push({'date': now, 'action': 'Pending Section 508 Coordinator review', 'user': '', 'status' : 'Pending Section 508 Coordinator review'});
 
     var pred = new Prediction({
     solNum: req.body.solNum,

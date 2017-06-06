@@ -65,7 +65,9 @@ var Prediction = mongoose.model('Prediction', {
   }],
   history: [{
     date: String,
-    action: String
+    action: String,
+    user: String,
+    status: String
   }]
 
 });
