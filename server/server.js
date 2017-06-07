@@ -8,6 +8,7 @@ const date = require('date-and-time');
 
 var {mongoose} = require('./db/mongoose');
 var {Prediction} = require('./models/prediction');
+var {Agency} = require('./models/agency');
 
 var userRoutes = require('./routes/user.routes');
 var emailRoutes = require('./routes/email.routes');
@@ -150,6 +151,7 @@ app.post('/predictions', (req, res) => {
   });
 });
 
+
 app.put('/predictions', (req, res) => {
 
   //var now = date.format(new Date(), 'YYYY/MM/DD').toString();
@@ -201,6 +203,29 @@ app.put('/predictions', (req, res) => {
     res.status(400).send(e);
   });
 }})});
+
+// Put data into mongoDB
+app.put('/agencies', (req, res) => {
+  var agency = new Agency ({
+      Agency: req.body.Agency,
+      Acronym: req.body.Acronym
+  })  
+  agency.save().then((doc) => {
+    res.send(doc);
+  }, (e) => {
+    res.status(400).send(e);
+  });
+})
+
+// Get total agencies from MongoDB
+app.get('/agencies', (req, res) => {
+  Agency.find().then((preds) => {
+    res.send(preds);
+  }, (e) => {
+    res.status(400).send(e);
+  });
+});
+
 
 app.listen(port, () => {
   console.log(`Started up at port ${port}`);
