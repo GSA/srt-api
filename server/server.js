@@ -31,8 +31,16 @@ app.use(function (req, res, next) {
 app.use('/user', userRoutes);
 app.use('/email', emailRoutes);
 
-app.get('/predictions', (req, res) => {
+app.get('/predictions', (req, res) => {  
   Prediction.find().then((preds) => {
+    res.send(preds);
+  }, (e) => {
+    res.status(400).send(e);
+  });
+});
+
+app.get('/ICT', (req, res) => {  
+  Prediction.find({'eitLikelihood.value': 'Yes'}).then((preds) => {
     res.send(preds);
   }, (e) => {
     res.status(400).send(e);
