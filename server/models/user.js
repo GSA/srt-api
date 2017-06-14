@@ -22,6 +22,28 @@ var schema = new Schema({
   password: {
     type: String,
     required: true
+  },
+  position: {
+    type: String,
+    required: true,
+  },
+  isAccepted: {
+    type: Boolean
+  },
+  isRejected: {
+    type: Boolean
+  },
+  userRole: {
+    type: String
+  },
+  rejectionNote: {
+    type: String
+  },
+  creationDate: {
+    type: String
+  },
+  id: {
+    type: String
   }
 });
 
