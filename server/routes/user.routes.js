@@ -52,14 +52,12 @@ router.post('/', (req, res, next) => {
         });
       }
       if (!user) {
-        console.log("user")
         return res.status(401).json({
           title: 'Login failed',
           error: {message: 'Invalid login credentials'}
         });
       }
       if (!bcrypt.compareSync(req.body.password, user.password)) {
-        console.log("password")
         return res.status(401).json({
           title: 'Login failed',
           error: {message: 'Invalid login credentials'}
