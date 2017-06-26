@@ -68,6 +68,11 @@ var Prediction = mongoose.model('Prediction', {
     action: String,
     user: String,
     status: String
+  }],
+  feedback: [{
+    questionID: String,
+    question: String,
+    answer: String,
   }]
 
 });

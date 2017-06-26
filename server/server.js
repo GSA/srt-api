@@ -9,6 +9,7 @@ const date = require('date-and-time');
 var {mongoose} = require('./db/mongoose');
 var {Prediction} = require('./models/prediction');
 var {Agency} = require('./models/agency');
+var {Survey} = require('./models/survey');
 
 var userRoutes = require('./routes/user.routes');
 var emailRoutes = require('./routes/email.routes');
@@ -66,6 +67,7 @@ app.post('/solicitation', (req, res) => {
     Prediction.findById(req.body._id).then((solicitation) => {
         // update history 
         solicitation.history = req.body.history;   
+        solicitation.feedback = req.body.feedback;
         if (status.length > 1) 
         {
             solicitation.actionStatus = status[status.length-1]["status"];
@@ -171,11 +173,13 @@ app.put('/predictions', (req, res) => {
         
         if (solicitation) 
         {   
-            console.log("updated: " + req.body.title);
+            // console.log("updated: " + req.body.title);
             // Update the solicitation fields with new FBO data  
             var r = solicitation.history.push({'date': req.body.datePosted, 'action': 'Solicitation Updated on FBO.gov', 'user': '', 'status' : 'Solicitation Updated on FBO.gov'});
             req.body.history = solicitation.history;
             req.body.actionStatus = 'Solicitation Updated on FBO.gov';
+            req.body.actionDate = req.body.datePosted
+            if(solicitation.solNum == '08012016') console.log('Find it')
             Prediction.update({solNum: req.body.solNum}, req.body).then((doc) => {
                 res.send(doc);
             }, (e) => {
@@ -185,7 +189,7 @@ app.put('/predictions', (req, res) => {
         else 
         {
           
-            console.log("Added: " + req.body.title);
+            // console.log("Added: " + req.body.title);
             var history= [];
             var r = history.push({'date': req.body.datePosted, 'action': 'Pending Section 508 Coordinator review', 'user': '', 'status' : 'Pending Section 508 Coordinator Review'});
 
@@ -240,6 +244,55 @@ app.get('/agencies', (req, res) => {
         res.status(400).send(e);
     });
 });
+
+// Put data into mongoDB
+app.put('/surveys', (req, res) => {
+
+    Survey.findOne({ID: req.body.ID}, function (err, survey) {
+        
+        if (err)
+            res.send(err)
+
+        if (survey) 
+        {             
+            survey.update({ID: req.body.ID}, req.body).then((doc) => {
+                res.send(doc);
+            }, (e) => {
+                res.status(400).send(e);
+            })
+        } 
+        else
+        {
+            var survey = new Survey ({
+                ID: req.body.ID,
+                Question: req.body.Question,
+                Choices: req.body.Choices,
+                Section: req.body.Section,
+                Type: req.body.Type,
+                Answer: req.body.Answer,
+                Note: req.body.Note,
+                ChoicesNote: req.body.ChoicesNote,
+            })  
+
+            survey.save().then((doc) => {
+                res.send(doc);
+            }, (e) => {
+                res.status(400).send(e);
+            });
+        }
+
+    });    
+})
+
+// Get total surveys from MongoDB
+app.get('/surveys', (req, res) => {
+    Survey.find().then((survey) => {
+        res.send(survey);
+    }, (e) => {
+        res.status(400).send(e);
+    });
+});
+
 
 
 app.listen(port, () => {
