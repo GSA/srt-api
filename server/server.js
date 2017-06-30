@@ -139,7 +139,7 @@ app.post('/predictions', (req, res) => {
         url: req.body.url,
         predictions: req.body.predictions,
         reviewRec: req.body.reviewRec,
-        date: req.body.datePosted,
+        date: req.body.date,
         numDocs: req.body.numDocs,
         eitLikelihood: req.body.eitLikelihood,
         agency: req.body.agency,
@@ -163,22 +163,27 @@ app.post('/predictions', (req, res) => {
 
 app.put('/predictions', (req, res) => {
 
-    //var now = new Date().toLocaleDateString();
+    var now = new Date().toLocaleDateString();
 
-    Prediction.findOne({solNum: req.body.solNum}, function (err, solicitation) {
+    Prediction.findOne({solNum:req.body.solNum}, function (err, solicitation) {
+        
 
         if (err)
-            res.send(err);
-          
+        {
+            console.log("error on put prediction");
+            res.send(err);    
+        }
+                  
         
         if (solicitation) 
         {   
+            console.log("find one " + req.body.solNum);
             // console.log("updated: " + req.body.title);
             // Update the solicitation fields with new FBO data  
-            var r = solicitation.history.push({'date': req.body.datePosted, 'action': 'Solicitation Updated on FBO.gov', 'user': '', 'status' : 'Solicitation Updated on FBO.gov'});
+            var r = solicitation.history.push({'date': req.body.date, 'action': 'Solicitation Updated on FBO.gov', 'user': '', 'status' : 'Solicitation Updated on FBO.gov'});
             req.body.history = solicitation.history;
             req.body.actionStatus = 'Solicitation Updated on FBO.gov';
-            req.body.actionDate = req.body.datePosted
+            req.body.actionDate = req.body.date
             if(solicitation.solNum == '08012016') console.log('Find it')
             Prediction.update({solNum: req.body.solNum}, req.body).then((doc) => {
                 res.send(doc);
@@ -191,7 +196,10 @@ app.put('/predictions', (req, res) => {
           
             // console.log("Added: " + req.body.title);
             var history= [];
-            var r = history.push({'date': req.body.datePosted, 'action': 'Pending Section 508 Coordinator review', 'user': '', 'status' : 'Pending Section 508 Coordinator Review'});
+            var r = history.push({'date': req.body.date, 'action': 'Pending Section 508 Coordinator review', 'user': '', 'status' : 'Pending Section 508 Coordinator Review'});
+
+            var history= [];
+            var r = history.push({'date': req.body.date, 'action': 'Pending Section 508 Coordinator review', 'user': '', 'status' : 'Pending Section 508 Coordinator Review'});
 
             var pred = new Prediction({
                 solNum: req.body.solNum,
@@ -199,7 +207,7 @@ app.put('/predictions', (req, res) => {
                 url: req.body.url,
                 predictions: req.body.predictions,
                 reviewRec: req.body.reviewRec,
-                date: req.body.datePosted,
+                date: req.body.date,
                 numDocs: req.body.numDocs,
                 eitLikelihood: req.body.eitLikelihood,
                 agency: req.body.agency,
@@ -209,8 +217,9 @@ app.put('/predictions', (req, res) => {
                 reviewStatus: "Incomplete",
                 noticeType: req.body.noticeType,
                 actionStatus: req.body.actionStatus,
-                parseStatus: req.body.parsing_report,
-                history: history
+                parseStatus: req.body.parseStatus,
+                history: history,
+                feedback: req.body.feedback
             });
 
             pred.save().then((doc) => {
@@ -220,6 +229,7 @@ app.put('/predictions', (req, res) => {
             });
         }
     })
+    //console.log("Added: " + req.body.title);        
 });
 
 // Put data into mongoDB
