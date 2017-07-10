@@ -73,7 +73,10 @@ var Prediction = mongoose.model('Prediction', {
     questionID: String,
     question: String,
     answer: String,
-  }]
+  }],
+  undetermined: {
+    type: Boolean
+  }
 
 });
 

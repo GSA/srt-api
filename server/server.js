@@ -123,7 +123,7 @@ app.post('/predictions/filter', (req, res) => {
       _.merge(filterParams, {parseStatus: parseStatus});
     }
 
-
+    
     Prediction.find({'eitLikelihood.value': 'Yes'}).then((predictions) => {
       res.send(predictions);
     }, (e) => {
@@ -150,7 +150,9 @@ app.post('/predictions', (req, res) => {
         noticeType: req.body.noticeType,
         actionStatus: req.body.actionStatus,
         parseStatus: req.body.parsing_report,
-        history: req.body.history
+        history: req.body.history,
+        feedback: req.body.feedback,
+        undetermined: req.body.undetermined
     });
 
     pred.save().then((doc) => {
@@ -177,14 +179,14 @@ app.put('/predictions', (req, res) => {
         
         if (solicitation) 
         {   
-            console.log("find one " + req.body.solNum);
+            // console.log("find one " + req.body.solNum);
             // console.log("updated: " + req.body.title);
             // Update the solicitation fields with new FBO data  
             var r = solicitation.history.push({'date': req.body.date, 'action': 'Solicitation Updated on FBO.gov', 'user': '', 'status' : 'Solicitation Updated on FBO.gov'});
             req.body.history = solicitation.history;
             req.body.actionStatus = 'Solicitation Updated on FBO.gov';
             req.body.actionDate = req.body.date
-            if(solicitation.solNum == '08012016') console.log('Find it')
+            // if(solicitation.solNum == '08012016') console.log('Find it')
             Prediction.update({solNum: req.body.solNum}, req.body).then((doc) => {
                 res.send(doc);
             }, (e) => {
@@ -219,9 +221,9 @@ app.put('/predictions', (req, res) => {
                 actionStatus: req.body.actionStatus,
                 parseStatus: req.body.parseStatus,
                 history: history,
-                feedback: req.body.feedback
+                feedback: req.body.feedback,
+                undetermined: req.body.undetermined
             });
-
             pred.save().then((doc) => {
                 res.send(doc);
             }, (e) => {
