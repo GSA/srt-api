@@ -48,25 +48,6 @@ app.get('/ICT', (req, res) => {
     });
 });
 
-// Get Total Agencies in the solicitations.
-app.get('/Agencies', (req, res) => {  
-    Prediction.find({'eitLikelihood.value': 'Yes'}).then((preds) => { 
-        var agencyList = []; 
-        var map = new Object();
-        for (let item of preds) 
-        {
-            if (!map.hasOwnProperty(item.agency))
-            {
-                map[item.agency] = item.agency;
-                agencyList.push(item.agency)
-            }
-        }               
-        agencyList.sort();  
-        res.send(agencyList);
-    }, (e) => {
-        res.status(400).send(e);
-    });
-});
 
 app.post('/Analytics', (req, res) => {
     console.log(req.body)
@@ -428,6 +409,8 @@ app.put('/predictions', (req, res) => {
     //console.log("Added: " + req.body.title);        
 });
 
+
+
 // Put data into mongoDB
 app.put('/agencies', (req, res) => {
     var agency = new Agency ({
@@ -444,8 +427,28 @@ app.put('/agencies', (req, res) => {
 
 // Get total agencies from MongoDB
 app.get('/agencies', (req, res) => {
-    Agency.find().then((preds) => {
-        res.send(preds);
+    Agency.find().then((age) => {
+        res.send(age);
+    }, (e) => {
+        res.status(400).send(e);
+    });
+});
+
+// Get Total Agencies in the solicitations.
+app.get('/AgencyList', (req, res) => {  
+    Prediction.find({'eitLikelihood.value': 'Yes'}).then((preds) => { 
+        var agencyList = []; 
+        var map = new Object();
+        for (let item of preds) 
+        {
+            if (!map.hasOwnProperty(item.agency))
+            {
+                map[item.agency] = item.agency;
+                agencyList.push(item.agency)
+            }
+        }               
+        agencyList.sort();  
+        res.send(agencyList);
     }, (e) => {
         res.status(400).send(e);
     });
