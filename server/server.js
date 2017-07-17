@@ -41,11 +41,205 @@ app.get('/predictions', (req, res) => {
 });
 
 app.get('/ICT', (req, res) => {  
-    Prediction.find({'eitLikelihood.value': 'Yes'}).then((preds) => {
+    Prediction.find({'eitLikelihood.value': 'Yes'}).then((preds) => { 
         res.send(preds);
     }, (e) => {
         res.status(400).send(e);
     });
+});
+
+// Get Total Agencies in the solicitations.
+app.get('/Agencies', (req, res) => {  
+    Prediction.find({'eitLikelihood.value': 'Yes'}).then((preds) => { 
+        var agencyList = []; 
+        var map = new Object();
+        for (let item of preds) 
+        {
+            if (!map.hasOwnProperty(item.agency))
+            {
+                map[item.agency] = item.agency;
+                agencyList.push(item.agency)
+            }
+        }               
+        agencyList.sort();  
+        res.send(agencyList);
+    }, (e) => {
+        res.status(400).send(e);
+    });
+});
+
+app.post('/Analytics', (req, res) => {
+    console.log(req.body)
+    var params = {};
+    
+
+    var fromPeriod = req.body.fromPeriod;
+    var toPeriod = req.body.toPeriod;
+    var agency = req.body.agency;    
+
+    var date = fromPeriod.split('/');
+    var from = new Date(date[2], date[0]-1, date[1]);
+    date = toPeriod.split('/');
+    var to = new Date(date[2], date[0]-1, date[1]);
+
+
+    // getting filter params
+    _.merge(params, {'eitLikelihood.value': 'Yes'});
+ 
+    Prediction.find(params).then((predictions) => {
+
+        var totalICT = 0;
+        var compliance = 0;
+        var uncompliance = 0;
+        var undetermined = 0;
+        var machineReadable = 0;
+        var machineUnreadable = 0;        
+        var updatedCompliantICT = 0;
+        var updatedNonCompliantICT = 0;
+        var email = 0;
+        var review = 0;
+
+        // data for scanned solicitations charts
+        var scannedToDate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 ));
+        var scannedFromDate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 32 ));
+        var scannedData = {};
+
+        // Top Agency section
+        var topAgencies = {};
+        var map = {};
+
+        for (var i = 0; i < predictions.length; i++) {
+            // Filter Section
+            if (new Date(predictions[i].date) > from && 
+                new Date(predictions[i].date) < to && 
+                (agency == predictions[i].agency || agency == "Government-wide"))
+            {         
+                totalICT++;       
+                // only count determined ones
+                if (!predictions[i].undetermined) 
+                {                    
+                    if (predictions[i].predictions.value == "GREEN")  compliance++
+                    else uncompliance++
+                    
+                    //console.log(predictions[i].history);
+                    if (predictions[i].predictions.value == "GREEN" && 
+                        predictions[i].history.filter(function(e){return e["action"].indexOf('Solicitation Updated on FBO.gov') > -1 }).length > 0) 
+                        updatedCompliantICT++;
+                    
+                    if (predictions[i].predictions.value == "RED" && 
+                        predictions[i].history.filter(function(e){return e["action"].indexOf('Solicitation Updated on FBO.gov') > -1 }).length > 0)
+                        updatedNonCompliantICT++;
+
+                    if (predictions[i].history.filter(function(e){return e["action"].indexOf('sent email to POC') > -1}).length > 0)
+                        email++;
+
+                    if (predictions[i].history.filter(function(e){return e["action"].indexOf('reviewed solicitation action requested summary') > -1}).length > 0)
+                        review++;   
+                    
+
+                    /******************************
+                     *   Top Agencies bar chart   *
+                     ******************************/
+
+                    // if filter is Government-wide, we don't need to worry about prediction date.
+                    if (agency == "Government-wide")
+                    {
+                        // Top Agency section                   
+                        if (map[predictions[i].agency] == null)
+                        {                        
+                            map[predictions[i].agency] = 1;
+                            topAgencies[predictions[i].agency] = {};
+                            topAgencies[predictions[i].agency]["name"] = predictions[i].agency;   
+                            topAgencies[predictions[i].agency]["red"] = 0;          
+                            topAgencies[predictions[i].agency]["green"] = 0;      
+                            if (predictions[i].predictions.value == "GREEN") topAgencies[predictions[i].agency]["green"]++;  
+                            else topAgencies[predictions[i].agency]["red"]++ ; 
+
+                        } 
+                        else {
+                            if (predictions[i].predictions.value == "GREEN") topAgencies[predictions[i].agency]["green"]++;
+                            else topAgencies[predictions[i].agency]["red"]++ ; 
+                        }
+                    }
+                    else
+                    {
+                        if (predictions[i].agency == agency)
+                        {   
+                            if (topAgencies[agency] == null) topAgencies[agency] = [predictions[i]];
+                            else topAgencies[agency].push(predictions[i]);                            
+                        }
+                    }                    
+                }
+                else
+                {
+                    undetermined++
+                }
+            }
+
+            // ignore undermined section AND filter                
+            var document = predictions[i].parseStatus.length;
+            for (var j = 0; j < document; j ++)
+            {
+                if (predictions[i].parseStatus[j].status == "successfully parsed") machineReadable++;
+                else machineUnreadable++;
+            }
+             
+            
+            if (new Date(predictions[i].date) > scannedFromDate && new Date(predictions[i].date) < scannedToDate) 
+            {                    
+                var day = +(predictions[i].date.split('/')[0] + predictions[i].date.split('/')[1]);
+                if (scannedData[day] == null) scannedData[day] = 1;
+                else scannedData[day] = scannedData[day] + 1;  
+            }   
+        }
+
+        var analytics = {
+            ScannedSolicitationChart:
+            {
+                scannedData: scannedData,
+            },
+            MachineReadableChart:
+            {
+                machineReadable: machineReadable,
+                machineUnreadable: machineUnreadable
+            },
+            ComplianceRateChart: 
+            {                
+                compliance: compliance,
+                determinedICT: totalICT - undetermined,
+            },
+            ConversionRateChart: 
+            {
+                updatedCompliantICT: updatedCompliantICT,
+                uncompliance: uncompliance,
+            },
+            TopSRTActionChart:
+            {
+                determinedICT: totalICT - undetermined,
+                uncompliance: uncompliance,
+                review: review,
+                email: email,
+                updatedICT: updatedNonCompliantICT + updatedCompliantICT,
+                updatedCompliantICT: updatedCompliantICT,
+                updatedNonCompliantICT: updatedNonCompliantICT
+            },
+            TopAgenciesChart: 
+            {
+                topAgencies: topAgencies
+            },
+            PredictResultChart:
+            {
+                compliance: compliance,
+                uncompliance: uncompliance,
+                undetermined: undetermined
+            }
+        }
+
+        res.send(analytics);
+    }, (e) => {
+        res.status(400).send(e);
+    });
+
 });
 
 // Route to get the selected solicitation for detailed display
