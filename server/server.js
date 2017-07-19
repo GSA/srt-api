@@ -65,8 +65,10 @@ app.post('/Analytics', (req, res) => {
 
 
     // getting filter params
-    _.merge(params, {'eitLikelihood.value': 'Yes'});
+    //_.merge(params, {'eitLikelihood.value': 'Yes'});
  
+    _.merge(params, {"$and":[{"numDocs":{ "$ne":"0"}},{"eitLikelihood.value":"Yes"}]});
+
     Prediction.find(params).then((predictions) => {
 
         var totalICT = 0;
