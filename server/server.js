@@ -67,7 +67,12 @@ app.post('/Analytics', (req, res) => {
     // getting filter params
     //_.merge(params, {'eitLikelihood.value': 'Yes'});
  
-    _.merge(params, {"$and":[{"numDocs":{ "$ne":"0"}},{"eitLikelihood.value":"Yes"}]});
+    _.merge(params, {"$and":
+            [
+                    {"numDocs":{ "$ne":"0"}},
+                    {"eitLikelihood.value":"Yes"},
+                    {"noticeType":{ "$ne":"Presolicitation"}}
+            ]});
 
     Prediction.find(params).then((predictions) => {
 
@@ -84,8 +89,11 @@ app.post('/Analytics', (req, res) => {
 
         // data for scanned solicitations charts
         var scannedToDate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 ));
-        var scannedFromDate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 32 ));
+        var scannedFromDate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 32 ));     
         var scannedData = {};
+        var latestCompliance = 0;
+        var latestUncompliance = 0;
+        var latestUndetermined = 0;
 
         // Top Agency section
         var topAgencies = {};
@@ -104,7 +112,13 @@ app.post('/Analytics', (req, res) => {
                     if (predictions[i].predictions.value == "GREEN")  compliance++
                     else uncompliance++
                     
-                    //console.log(predictions[i].history);
+                    // get latest compliance and noncompliance
+                    if (new Date(predictions[i].date) > scannedFromDate && new Date(predictions[i].date) < scannedToDate) 
+                    {           
+                        if (predictions[i].predictions.value == "GREEN")  latestCompliance++
+                        else latestUncompliance++
+                    }   
+
                     if (predictions[i].predictions.value == "GREEN" && 
                         predictions[i].history.filter(function(e){return e["action"].indexOf('Solicitation Updated on FBO.gov') > -1 }).length > 0) 
                         updatedCompliantICT++;
@@ -155,9 +169,13 @@ app.post('/Analytics', (req, res) => {
                 }
                 else
                 {
+                    // get latest undetermined
+                    if (new Date(predictions[i].date) > scannedFromDate && new Date(predictions[i].date) < scannedToDate) latestUndetermined++;
                     undetermined++
                 }
             }
+
+
 
             // ignore undermined section AND filter                
             var document = predictions[i].parseStatus.length;
@@ -175,7 +193,7 @@ app.post('/Analytics', (req, res) => {
                 else scannedData[day] = scannedData[day] + 1;  
             }   
         }
-
+        console.log(latestUndetermined);
         var analytics = {
             ScannedSolicitationChart:
             {
@@ -212,9 +230,8 @@ app.post('/Analytics', (req, res) => {
             },
             PredictResultChart:
             {
-                compliance: compliance,
-                uncompliance: uncompliance,
-                undetermined: undetermined
+                compliance: latestCompliance,
+                uncompliance: latestUncompliance
             }
         }
 
