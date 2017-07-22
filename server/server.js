@@ -71,7 +71,7 @@ app.post('/Analytics', (req, res) => {
             [
                     {"numDocs":{ "$ne":"0"}},
                     {"eitLikelihood.value":"Yes"},
-                    {"noticeType":{ "$ne":"Presolicitation"}}
+                    {"noticeType":{ "$ne":"Presolicitation"}} 
             ]});
 
     Prediction.find(params).then((predictions) => {
