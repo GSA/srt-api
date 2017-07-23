@@ -50,9 +50,7 @@ app.get('/ICT', (req, res) => {
 
 
 app.post('/Analytics', (req, res) => {
-    console.log(req.body)
     var params = {};
-    
 
     var fromPeriod = req.body.fromPeriod;
     var toPeriod = req.body.toPeriod;
@@ -64,177 +62,330 @@ app.post('/Analytics', (req, res) => {
     var to = new Date(date[2], date[0]-1, date[1]);
 
 
-    // getting filter params
-    //_.merge(params, {'eitLikelihood.value': 'Yes'});
- 
-    _.merge(params, {"$and":
-            [
-                    {"numDocs":{ "$ne":"0"}},
-                    {"eitLikelihood.value":"Yes"},
-                    {"noticeType":{ "$ne":"Presolicitation"}} 
-            ]});
+    var scannedToDate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 ));
+    var scannedFromDate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 32 )); 
+
+    _.merge(params, {"eitLikelihood.value":"Yes"});
 
     Prediction.find(params).then((predictions) => {
+        var timer1 = new Date().getMilliseconds();
 
-        var totalICT = 0;
-        var compliance = 0;
-        var uncompliance = 0;
-        var undetermined = 0;
-        var machineReadable = 0;
-        var machineUnreadable = 0;        
-        var updatedCompliantICT = 0;
-        var updatedNonCompliantICT = 0;
-        var email = 0;
-        var review = 0;
+        var data = {
+            // Total number of ICT
+            TotalICT: predictions.length,
+            LatestICT: 0,
+            // Number of ICT Presolicitation
+            TotalPresolicitation: 0,
+            LatestPresolicitation: 0,
+            // Number of ICT Non Presolicitation
+            TotalNonPresolicitation: 0,
+            LatestNonPresolicitation: 0,
+            // Nmber of 0 document solicitation
+            TotalNoDocumentSolicitation: 0,
+            LatestNoDocumentSolicitation: 0,
+            // Nmber of 0 document solicitation Green
+            TotalNoDocumentSolicitation_GREEN: 0,
+            LatestNoDocumentSolicitation_GREEN: 0,
+            // Nmber of 0 document solicitation Red
+            TotalNoDocumentSolicitation_RED: 0,
+            LatestNoDocumentSolicitation_RED: 0,
+            // Number of other undetermined solicitation
+            TotalOtherUndeterminedSolicitation: 0,
+            LatestOtherUndeterminedSolicitation: 0,
+            // Number of other undetermined solicitation Green
+            TotalOtherUndeterminedSolicitation_GREEN: 0,
+            LatestOtherUndeterminedSolicitation_GREEN: 0,
+            // Number of other undetermined solicitation Red
+            TotalOtherUndeterminedSolicitation_RED: 0,
+            LatestOtherUndeterminedSolicitation_RED: 0,
+            // Number of machine readable document
+            TotalMachineReadableDocument: 0,
+            LatestMachineReadableDocument: 0,
+            // Number of machine unreadable document
+            TotalMachineUnreadableDocument: 0,
+            LatestMachineUnreadableDocument: 0,
+            // Number of machine unreadable solicitation
+            TotalMachineUnreadableSolicitation: 0,
+            LatestMachineUnreadableSolicitation: 0,
+            // Number of machine unreadable red solicitation
+            TotalMachineUnreadableSolicitation_RED: 0,
+            LatestMachineUnreadableSolicitation_RED: 0,
+            // Number of machine unreadable green solicitation
+            TotalMachineUnreadableSolicitation_GREEN: 0,
+            LatestMachineUnreadableSolicitation_GREEN : 0,
+            // Number of Undetermined Solicitation
+            TotalUndeterminedSolicitation: 0,
+            LatestUndeterminedSolicitation: 0,
 
-        // data for scanned solicitations charts
-        var scannedToDate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 ));
-        var scannedFromDate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 32 ));     
-        var scannedData = {};
-        var latestCompliance = 0;
-        var latestUncompliance = 0;
-        var latestUndetermined = 0;
+            // Number of Compliance
+            TotalComplianceSolicitation: 0,
+            LatestComplianceSolicitation: 0,
+            FilteredComplianceSolicitation: 0,
+            // Number of Non Compliance
+            TotalNonComplianceSolicitation: 0,
+            LatestNonComplianceSolicitation: 0,
+            FilteredNonComplianceSolicitation: 0,
 
-        // Top Agency section
-        var topAgencies = {};
+            // Update
+            LatestUpdateCompliance: 0,
+            LatestUpdateNonCompliance: 0,
+            LatestEmail: 0,
+            LatestReview: 0,
+
+            // Scanned Data
+            ScannedSolicitation: {},
+
+            // Top Agency
+            topAgencies : {},
+
+        } 
         var map = {};
+        
+        // Start for loop
+        for (var i = 0; i < data.TotalICT; i++) {
 
-        for (var i = 0; i < predictions.length; i++) {
-            // Filter Section
-            if (new Date(predictions[i].date) > from && 
-                new Date(predictions[i].date) < to && 
-                (agency == predictions[i].agency || agency == "Government-wide"))
-            {         
-                totalICT++;       
-                // only count determined ones
-                if (!predictions[i].undetermined) 
-                {                    
-                    if (predictions[i].predictions.value == "GREEN")  compliance++
-                    else uncompliance++
-                    
-                    // get latest compliance and noncompliance
-                    if (new Date(predictions[i].date) > scannedFromDate && new Date(predictions[i].date) < scannedToDate) 
-                    {           
-                        if (predictions[i].predictions.value == "GREEN")  latestCompliance++
-                        else latestUncompliance++
-                    }   
+            var latest = new Date(predictions[i].date) > scannedFromDate && new Date(predictions[i].date) < scannedToDate;
+            
+            if (latest) data.LatestICT++;
 
-                    if (predictions[i].predictions.value == "GREEN" && 
-                        predictions[i].history.filter(function(e){return e["action"].indexOf('Solicitation Updated on FBO.gov') > -1 }).length > 0) 
-                        updatedCompliantICT++;
-                    
-                    if (predictions[i].predictions.value == "RED" && 
-                        predictions[i].history.filter(function(e){return e["action"].indexOf('Solicitation Updated on FBO.gov') > -1 }).length > 0)
-                        updatedNonCompliantICT++;
+            if (predictions[i].noticeType != 'Presolicitation' && predictions[i].noticeType != 'Special Notice')
+            {
+                if (latest) data.LatestNonPresolicitation++;
+                data.TotalNonPresolicitation++;
 
-                    if (predictions[i].history.filter(function(e){return e["action"].indexOf('sent email to POC') > -1}).length > 0)
-                        email++;
 
-                    if (predictions[i].history.filter(function(e){return e["action"].indexOf('reviewed solicitation action requested summary') > -1}).length > 0)
-                        review++;   
-                    
-
-                    /******************************
-                     *   Top Agencies bar chart   *
-                     ******************************/
-
-                    // if filter is Government-wide, we don't need to worry about prediction date.
-                    if (agency == "Government-wide")
+                if (predictions[i].parseStatus.length != 0)
+                {
+                    // Machine Readable Document
+                    for (var j = 0; j < predictions[i].parseStatus.length; j ++)
                     {
-                        // Top Agency section                   
-                        if (map[predictions[i].agency] == null)
-                        {                        
-                            map[predictions[i].agency] = 1;
-                            topAgencies[predictions[i].agency] = {};
-                            topAgencies[predictions[i].agency]["name"] = predictions[i].agency;   
-                            topAgencies[predictions[i].agency]["red"] = 0;          
-                            topAgencies[predictions[i].agency]["green"] = 0;      
-                            if (predictions[i].predictions.value == "GREEN") topAgencies[predictions[i].agency]["green"]++;  
-                            else topAgencies[predictions[i].agency]["red"]++ ; 
-
-                        } 
-                        else {
-                            if (predictions[i].predictions.value == "GREEN") topAgencies[predictions[i].agency]["green"]++;
-                            else topAgencies[predictions[i].agency]["red"]++ ; 
+                        if (latest)
+                        {
+                            if (predictions[i].parseStatus[j].status == "successfully parsed") data.LatestMachineReadableDocument++;
+                            else data.LatestMachineUnreadableDocument++;
                         }
+                        if (predictions[i].parseStatus[j].status == "successfully parsed") data.TotalMachineReadableDocument++;
+                        else data.TotalMachineUnreadableDocument++;
+
+                    }
+
+                    for (var j = 0; j < predictions[i].parseStatus.length; j ++)
+                    {   
+                        // Non machine readable solictations
+                        if (predictions[i].parseStatus[j].status == "processing error") 
+                        {
+
+                            if (predictions[i].predictions.value=='RED')
+                            {
+                                if (latest) data.LatestMachineUnreadableSolicitation_RED++;
+                                data.TotalMachineUnreadableSolicitation_RED++;
+                            }
+                            else
+                            {   
+                                if (latest) data.LatestMachineUnreadableSolicitation_GREEN++;
+                                data.TotalMachineUnreadableSolicitation_GREEN++;
+                            }
+                            if (latest) data.LatestMachineUnreadableSolicitation++;
+                            data.TotalMachineUnreadableSolicitation++; 
+                            break
+                        }
+
+                    }   
+                    
+                } 
+                else if (predictions[i].parseStatus.length == 0 && predictions[i].numDocs == '0')
+                {
+                    if (predictions[i].predictions.value=='RED')
+                    {
+                        if (latest) data.LatestNoDocumentSolicitation_RED++;
+                        data.TotalNoDocumentSolicitation_RED++;
                     }
                     else
+                    {   
+                        if (latest) data.LatestNoDocumentSolicitation_GREEN++;
+                        data.TotalNoDocumentSolicitation_GREEN++;
+                    }
+                    if (latest) data.LatestNoDocumentSolicitation++;
+                    data.TotalNoDocumentSolicitation++;
+                }
+                else 
+                {
+                    if (predictions[i].predictions.value=='RED')
                     {
-                        if (predictions[i].agency == agency)
-                        {   
-                            if (topAgencies[agency] == null) topAgencies[agency] = [predictions[i]];
-                            else topAgencies[agency].push(predictions[i]);                            
-                        }
-                    }                    
+                        if (latest) data.LatestOtherUndeterminedSolicitation_RED++;
+                        data.TotalOtherUndeterminedSolicitation_RED++;
+                    }
+                    else
+                    {   
+                        if (latest) data.LatestOtherUndeterminedSolicitation_GREEN++;
+                        data.TotalOtherUndeterminedSolicitation_GREEN++;
+                    }
+                    if (latest) data.LatestOtherUndeterminedSolicitation++;
+                    data.TotalOtherUndeterminedSolicitation++;
+                }
+            
+
+                if (!predictions[i].undetermined) 
+                {
+
+                    // precition result chart
+                    if (latest)
+                    {
+                        if (predictions[i].predictions.value == "GREEN")  data.LatestComplianceSolicitation++
+                        else data.LatestNonComplianceSolicitation++
+                    }
+                    if (predictions[i].predictions.value == "GREEN")  data.TotalComplianceSolicitation++
+                    else data.TotalNonComplianceSolicitation++
+                    
+                     // scanned solicitation chart
+                    if (latest)
+                    {
+                        var day = +(predictions[i].date.split('/')[0] + predictions[i].date.split('/')[1]);
+                        if (data.ScannedSolicitation[day] == null) data.ScannedSolicitation[day] = 1;
+                        else data.ScannedSolicitation[day] = data.ScannedSolicitation[day] + 1;  
+                    }
+
                 }
                 else
                 {
-                    // get latest undetermined
-                    if (new Date(predictions[i].date) > scannedFromDate && new Date(predictions[i].date) < scannedToDate) latestUndetermined++;
-                    undetermined++
+                    if (latest) data.LatestUndeterminedSolicitation++;
+                    data.TotalUndeterminedSolicitation++;
                 }
+
+
+                // Filter Section
+                if (new Date(predictions[i].date) > from && 
+                    new Date(predictions[i].date) < to && 
+                    (agency == predictions[i].agency || agency == "Government-wide"))
+                {              
+
+                    if (!predictions[i].undetermined) 
+                    {                    
+
+                        if (predictions[i].predictions.value == "GREEN")  data.FilteredComplianceSolicitation++
+                        else data.FilteredNonComplianceSolicitation++
+
+                        if (predictions[i].predictions.value == "GREEN" && 
+                            predictions[i].history.filter(function(e){return e["action"].indexOf('Solicitation Updated on FBO.gov') > -1 }).length > 0) 
+                            data.LatestUpdateCompliance++
+                        
+                        if (predictions[i].predictions.value == "RED" && 
+                            predictions[i].history.filter(function(e){return e["action"].indexOf('Solicitation Updated on FBO.gov') > -1 }).length > 0)
+                            data.LatestUpdateNonCompliance++
+
+                        if (predictions[i].history.filter(function(e){return e["action"].indexOf('sent email to POC') > -1}).length > 0)
+                            data.LatestEmail++;
+
+                        if (predictions[i].history.filter(function(e){return e["action"].indexOf('reviewed solicitation action requested summary') > -1}).length > 0)
+                            data.LatestReview++;
+                        
+
+                        /******************************
+                         *   Top Agencies bar chart   *
+                         ******************************/
+                        // if filter is Government-wide, we don't need to worry about prediction date.
+                        if (agency == "Government-wide")
+                        {
+                            // Top Agency section                   
+                            if (map[predictions[i].agency] == null)
+                            {                        
+                                map[predictions[i].agency] = 1;
+                                data.topAgencies[predictions[i].agency] = {};
+                                data.topAgencies[predictions[i].agency]["name"] = predictions[i].agency;   
+                                data.topAgencies[predictions[i].agency]["red"] = 0;          
+                                data.topAgencies[predictions[i].agency]["green"] = 0;      
+                                if (predictions[i].predictions.value == "GREEN") data.topAgencies[predictions[i].agency]["green"]++;  
+                                else data.topAgencies[predictions[i].agency]["red"]++ ; 
+
+                            } 
+                            else {
+                                if (predictions[i].predictions.value == "GREEN") data.topAgencies[predictions[i].agency]["green"]++;
+                                else data.topAgencies[predictions[i].agency]["red"]++ ; 
+                            }
+                        }
+                        else
+                        {
+
+                            if (predictions[i].agency == agency)
+                            {   
+                                if (data.topAgencies[agency] == null) data.topAgencies[agency] = [predictions[i]];
+                                else data.topAgencies[agency].push(predictions[i]);                            
+                            }
+                        }                    
+                    }
+                }
+
             }
-
-
-
-            // ignore undermined section AND filter                
-            var document = predictions[i].parseStatus.length;
-            for (var j = 0; j < document; j ++)
+            else
             {
-                if (predictions[i].parseStatus[j].status == "successfully parsed") machineReadable++;
-                else machineUnreadable++;
+                if (latest) data.LatestPresolicitation++;
+                data.TotalPresolicitation++;
             }
-             
             
-            if (new Date(predictions[i].date) > scannedFromDate && new Date(predictions[i].date) < scannedToDate) 
-            {                    
-                var day = +(predictions[i].date.split('/')[0] + predictions[i].date.split('/')[1]);
-                if (scannedData[day] == null) scannedData[day] = 1;
-                else scannedData[day] = scannedData[day] + 1;  
-            }   
+            
         }
-        console.log(latestUndetermined);
+       
         var analytics = {
             ScannedSolicitationChart:
             {
-                scannedData: scannedData,
+                scannedData: data.ScannedSolicitation,
             },
             MachineReadableChart:
             {
-                machineReadable: machineReadable,
-                machineUnreadable: machineUnreadable
+                machineReadable: data.LatestMachineReadableDocument,
+                machineUnreadable: data.LatestMachineUnreadableDocument
             },
             ComplianceRateChart: 
             {                
-                compliance: compliance,
-                determinedICT: totalICT - undetermined,
+                compliance: data.FilteredComplianceSolicitation,
+                determinedICT: data.FilteredComplianceSolicitation + data.FilteredNonComplianceSolicitation
             },
             ConversionRateChart: 
             {
-                updatedCompliantICT: updatedCompliantICT,
-                uncompliance: uncompliance,
+                updatedCompliantICT: data.LatestUpdateCompliance,
+                uncompliance: data.FilteredNonComplianceSolicitation,
             },
             TopSRTActionChart:
             {
-                determinedICT: totalICT - undetermined,
-                uncompliance: uncompliance,
-                review: review,
-                email: email,
-                updatedICT: updatedNonCompliantICT + updatedCompliantICT,
-                updatedCompliantICT: updatedCompliantICT,
-                updatedNonCompliantICT: updatedNonCompliantICT
+                determinedICT: data.FilteredComplianceSolicitation + data.FilteredNonComplianceSolicitation,
+                uncompliance: data.FilteredNonComplianceSolicitation,
+                review: data.LatestReview,
+                email: data.LatestEmail,
+                updatedICT: data.LatestUpdateCompliance + data.LatestUpdateNonCompliance,
+                updatedCompliantICT: data.LatestUpdateCompliance,
+                updatedNonCompliantICT: data.LatestUpdateNonCompliance
             },
             TopAgenciesChart: 
             {
-                topAgencies: topAgencies
+                topAgencies: data.topAgencies
             },
             PredictResultChart:
             {
-                compliance: latestCompliance,
-                uncompliance: latestUncompliance
-            }
+                compliance: data.LatestComplianceSolicitation,
+                uncompliance: data.LatestNonComplianceSolicitation
+            },
+            UndeterminedSolicitationChart:
+            {
+                presolicitation: data.LatestPresolicitation,
+                latestOtherUndetermined: data.LatestOtherUndeterminedSolicitation,
+                latestNonMachineReadable: data.LatestMachineUnreadableSolicitation_RED,
+                latestNoDocument: data.LatestNoDocumentSolicitation
+            },
+            // test:
+            // {
+            //     TotalICT: predictions.length,
+                
+            //     latestCompliance: latestCompliance,
+            //     latestUncompliance: latestUncompliance,
+            //     latestPresolicitation: latestPresolicitation,
+            //     latestUndetermined: latestUndetermined,
+            //     latestNonMachineReadable: latestNonMachineReadable,
+            //     latestNoDocument: latestNoDocument,
+            //     latestOtherUndetermined: latestOtherUndetermined 
+            // }
         }
-
+        var timer2 = new Date().getMilliseconds();
+        console.log(timer2 - timer1);
         res.send(analytics);
     }, (e) => {
         res.status(400).send(e);
