@@ -386,6 +386,7 @@ app.post('/Analytics', (req, res) => {
         }
         var timer2 = new Date().getMilliseconds();
         console.log(timer2 - timer1);
+        console.log(data);
         res.send(analytics);
     }, (e) => {
         res.status(400).send(e);
