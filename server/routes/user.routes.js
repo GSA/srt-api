@@ -80,6 +80,24 @@ router.post('/', (req, res, next) => {
     });
   });
 
+  router.post('/tokenCheck', function(req, res) {    
+    var token = req.body.token;    
+    var isLogin = false;
+    jwt.verify(token, 'innovation', function(err, decoded) {
+      if (err) {
+          isLogin = false;
+      }
+      else 
+      {
+        isLogin = true;
+      }
+      res.status(200).json({
+          isLogin: isLogin
+      });
+    });
+  })
+    
+
   // GetUsers()
   router.post('/filter', function (req, res)  {
 

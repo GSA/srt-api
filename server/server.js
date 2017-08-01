@@ -156,6 +156,8 @@ app.post('/Analytics', (req, res) => {
 
                 if (predictions[i].parseStatus.length != 0)
                 {
+
+                    if (predictions[i].parseStatus.length != Number(predictions[i].numDocs)) console.log(predictions[i].solNum);
                     // Machine Readable Document
                     for (var j = 0; j < predictions[i].parseStatus.length; j ++)
                     {
@@ -210,6 +212,7 @@ app.post('/Analytics', (req, res) => {
                 }
                 else 
                 {
+                    
                     if (predictions[i].predictions.value=='RED')
                     {
                         if (latest) data.LatestOtherUndeterminedSolicitation_RED++;
