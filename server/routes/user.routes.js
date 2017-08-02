@@ -55,13 +55,20 @@ router.post('/', (req, res, next) => {
       if (!user) {
         return res.status(401).json({
           title: 'Login failed',
-          error: {message: 'Invalid login credentials'}
+          error: {message: 'Invalid user Email Address or Password.'}
         });
       }
       if (!bcrypt.compareSync(req.body.password, user.password)) {
         return res.status(401).json({
           title: 'Login failed',
-          error: {message: 'Invalid login credentials'}
+          error: {message: 'Invalid user Email Address or Password.'}
+        });
+      }
+
+      if (!user.isAccepted) {
+        return res.status(401).json({
+          title: 'Login failed',
+          error: {message: 'Your account has not been approved, please wait for Administrator Approval.'}
         });
       }
 
