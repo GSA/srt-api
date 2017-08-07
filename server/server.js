@@ -439,8 +439,10 @@ app.post('/solicitation', (req, res) => {
 // This post is used to get the data from Mongo
 // Filter is used to ensure a user is only able to see their agency data
 app.post('/predictions/filter', (req, res) => {
-    var filterParams = {};
-    var agency = req.body.agency;
+    var filterParams = {
+        'eitLikelihood.value': 'Yes'
+    };
+    var agency = req.body.agency.split(' (')[0];
     var office = req.body.office;
     var contactInfo = req.body.contactInfo;
     var solNum = req.body.solNum;
@@ -478,8 +480,8 @@ app.post('/predictions/filter', (req, res) => {
       _.merge(filterParams, {parseStatus: parseStatus});
     }
 
-    
-    Prediction.find({'eitLikelihood.value': 'Yes'}).then((predictions) => {
+    console.log(filterParams)
+    Prediction.find(filterParams).then((predictions) => {
       res.send(predictions);
     }, (e) => {
       res.status(400).send(e);
