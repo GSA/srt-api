@@ -56,11 +56,18 @@ app.post('/Analytics', (req, res) => {
     var toPeriod = req.body.toPeriod;
     var agency = req.body.agency;    
 
-    var date = fromPeriod.split('/');
-    var from = new Date(date[2], date[0]-1, date[1]);
-    date = toPeriod.split('/');
-    var to = new Date(date[2], date[0]-1, date[1]);
+    var date = fromPeriod.split('/');    
+    console.log(Number(date[2]));
+    console.log(Number(date[0]));
+    console.log(Number(date[1]));
+    //var from = new Date(date[2], date[0], date[1]);
+    var from = new Date(1900,1,1);    
+    console.log(from);
 
+    date = toPeriod.split('/');
+    //var to = new Date(date[2], date[0], date[1]);    
+    var to = new Date(2100,1,1);
+    console.log(to);
 
     var scannedToDate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 ));
     var scannedFromDate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 32 )); 
@@ -157,7 +164,8 @@ app.post('/Analytics', (req, res) => {
                 if (predictions[i].parseStatus.length != 0)
                 {
 
-                    if (predictions[i].parseStatus.length != Number(predictions[i].numDocs)) console.log(predictions[i].solNum);
+                    // if (predictions[i].parseStatus.length != Number(predictions[i].numDocs)) console.log(predictions[i].solNum);
+
                     // Machine Readable Document
                     for (var j = 0; j < predictions[i].parseStatus.length; j ++)
                     {
@@ -254,14 +262,12 @@ app.post('/Analytics', (req, res) => {
                     if (latest) data.LatestUndeterminedSolicitation++;
                     data.TotalUndeterminedSolicitation++;
                 }
-
-
                 // Filter Section
                 if (new Date(predictions[i].date) > from && 
                     new Date(predictions[i].date) < to && 
                     (agency == predictions[i].agency || agency == "Government-wide"))
                 {              
-
+                    console.log("Filter Section")
                     if (!predictions[i].undetermined) 
                     {                    
 
