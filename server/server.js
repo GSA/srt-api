@@ -55,19 +55,11 @@ app.post('/Analytics', (req, res) => {
     var fromPeriod = req.body.fromPeriod;
     var toPeriod = req.body.toPeriod;
     var agency = req.body.agency;    
-
-    var date = fromPeriod.split('/');    
-    console.log(Number(date[2]));
-    console.log(Number(date[0]));
-    console.log(Number(date[1]));
-    //var from = new Date(date[2], date[0], date[1]);
-    var from = new Date(1900,1,1);    
-    console.log(from);
-
+    var date = fromPeriod.split('/');   
+    var from = new Date(date[2], date[0] - 1, date[1]);
+    
     date = toPeriod.split('/');
-    //var to = new Date(date[2], date[0], date[1]);    
-    var to = new Date(2100,1,1);
-    console.log(to);
+    var to = new Date(date[2], date[0] - 1, date[1]); 
 
     var scannedToDate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 ));
     var scannedFromDate = new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 32 )); 
@@ -267,7 +259,6 @@ app.post('/Analytics', (req, res) => {
                     new Date(predictions[i].date) < to && 
                     (agency == predictions[i].agency || agency == "Government-wide"))
                 {              
-                    console.log("Filter Section")
                     if (!predictions[i].undetermined) 
                     {                    
 
@@ -393,9 +384,6 @@ app.post('/Analytics', (req, res) => {
             //     latestOtherUndetermined: latestOtherUndetermined 
             // }
         }
-        // var timer2 = new Date().getMilliseconds();
-        // console.log(timer2 - timer1);
-        // console.log(data);
         res.send(analytics);
     }, (e) => {
         res.status(400).send(e);
@@ -480,7 +468,6 @@ app.post('/predictions/filter', (req, res) => {
       _.merge(filterParams, {parseStatus: parseStatus});
     }
 
-    console.log(filterParams)
     Prediction.find(filterParams).then((predictions) => {
       res.send(predictions);
     }, (e) => {
@@ -536,8 +523,6 @@ app.put('/predictions', (req, res) => {
         
         if (solicitation) 
         {   
-            // console.log("find one " + req.body.solNum);
-            // console.log("updated: " + req.body.title);
             // Update the solicitation fields with new FBO data  
             var r = solicitation.history.push({'date': req.body.date, 'action': 'Solicitation Updated on FBO.gov', 'user': '', 'status' : 'Solicitation Updated on FBO.gov'});
             req.body.history = solicitation.history;
@@ -553,7 +538,6 @@ app.put('/predictions', (req, res) => {
         else 
         {
           
-            // console.log("Added: " + req.body.title);
             var history= [];
             var r = history.push({'date': req.body.date, 'action': 'Pending Section 508 Coordinator review', 'user': '', 'status' : 'Pending Section 508 Coordinator Review'});
 
@@ -587,8 +571,7 @@ app.put('/predictions', (req, res) => {
                 res.status(400).send(e);
             });
         }
-    })
-    //console.log("Added: " + req.body.title);        
+    })     
 });
 
 

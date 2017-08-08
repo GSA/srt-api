@@ -13,7 +13,7 @@ var User = require('../models/user.js');
 router.post('/', (req, res, next) => {
   var now = new Date().toLocaleDateString();
   // User is a mongoose schema used to enforce data being entered into Mongo
-  // console.log(req.body);
+
   var srt_user = new User({
     firstName: req.body.firstName,
     lastName: req.body.lastName,
@@ -28,7 +28,6 @@ router.post('/', (req, res, next) => {
     creationDate: now
   });
 
-  // console.log(srt_user);
   srt_user.save((err, result) => { // saves user to Mongo
     if (err) {
       return res.status(500).json({
@@ -46,7 +45,6 @@ router.post('/', (req, res, next) => {
   router.post('/login', (req, res, next) => {
     User.findOne({email: req.body.email}, (err, user) => {      
       if (err) {
-        console.log("err")
         return res.status(500).json({
           title: 'An error occurred',
           error: err
