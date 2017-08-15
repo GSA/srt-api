@@ -528,7 +528,6 @@ app.put('/predictions', (req, res) => {
             req.body.history = solicitation.history;
             req.body.actionStatus = 'Solicitation Updated on FBO.gov';
             req.body.actionDate = req.body.date
-            // if(solicitation.solNum == '08012016') console.log('Find it')
             Prediction.update({solNum: req.body.solNum}, req.body).then((doc) => {
                 res.send(doc);
             }, (e) => {
