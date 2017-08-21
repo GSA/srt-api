@@ -428,8 +428,15 @@ app.post('/solicitation', (req, res) => {
 // Filter is used to ensure a user is only able to see their agency data
 app.post('/predictions/filter', (req, res) => {
     var filterParams = {
-        'eitLikelihood.value': 'Yes'
-    };
+        "$and": [
+        {'eitLikelihood.value': 'Yes'}, 
+        {'noticeType': {'$ne': 'Presolicitation'}},
+        {'noticeType': {'$ne': 'Special Notice'}},
+    
+    ]};
+    
+
+    
     var agency = req.body.agency.split(' (')[0];
     var office = req.body.office;
     var contactInfo = req.body.contactInfo;
@@ -617,6 +624,10 @@ app.get('/AgencyList', (req, res) => {
         res.status(400).send(e);
     });
 });
+
+
+
+
 
 // Put data into mongoDB
 app.put('/surveys', (req, res) => {
