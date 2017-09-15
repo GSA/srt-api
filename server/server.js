@@ -400,6 +400,8 @@ app.get('/solicitation/:id', (req, res) => {
     });
 });
 
+
+
 // Route to update the history when email is sent to PoC
 app.post('/solicitation', (req, res) => {
 
@@ -424,6 +426,15 @@ app.post('/solicitation', (req, res) => {
     })
 });
 
+// Get feedback 
+app.post('/solicitation/feedback', (req, res) => {
+    Prediction.find(req.body).then((predictions) => {
+        res.send(predictions);
+      }, (e) => {
+        res.status(400).send(e);
+      });
+})
+
 // This post is used to get the data from Mongo
 // Filter is used to ensure a user is only able to see their agency data
 app.post('/predictions/filter', (req, res) => {
@@ -431,8 +442,7 @@ app.post('/predictions/filter', (req, res) => {
         "$and": [
         {'eitLikelihood.value': 'Yes'}, 
         {'noticeType': {'$ne': 'Presolicitation'}},
-        {'noticeType': {'$ne': 'Special Notice'}},
-    
+        {'noticeType': {'$ne': 'Special Notice'}},    
     ]};
     
 

@@ -71,6 +71,7 @@ router.post('/', (req, res, next) => {
       }
 
       var token = jwt.sign({user: user}, 'innovation', {expiresIn: 7200}); // token is good for 2 hours
+     
       res.status(200).json({
           message: 'Successfully logged in',
           token: token,
@@ -89,16 +90,23 @@ router.post('/', (req, res, next) => {
   router.post('/tokenCheck', function(req, res) {    
     var token = req.body.token;    
     var isLogin = false;
+    var isGSAAdmin = false;
     jwt.verify(token, 'innovation', function(err, decoded) {
       if (err) {
-          isLogin = false;
+          isLogin = false;          
       }
       else 
       {
+        var tokenInfo = jwt.decode(token);
         isLogin = true;
+        if (token.user)
+        {
+          isGSAAdmin = tokenInfo.user.userRole == "Administrator" && tokenInfo.user.agency.indexOf("General Services Administration") > -1;
+        }       
       }
       res.status(200).json({
-          isLogin: isLogin
+          isLogin: isLogin,
+          isGSAAdmin: isGSAAdmin
       });
     });
   })
