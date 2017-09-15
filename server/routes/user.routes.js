@@ -99,10 +99,9 @@ router.post('/', (req, res, next) => {
       {
         var tokenInfo = jwt.decode(token);
         isLogin = true;
-        if (token.user)
-        {
-          
-          isGSAAdmin = (tokenInfo.user.userRole == "Administrator" || tokenInfo.user.userRole == "SRT Program Manager") && tokenInfo.user.agency.indexOf("General Services Administration") > -1;
+        if (tokenInfo.user)
+        {          
+          isGSAAdmin = (tokenInfo.user.userRole == "Administrator" || tokenInfo.user.userRole == "SRT Program Manager ") && tokenInfo.user.agency.indexOf("General Services Administration") > -1;         
         }       
       }
       res.status(200).json({
