@@ -101,7 +101,8 @@ router.post('/', (req, res, next) => {
         isLogin = true;
         if (token.user)
         {
-          isGSAAdmin = tokenInfo.user.userRole == "Administrator" && tokenInfo.user.agency.indexOf("General Services Administration") > -1;
+          
+          isGSAAdmin = (tokenInfo.user.userRole == "Administrator" || tokenInfo.user.userRole == "SRT Program Manager") && tokenInfo.user.agency.indexOf("General Services Administration") > -1;
         }       
       }
       res.status(200).json({
