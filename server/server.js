@@ -32,6 +32,9 @@ app.use(function (req, res, next) {
 app.use('/user', userRoutes);
 app.use('/email', emailRoutes);
 
+/**
+ * Get total predictions
+ */
 app.get('/predictions', (req, res) => {  
     Prediction.find().then((preds) => {
         res.send(preds);
@@ -40,6 +43,9 @@ app.get('/predictions', (req, res) => {
     });
 });
 
+/**
+ * Get total ICT solicitation
+ */
 app.get('/ICT', (req, res) => {  
     Prediction.find({'eitLikelihood.value': 'Yes'}).then((preds) => { 
         res.send(preds);
@@ -48,7 +54,9 @@ app.get('/ICT', (req, res) => {
     });
 });
 
-
+/**
+ * Get analytic result
+ */
 app.post('/Analytics', (req, res) => {
     var params = {};
 
@@ -391,7 +399,9 @@ app.post('/Analytics', (req, res) => {
 
 });
 
-// Route to get the selected solicitation for detailed display
+/**
+ * route tp get the selected solicitation for detailed display
+ */
 app.get('/solicitation/:id', (req, res) => {
     Prediction.findById(req.params.id).then((solicitation) => {
         res.send(solicitation);
@@ -401,8 +411,9 @@ app.get('/solicitation/:id', (req, res) => {
 });
 
 
-
-// Route to update the history when email is sent to PoC
+/**
+ * Update a history list of selected solicitation
+ */
 app.post('/solicitation', (req, res) => {
 
     var status =  req.body.history.filter(function(e){
@@ -410,7 +421,6 @@ app.post('/solicitation', (req, res) => {
     })
 
     Prediction.findById(req.body._id).then((solicitation) => {
-        // update history 
         solicitation.history = req.body.history;   
         solicitation.feedback = req.body.feedback;
         if (status.length > 1) 
@@ -426,7 +436,9 @@ app.post('/solicitation', (req, res) => {
     })
 });
 
-// Get feedback 
+/**
+ * Get soliciation feedback
+ */
 app.post('/solicitation/feedback', (req, res) => {
     Prediction.find(req.body).then((predictions) => {
         res.send(predictions);
@@ -435,17 +447,16 @@ app.post('/solicitation/feedback', (req, res) => {
       });
 })
 
-// This post is used to get the data from Mongo
-// Filter is used to ensure a user is only able to see their agency data
+/**
+ * Get Filtered prediction data
+ */
 app.post('/predictions/filter', (req, res) => {
     var filterParams = {
         "$and": [
         {'eitLikelihood.value': 'Yes'}, 
         {'noticeType': {'$ne': 'Presolicitation'}},
         {'noticeType': {'$ne': 'Special Notice'}},    
-    ]};
-    
-
+    ]};   
     
     var agency = req.body.agency.split(' (')[0];
     var office = req.body.office;
@@ -493,6 +504,9 @@ app.post('/predictions/filter', (req, res) => {
 
 });
 
+/**
+ * 
+ */
 app.post('/predictions', (req, res) => {
     var pred = new Prediction({
         solNum: req.body.solNum,
@@ -523,76 +537,77 @@ app.post('/predictions', (req, res) => {
     });
 });
 
-
+/**
+ * Insert new predictions to database
+ */
 app.put('/predictions', (req, res) => {
 
     var now = new Date().toLocaleDateString();
 
     Prediction.findOne({solNum:req.body.solNum}, function (err, solicitation) {
+
+    if (err)
+    {
+        console.log("error on put prediction");
+        res.send(err);    
+    }
+                
+    
+    if (solicitation) 
+    {   
+        // Update the solicitation fields with new FBO data  
+        var r = solicitation.history.push({'date': req.body.date, 'action': 'Solicitation Updated on FBO.gov', 'user': '', 'status' : 'Solicitation Updated on FBO.gov'});
+        req.body.history = solicitation.history;
+        req.body.actionStatus = 'Solicitation Updated on FBO.gov';
+        req.body.actionDate = req.body.date
+        Prediction.update({solNum: req.body.solNum}, req.body).then((doc) => {
+            res.send(doc);
+        }, (e) => {
+            res.status(400).send(e);
+        })
+    } 
+    else 
+    {
         
+        var history= [];
+        var r = history.push({'date': req.body.date, 'action': 'Pending Section 508 Coordinator review', 'user': '', 'status' : 'Pending Section 508 Coordinator Review'});
 
-        if (err)
-        {
-            console.log("error on put prediction");
-            res.send(err);    
-        }
-                  
-        
-        if (solicitation) 
-        {   
-            // Update the solicitation fields with new FBO data  
-            var r = solicitation.history.push({'date': req.body.date, 'action': 'Solicitation Updated on FBO.gov', 'user': '', 'status' : 'Solicitation Updated on FBO.gov'});
-            req.body.history = solicitation.history;
-            req.body.actionStatus = 'Solicitation Updated on FBO.gov';
-            req.body.actionDate = req.body.date
-            Prediction.update({solNum: req.body.solNum}, req.body).then((doc) => {
-                res.send(doc);
-            }, (e) => {
-                res.status(400).send(e);
-            })
-        } 
-        else 
-        {
-          
-            var history= [];
-            var r = history.push({'date': req.body.date, 'action': 'Pending Section 508 Coordinator review', 'user': '', 'status' : 'Pending Section 508 Coordinator Review'});
+        var history= [];
+        var r = history.push({'date': req.body.date, 'action': 'Pending Section 508 Coordinator review', 'user': '', 'status' : 'Pending Section 508 Coordinator Review'});
 
-            var history= [];
-            var r = history.push({'date': req.body.date, 'action': 'Pending Section 508 Coordinator review', 'user': '', 'status' : 'Pending Section 508 Coordinator Review'});
-
-            var pred = new Prediction({
-                solNum: req.body.solNum,
-                title: req.body.title,
-                url: req.body.url,
-                predictions: req.body.predictions,
-                reviewRec: req.body.reviewRec,
-                date: req.body.date,
-                numDocs: req.body.numDocs,
-                eitLikelihood: req.body.eitLikelihood,
-                agency: req.body.agency,
-                office: req.body.office,
-                contactInfo: req.body.contactInfo,
-                position: req.body.position,
-                reviewStatus: "Incomplete",
-                noticeType: req.body.noticeType,
-                actionStatus: req.body.actionStatus,
-                parseStatus: req.body.parseStatus,
-                history: history,
-                feedback: req.body.feedback,
-                undetermined: req.body.undetermined
-            });
-            pred.save().then((doc) => {
-                res.send(doc);
-            }, (e) => {
-                res.status(400).send(e);
-            });
-        }
+        var pred = new Prediction({
+            solNum: req.body.solNum,
+            title: req.body.title,
+            url: req.body.url,
+            predictions: req.body.predictions,
+            reviewRec: req.body.reviewRec,
+            date: req.body.date,
+            numDocs: req.body.numDocs,
+            eitLikelihood: req.body.eitLikelihood,
+            agency: req.body.agency,
+            office: req.body.office,
+            contactInfo: req.body.contactInfo,
+            position: req.body.position,
+            reviewStatus: "Incomplete",
+            noticeType: req.body.noticeType,
+            actionStatus: req.body.actionStatus,
+            parseStatus: req.body.parseStatus,
+            history: history,
+            feedback: req.body.feedback,
+            undetermined: req.body.undetermined
+        });
+        pred.save().then((doc) => {
+            res.send(doc);
+        }, (e) => {
+            res.status(400).send(e);
+        });
+    }
     })     
 });
 
-
-
-// Put data into mongoDB
+/**
+ * Insert agency lsit to database
+ */
 app.put('/agencies', (req, res) => {
     var agency = new Agency ({
         Agency: req.body.Agency,
@@ -606,7 +621,9 @@ app.put('/agencies', (req, res) => {
     });
 })
 
-// Get total agencies from MongoDB
+/**
+ * Get entire agency records 
+ */
 app.get('/agencies', (req, res) => {
     Agency.find().then((age) => {
         res.send(age);
@@ -615,7 +632,9 @@ app.get('/agencies', (req, res) => {
     });
 });
 
-// Get Total Agencies in the solicitations.
+/**
+ * Get entire agnecy list for analytic
+ */
 app.get('/AgencyList', (req, res) => {  
     Prediction.find({'eitLikelihood.value': 'Yes'}).then((preds) => { 
         var agencyList = []; 
@@ -635,11 +654,9 @@ app.get('/AgencyList', (req, res) => {
     });
 });
 
-
-
-
-
-// Put data into mongoDB
+/**
+ * Insert survey json to database
+ */
 app.put('/surveys', (req, res) => {
 
     Survey.findOne({ID: req.body.ID}, function (err, survey) {
@@ -678,7 +695,10 @@ app.put('/surveys', (req, res) => {
     });    
 })
 
-// Get total surveys from MongoDB
+
+/**
+ * Get surveys 
+ */
 app.get('/surveys', (req, res) => {
     Survey.find().then((survey) => {
         res.send(survey);
@@ -686,7 +706,6 @@ app.get('/surveys', (req, res) => {
         res.status(400).send(e);
     });
 });
-
 
 
 app.listen(port, () => {
