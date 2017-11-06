@@ -2,35 +2,50 @@ require('./config/config');
 
 const _ = require('lodash');
 const express = require('express');
+
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
 const date = require('date-and-time');
 
-var {mongoose} = require('./db/mongoose');
-var {Prediction} = require('./models/prediction');
-var {Agency} = require('./models/agency');
-var {Survey} = require('./models/survey');
+var {Prediction} = require('./schemas/prediction');
+var {Agency} = require('./schemas/agency');
+var {Survey} = require('./schemas/survey');
 
+//Kailun's add authroutes
+var authRoutes = require('./routes/auth.routes');
 var userRoutes = require('./routes/user.routes');
 var emailRoutes = require('./routes/email.routes');
+
+var cors = require('cors');
+
+
 
 var app = express();
 const port = process.env.PORT;
 
 app.use(bodyParser.json());
+app.use(cors());
 
 // The headers must be sent to allow Cross Origin Resource Sharing
 // Requests to connect will be denied without this
-app.use(function (req, res, next) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization, x-auth');
-    res.setHeader('Access-Control-Expose-Headers', 'x-auth');
-    next();
-});
+// app.use(function (req, res, next) {
+//     res.setHeader('Access-Control-Allow-Origin', '*');
+//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+//     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization, x-auth');
+//     res.setHeader('Access-Control-Expose-Headers', 'x-auth');
+//     next();
+// });
 
+app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 app.use('/email', emailRoutes);
+
+/* DATABASE */
+
+var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
+mongoose.connect(process.env.MONGODB_URI);
+
 
 /**
  * Get total predictions
