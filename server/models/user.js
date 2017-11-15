@@ -43,6 +43,10 @@ var schema = new Schema({
   },
   id: {
     type: String
+  },
+  
+  tempPassword: {
+    type:String
   }
 });
 

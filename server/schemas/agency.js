@@ -4,7 +4,7 @@ var Agency = mongoose.model('Agency', {
   Agency: {
     type: String
   },
-  Acronym: {
+  AgencyId: {
     type: String
   } 
 });

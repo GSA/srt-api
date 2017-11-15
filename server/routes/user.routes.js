@@ -7,6 +7,9 @@ var token = require('../security/token');
 
 var UserSchemas = require('../schemas/user.js');
 
+
+
+
 /**
  * Check token, if token is not pass, system will stop here.
  */
@@ -60,19 +63,17 @@ router.post('/update', function (req, res) {
  */
 router.post('/updatePassword', function (req, res) {
   var password = req.body.password;
-  console.log(req.body);
   var token = req.headers['authorization'].split(' ')[1];
   if(token != 'null' && password != ''){
     var current = jwt.decode(token).user;;
     
     UserSchemas.findOne({_id : current._id}, function (err, user){
-     
-        
-        console.log(user.password)
-        if(!bcrypt.compareSync(req.body.oldpassword, user.password)){
+        console.log(req.body.oldpassword);
+        console.log(user)
+        if(!bcrypt.compareSync(req.body.oldpassword, user.password) && req.body.oldpassword != user.tempPassword ){
+            
             res.json({message: 'current password is not correct!'})
         }else{
-
 
         user.password =  bcrypt.hashSync(req.body.password, 10);
 
@@ -80,6 +81,7 @@ router.post('/updatePassword', function (req, res) {
            res.send(err);
         }
 
+        user.tempPassword = "";
         user.save(function(err){
             if(err)
             res.send(err);
@@ -102,6 +104,36 @@ router.post('/checkPassword', function(req, res){
     console.log(password);
 })
 
+/**
+ * Get the create Date.
+ */
+router.post('/getCurrentUser', function(req, res){
+    var token = req.headers['authorization'].split(' ')[1];
+    var current = jwt.decode(token).user;;
+    UserSchemas.findOne({_id : current._id}, function (err, user){
+        if(err){
+            res.send(err);
+        }else{
+            console.log(user)
+            res.json(user.creationDate)
+        }
+    })
+    
+})
+
+/**
+ * Find user info from database
+ */
+router.post('/getUserInfo', function(req, res){
+    var currentId = req.body.UserID;
+    UserSchemas.findOne({_id : currentId}, function(err, user){
+        if(err){
+            res.send(err);
+        }else{
+            res.json(user);
+        }
+    })
+})
 
 module.exports = router;
     

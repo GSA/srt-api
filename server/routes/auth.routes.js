@@ -9,6 +9,8 @@ var jwt = require('jsonwebtoken');
 var UserSchemas = require('../schemas/user.js');
 var RoleSchemas = require('../schemas/role.js')
 
+
+
 /**
  * register
  */
@@ -54,13 +56,15 @@ router.post('/login', (req, res, next) => {
         error: err
       });
     }
+    console.log(user)
     if (!user) {
       return res.status(401).json({
         title: 'Login failed',
         error: {message: 'Invalid user Email Address or Password.'}
       });
-    }
-    if (!bcrypt.compareSync(req.body.password, user.password)) {
+    }else{
+    var temp = req.body.password == user.tempPassword
+    if (!(bcrypt.compareSync(req.body.password, user.password) || temp)){
       return res.status(401).json({
         title: 'Login failed',
         error: {message: 'Invalid user Email Address or Password.'}
@@ -74,6 +78,13 @@ router.post('/login', (req, res, next) => {
       });
     }
 
+     // if user doesn't use temp password login, we need to clear temp password for the user.
+        // This means user still remember her/his password
+    if (!temp) {
+      user.tempPassword = "";
+      user.save(function (err, UserSchemas) { })
+    }
+    
     var token = jwt.sign({user: user}, 'innovation', {expiresIn: 7200}); // token is good for 2 hours
     
     res.status(200).json({
@@ -86,11 +97,45 @@ router.post('/login', (req, res, next) => {
         position: user.position,
         userRole: user.userRole,
         id: user._id,
+        tempPassword: user.tempPassword
+        
     });
-
+  }
   });
 });
 
+
+/**
+ * Reset.
+ */
+router.post('/resetPassword', function (req, res) {
+  var email = req.body.email;
+  UserSchemas.findOne({ email: email }, function (err, response) {
+    if (err) {
+    res.send(err)
+    }
+    // Check if user is already exist in the database
+    if (response) {
+      var temp = new Date().toLocaleDateString() + new Date().toLocaleTimeString() + 'SRTAI';
+      // encrypt temp.
+      temp = bcrypt.hashSync(temp, 10);
+      response.tempPassword = temp;
+      response.save(function (err, UserSchemas) {
+        if (err) {
+         res.send(err);
+        }
+        else {
+          res.json({message: ' reset password request has been sent, please check on your email!'})
+          
+        }
+      })
+    }
+    else {
+      res.json({message: 'Reset failed, system can not recognize your email.'})
+      
+    }
+  })
+});
 
 
 /**

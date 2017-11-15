@@ -15,6 +15,9 @@ var userSchema = mongoose.Schema({
     rejectionNote: { type: String },
     creationDate: { type: String },
     id: {  type: String },
+    tempPassword: {
+        type:String
+      }
 
     // userRole : { type: Role.schema}
 })

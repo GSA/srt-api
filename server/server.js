@@ -626,7 +626,7 @@ app.put('/predictions', (req, res) => {
 app.put('/agencies', (req, res) => {
     var agency = new Agency ({
         Agency: req.body.Agency,
-        Acronym: req.body.Acronym
+        AgencyId: req.body.AgencyId
     })  
 
     agency.save().then((doc) => {
