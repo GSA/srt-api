@@ -7,18 +7,22 @@ const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
 const date = require('date-and-time');
 
+var path = require('path');
+
 var {Prediction} = require('./schemas/prediction');
 var {Agency} = require('./schemas/agency');
 var {Survey} = require('./schemas/survey');
 
 //Kailun's add authroutes
+//var fileRoutes = require('./routes/file.routes');
 var authRoutes = require('./routes/auth.routes');
 var userRoutes = require('./routes/user.routes');
 var emailRoutes = require('./routes/email.routes');
 
 var cors = require('cors');
 
-
+var multer = require('multer');
+var multerObj = multer({dest: './static/upload'})
 
 var app = express();
 const port = process.env.PORT;
@@ -36,9 +40,18 @@ app.use(cors());
 //     next();
 // });
 
+
+app.use(express.static(path.join(__dirname, '../../srt-client/dist')));
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../srt-client/dist/index.html'));
+  });
+
+//app.use('/file', fileRoutes);
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 app.use('/email', emailRoutes);
+
 
 /* DATABASE */
 
@@ -47,6 +60,12 @@ mongoose.Promise = global.Promise;
 mongoose.connect(process.env.MONGODB_URI);
 
 
+/* Kailun's add
+ * For upload file system
+ */
+
+
+ 
 /**
  * Get total predictions
  */

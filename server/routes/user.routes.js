@@ -135,5 +135,30 @@ router.post('/getUserInfo', function(req, res){
     })
 })
 
+/**
+ * Update user info from database
+ */
+router.post('/updateUserInfo', function(req, res){
+    var userId =req.body.UserID;
+    var email = req.body.NewEmail;
+    UserSchemas.findOne({_id : userId}, function(err, user){
+        if(err){
+            res.send(err);
+            
+        }else{
+            user.email = email;
+            user.save(function(err){
+                if(err)
+                res.send(err);
+                
+                res.json({message: ' email updated!',
+                         email: user.email })
+            })
+           
+        }
+    })
+})
+
+
 module.exports = router;
     
