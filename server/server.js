@@ -2,36 +2,79 @@ require('./config/config');
 
 const _ = require('lodash');
 const express = require('express');
+
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
 const date = require('date-and-time');
 
-var {mongoose} = require('./db/mongoose');
-var {Prediction} = require('./models/prediction');
-var {Agency} = require('./models/agency');
-var {Survey} = require('./models/survey');
+var path = require('path');
 
+var {Prediction} = require('./schemas/prediction');
+var {Agency} = require('./schemas/agency');
+var {Survey} = require('./schemas/survey');
+//Kailun's add history model
+var {PredictionHistory} = require('./models/predictionhistory');
+
+
+
+//Kailun's add authroutes
+//Kailun's add solicitation routes
+//var fileRoutes = require('./routes/file.routes');
+var authRoutes = require('./routes/auth.routes');
 var userRoutes = require('./routes/user.routes');
 var emailRoutes = require('./routes/email.routes');
+//var solicitationRoutes = require('./routes/solicitation.routes');
+
+var cors = require('cors');
+
+var multer = require('multer');
+var multerObj = multer({dest: './static/upload'})
 
 var app = express();
 const port = process.env.PORT;
 
 app.use(bodyParser.json());
+app.use(cors());
 
 // The headers must be sent to allow Cross Origin Resource Sharing
 // Requests to connect will be denied without this
-app.use(function (req, res, next) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization, x-auth');
-    res.setHeader('Access-Control-Expose-Headers', 'x-auth');
-    next();
-});
+// app.use(function (req, res, next) {
+//     res.setHeader('Access-Control-Allow-Origin', '*');
+//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+//     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization, x-auth');
+//     res.setHeader('Access-Control-Expose-Headers', 'x-auth');
+//     next();
+// });
 
+
+//kailun's add for dist
+
+app.use(express.static(path.join(__dirname, '../../srt-client/dist')));
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../srt-client/dist/index.html'));
+  });
+
+//app.use('/file', fileRoutes);
+app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 app.use('/email', emailRoutes);
+//app.use('/operation', solicitationRoutes);
 
+
+/* DATABASE */
+
+var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
+mongoose.connect(process.env.MONGODB_URI);
+
+
+/* Kailun's add
+ * For upload file system
+ */
+
+
+ 
 /**
  * Get total predictions
  */
@@ -411,6 +454,7 @@ app.get('/solicitation/:id', (req, res) => {
 });
 
 
+
 /**
  * Update a history list of selected solicitation
  */
@@ -451,6 +495,8 @@ app.post('/solicitation/feedback', (req, res) => {
  * Get Filtered prediction data
  */
 app.post('/predictions/filter', (req, res) => {
+    
+    console.log(req.body);
     var filterParams = {
         "$and": [
         {'eitLikelihood.value': 'Yes'}, 
@@ -538,6 +584,103 @@ app.post('/predictions', (req, res) => {
 });
 
 /**
+ * Insert history predictions to database
+ */
+app.put('/predictionshistory', (req, res) => {
+    PredictionHistory.findOne({solNum:req.body.solnum}, function(err, solicitation){
+        if(err){
+            console.log("fail to put prediction history");
+            res.send(err);
+        }
+        if(solicitation) {
+            
+            PredictionHistory.findOne({solNum: req.body.solnum}, function(err, result) {
+                if(err){
+                    res.send(err)
+                }
+                result.predictionHistory = req.body.predhistory
+                result.save(function(err){
+                    if(err)
+                    res.send(err);
+                    
+                    res.json({message: 'history updated!'})
+                })
+            })
+         
+        }
+        else{
+            
+            var predhistory = new PredictionHistory({
+                solNum: req.body.solnum,
+                title: req.body.title,
+                noticeType: req.body.noticeType,
+                predictionHistory:req.body.predhistory,
+                eitLikelihood: req.body.eitLikelihood
+            });
+            predhistory.save().then((doc) => {
+                res.send(doc);
+            }, (e) => {
+                res.status(400).send(e);              
+            });
+        
+        }
+    })
+})
+
+
+
+/**
+ * Get the certain prediction history and feedback
+ */
+app.post('/predictionshistory', (req, res) => {
+    console.log(req.body.solicitationID)
+    Prediction.findOne({_id : req.body.solicitationID}).then((result) => {
+        if(result){
+            console.log(result.solNum);
+            PredictionHistory.findOne({solNum : result.solNum}).then((history) => {
+                console.log(history);
+                if(history != null){
+                  res.send(history);
+                }else {
+                    res.json({message: "no result"})
+                }
+                
+            }, (e) => {
+                res.status(400).send(e);
+            });
+        }
+    })
+
+  
+});
+
+
+/**
+ * Get the feed prediction history and feedback
+ */
+app.post('/predictionfeedback', (req, res) => {
+    Prediction.findOne({solNum:req.body.solicitationID}).then((result) => {
+
+    if(result != null){
+        if(result.feedback) {
+            res.json({hasFeedback : true});
+        }
+        else{
+            res.json({message: "no feedback"})
+        }
+    }else{
+        res.json({message: "no solicitation in database"})
+    } 
+
+}, (e) => {
+        res.status(400).send(e);
+    }
+
+)
+});
+
+  
+/**
  * Insert new predictions to database
  */
 app.put('/predictions', (req, res) => {
@@ -611,7 +754,7 @@ app.put('/predictions', (req, res) => {
 app.put('/agencies', (req, res) => {
     var agency = new Agency ({
         Agency: req.body.Agency,
-        Acronym: req.body.Acronym
+        AgencyId: req.body.AgencyId
     })  
 
     agency.save().then((doc) => {
