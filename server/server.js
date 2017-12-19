@@ -30,6 +30,11 @@ var cors = require('cors');
 var multer = require('multer');
 var multerObj = multer({dest: './static/upload'})
 
+var cors = require('cors');
+
+var multer = require('multer');
+var multerObj = multer({dest: './static/upload'})
+
 var app = express();
 const port = process.env.PORT;
 
