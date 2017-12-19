@@ -664,11 +664,10 @@ app.post('/predictionshistory', (req, res) => {
  * Get the feed prediction history and feedback
  */
 app.post('/predictionfeedback', (req, res) => {
-    Prediction.findOne({solNum:req.body.solicitationID}).then((result) => {
-
-    if(result != null){
-        if(result.feedback) {
-            res.json({hasFeedback : true});
+    Prediction.findOne({_id : req.body.solicitationID}).then((result) => {
+    if(result){
+        if(result.feedback != null) {
+            res.json({hasFeedback : true, solicitationNum: result.solNum});
         }
         else{
             res.json({message: "no feedback"})
@@ -680,7 +679,6 @@ app.post('/predictionfeedback', (req, res) => {
 }, (e) => {
         res.status(400).send(e);
     }
-
 )
 });
 
