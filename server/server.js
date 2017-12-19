@@ -54,11 +54,11 @@ app.use(cors());
 
 //kailun's add for dist
 
-app.use(express.static(path.join(__dirname, '../../srt-client/dist')));
+// app.use(express.static(path.join(__dirname, '../../srt-client/dist')));
 
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../srt-client/dist/index.html'));
-  });
+// app.get('*', (req, res) => {
+//     res.sendFile(path.join(__dirname, '../../srt-client/dist/index.html'));
+//   });
 
 //app.use('/file', fileRoutes);
 app.use('/auth', authRoutes);
