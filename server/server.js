@@ -666,7 +666,7 @@ app.post('/predictionshistory', (req, res) => {
 app.post('/predictionfeedback', (req, res) => {
     Prediction.findOne({_id : req.body.solicitationID}).then((result) => {
     if(result){
-        if(result.feedback != null) {
+        if(result.feedback.length != 0) {
             res.json({hasFeedback : true, solicitationNum: result.solNum});
         }
         else{
