@@ -71,12 +71,12 @@ router.post('/login', (req, res, next) => {
       });
     }
 
-    if (!user.isAccepted) {
-      return res.status(401).json({
-        title: 'Login failed',
-        error: {message: 'Your account has not been approved, please wait for Administrator Approval.'}
-      });
-    }
+    // if (!user.isAccepted) {
+    //   return res.status(401).json({
+    //     title: 'Login failed',
+    //     error: {message: 'Your account has not been approved, please wait for Administrator Approval.'}
+    //   });
+    // }
 
      // if user doesn't use temp password login, we need to clear temp password for the user.
         // This means user still remember her/his password
