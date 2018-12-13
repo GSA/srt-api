@@ -10,40 +10,12 @@ var UserSchemas = require('../schemas/user.js');
 var RoleSchemas = require('../schemas/role.js')
 
 
+const { authRegister } = require ("./auth.functions.js");
 
 /**
  * register
  */
-router.post('/', (req, res, next) => {
-  var now = new Date().toLocaleDateString();
-  console.log(req.body)
-  var srt_user = new UserSchemas({
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, 10), // bcrypt is used to encrypt the password
-    agency: req.body.agency,
-    position: req.body.position,
-    isAccepted: false,
-    isRejected: false,
-    userRole: req.body.userRole, 
-    rejectionNote: "",    
-    creationDate: now
-  });
-
-  srt_user.save((err, result) => { // saves user to Mongo
-    if (err) {
-      return res.status(500).json({
-        title: 'An error occurred',
-        error: err
-      });
-    }
-    res.status(201).json({
-      message: 'User created',
-      obj: result
-    });
-  });
-});
+router.post('/', authRegister );
 
 /**
  * login 
