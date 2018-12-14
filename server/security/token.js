@@ -19,5 +19,7 @@ module.exports = function() {
         });
       }
     }
+    res.status(401);
+    res.send("Unauthorized");
   }
 }

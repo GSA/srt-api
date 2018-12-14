@@ -1,53 +1,21 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
-
-var schema = new Schema({
-  firstName: {
-    type: String,
-    required: true
-  },
-  lastName: {
-    type: String,
-    required: true
-  },
-  agency: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  position: {
-    type: String,
-    required: true,
-  },
-  isAccepted: {
-    type: Boolean
-  },
-  isRejected: {
-    type: Boolean
-  },
-  userRole: {
-    type: String
-  },
-  rejectionNote: {
-    type: String
-  },
-  creationDate: {
-    type: String
-  },
-  id: {
-    type: String
-  },
-  
-  tempPassword: {
-    type:String
-  }
-});
-
-module.exports = mongoose.model('User', schema);
+'use strict';
+module.exports = (sequelize, DataTypes) => {
+  const User = sequelize.define('User', {
+    firstName: DataTypes.STRING,
+    lastName: DataTypes.STRING,
+    agency: DataTypes.STRING,
+    email: DataTypes.STRING,
+    password: DataTypes.STRING,
+    position: DataTypes.STRING,
+    isAccepted: DataTypes.STRING,
+    isRejected: DataTypes.STRING,
+    userRole: DataTypes.STRING,
+    rejectionNote: DataTypes.STRING,
+    creationDate: DataTypes.STRING,
+    tempPassword: DataTypes.STRING
+  }, {});
+  User.associate = function(models) {
+    // associations can be defined here
+  };
+  return User;
+};
