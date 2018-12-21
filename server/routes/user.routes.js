@@ -6,7 +6,7 @@ const User = require('../models').User;
 
 
 module.exports = {
-    filter(req, res) {
+    filter: function(req, res) {
         var filterParams = {};
         var isAccepted = req.body.isAccepted;
         var isRejected = req.body.isRejected;
@@ -25,32 +25,43 @@ module.exports = {
             .catch( e => {
                 res.status(400).send(e);
             })
+    },
+
+    update: function(req,res) {
+
+        return {};
+    },
+
+    getUserInfo: function(req, res) {
+        return User.findByPk(req.body.UserId)
+            .then( user => {
+                return res.status(200).send(user);
+            })
+            .catch ( e => {
+                return res.status(400).send(e);
+            })
     }
+
+
 };
 
-//
+
 // /**
-//  * Get users based on filter
+//  * Find user info from database
 //  */
-// router.post('/filter', function (req, res)  {
+// router.post('/getUserInfo', function(req, res){
+//     var currentId = req.body.UserID;
+//     UserSchemas.findOne({_id : currentId}, function(err, user){
+//         if(err){
+//             res.send(err);
+//         }else{
+//             res.json(user);
+//         }
+//     })
+// })
+
+
 //
-//       var filterParams = {};
-//       var isAccepted = req.body.isAccepted;
-//       var isRejected = req.body.isRejected;
-//
-//       if (isAccepted != null) {
-//           _.merge(filterParams, {isAccepted: isAccepted});
-//       }
-//       if (isRejected != null) {
-//           _.merge(filterParams, {isRejected: isRejected});
-//       }
-//
-//       User.find(filterParams).then((users) => {
-//           res.send(users);
-//       }, (e) => {
-//           res.status(400).send(e);
-//       });
-//   });
 //
 // /**
 //  * update user

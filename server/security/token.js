@@ -10,16 +10,19 @@ module.exports = function() {
       {
         jwt.verify(token, 'innovation', function(err, decoded) {
           if (err) {
-            console.log(err);
-            return
+            console.log ("fail");
+            return res.status(401).send({
+              success: false,
+              message: 'Unauthorized'
+            });
           } else {
             var current = jwt.decode(token).user;
             next();
           }
         });
+
+
       }
     }
-    res.status(401);
-    res.send("Unauthorized");
   }
 }

@@ -30,6 +30,7 @@ app.use(cors());
 app.post('/api/auth', authRoutes.create);
 app.get('/api/user/filter', token(), userRoutes.filter);
 app.get('/api/user/filtertest',  userRoutes.filter);
+app.get('/api/user/getUserInfo', token(), userRoutes.getUserInfo);
 
 
     // //app.use('/file', fileRoutes);
