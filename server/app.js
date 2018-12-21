@@ -31,6 +31,8 @@ app.post('/api/auth', authRoutes.create);
 app.get('/api/user/filter', token(), userRoutes.filter);
 app.get('/api/user/filtertest',  userRoutes.filter);
 app.get('/api/user/getUserInfo', token(), userRoutes.getUserInfo);
+app.get('/api/user/:userId', token(), userRoutes.getUserInfo);
+app.post('/api/user/update', token(), userRoutes.update);
 
 
     // //app.use('/file', fileRoutes);

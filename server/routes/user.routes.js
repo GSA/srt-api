@@ -28,8 +28,15 @@ module.exports = {
     },
 
     update: function(req,res) {
-
-        return {};
+        return User.findByPk(req.body._id).then( (user) => {
+            user.isAccepted = req.body.isAccepted;
+            user.isRejected = req.body.isRejected;
+            user.save().then( () => {
+                res.status(200).send(user);
+            })
+        }).catch ( e => {
+            res.status(500).send(e);
+        })
     },
 
     getUserInfo: function(req, res) {
@@ -46,22 +53,6 @@ module.exports = {
 };
 
 
-// /**
-//  * Find user info from database
-//  */
-// router.post('/getUserInfo', function(req, res){
-//     var currentId = req.body.UserID;
-//     UserSchemas.findOne({_id : currentId}, function(err, user){
-//         if(err){
-//             res.send(err);
-//         }else{
-//             res.json(user);
-//         }
-//     })
-// })
-
-
-//
 //
 // /**
 //  * update user
