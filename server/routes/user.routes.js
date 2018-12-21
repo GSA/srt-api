@@ -1,5 +1,6 @@
-var express = require('express');
-
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const User = require('../models').User;
 
 
@@ -28,7 +29,8 @@ module.exports = {
     },
 
     update: function(req,res) {
-        return User.findByPk(req.body._id).then( (user) => {
+        var id = (req.params.userId) ? req.params.userId : req.body._id;
+        return User.findByPk(id).then( (user) => {
             user.isAccepted = req.body.isAccepted;
             user.isRejected = req.body.isRejected;
             user.save().then( () => {
@@ -39,6 +41,28 @@ module.exports = {
         })
     },
 
+    updatePassword: function (req, res) {
+        var newPassword = req.body.password;
+        var oldPassword = req.body.oldpassword;
+        var token = req.headers['authorization'].split(' ')[1];
+        var me = jwt.decode(token).user;
+
+        return User.findByPk(me.id).then((user) => {
+            if (!bcrypt.compareSync(oldPassword, user.password) && oldPassword != user.tempPassword) {
+                res.status(401).send({message: 'current password is not correct!'});
+            } else {
+                user.password = bcrypt.hashSync(newPassword, 10);
+                user.tempPassword = "";
+                user.save().then(() => {
+                    res.status(200).send({message: "Password changed."})
+                })
+            }
+        }).catch(e => {
+            res.status(500).send({message: 'Update failed - ' + e.stack});
+        })
+
+    },
+
     getUserInfo: function(req, res) {
         return User.findByPk(req.body.UserId)
             .then( user => {
@@ -47,32 +71,13 @@ module.exports = {
             .catch ( e => {
                 return res.status(400).send(e);
             })
-    }
+    },
+
 
 
 };
 
 
-//
-// /**
-//  * update user
-//  */
-// router.post('/update', function (req, res) {
-//     User.findById(req.body._id, function (err, user) {
-//         if (err)
-//             res.send(err);
-//         user.isAccepted = req.body.isAccepted,
-//             user.isRejected = req.body.isRejected,
-//             // save the bear
-//             user.save(function (err) {
-//                 if (err)
-//                     res.send(err);
-//                 res.json({ message: 'user updated!' });
-//             });
-//
-//     });
-// });
-//
 //
 // /**
 //  * Update password.

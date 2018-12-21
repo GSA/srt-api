@@ -29,7 +29,6 @@
     "reflect-metadata": "^0.1.12",
     "sequelize": "^4.42.0",
     "sequelize-cli": "^5.4.0",
-    "typeorm": "^0.2.9",
     "validator": "^6.2.0"
   },
   "devDependencies": {
@@ -40,7 +39,9 @@
     "mock-express-response": "^0.2.2",
     "mongoose-sql": "^1.0.45",
     "nodemon": "^1.11.0",
-    "supertest": "^2.0.1"
+    "supertest": "^2.0.1",
+    "@types/jest": "*",
+    "randomstring": "*"
   },
   "engines": {
     "node": "6.14.4",

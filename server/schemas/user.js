@@ -1,10 +1,3 @@
-const typeorm= require("typeorm");
-const Entity = typeorm.Entity;
-const Column = typeorm.Column;
-const PrimaryGeneratedColumn = typeorm.PrimaryGeneratedColumn;
-
-
-var Role = require ('../schemas/role.js');
 //
 // var userSchema = mongoose.Schema({
 //     firstName: { type: String, required: true},

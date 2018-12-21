@@ -5,7 +5,9 @@ var user1 = {
     "password": "pass",
     "agency": "GSA",
     "position": "director",
-    "userRole": "superuser"
+    "userRole": "superuser",
+    "isAccepted": true,
+    "tempPassword" : "tpass"
 };
 
 var user_accepted = {
@@ -16,7 +18,8 @@ var user_accepted = {
     "agency": "GSA",
     "position": "director",
     "userRole": "superuser",
-    "isAccepted": true
+    "isAccepted": true,
+    "tempPassword" : "tpass"
 };
 
 var user_rejected = {
@@ -27,7 +30,8 @@ var user_rejected = {
     "agency": "GSA",
     "position": "director",
     "userRole": "superuser",
-    "isRejected": true
+    "isRejected": true,
+    "tempPassword" : "tpass"
 };
 
 
