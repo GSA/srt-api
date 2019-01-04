@@ -48,14 +48,14 @@ module.exports = {
         var me = jwt.decode(token).user;
 
         return User.findByPk(me.id).then((user) => {
-            if (!bcrypt.compareSync(oldPassword, user.password) && oldPassword != user.tempPassword) {
-                res.status(401).send({message: 'current password is not correct!'});
-            } else {
+            if (oldPassword == user.tempPassword || bcrypt.compareSync(oldPassword, user.password)) {
                 user.password = bcrypt.hashSync(newPassword, 10);
                 user.tempPassword = "";
                 user.save().then(() => {
                     res.status(200).send({message: "Password changed."})
                 })
+            } else {
+                res.status(401).send({message: 'current password is not correct!'});
             }
         }).catch(e => {
             res.status(500).send({message: 'Update failed - ' + e.stack});
@@ -72,6 +72,29 @@ module.exports = {
                 return res.status(400).send(e);
             })
     },
+
+
+     /**
+     * Get the create Date.   (this was the orig. comment. No idea what is going on here!)
+     */
+     getCurrentUser: function (req, res) {
+         if ( ! req.headers['authorization']) {
+             return res.status(404).send("No authorization token provided");
+         }
+
+         var token = req.headers['authorization'].split(' ')[1];
+         var current = jwt.decode(token).user;
+         return User.findByPk(current.id)
+             .then(user => {
+                 return res.status(200).send({ creationDate : user.creationDate});
+             })
+             .catch(e => {
+                 return res.status(500).send(e);
+             });
+     }
+
+
+
 
 
 

@@ -1,4 +1,6 @@
 require('./config/config.js');
+var winston = require('winston')
+var expressWinston = require('express-winston');
 const express = require('express');
 const bodyParser = require('body-parser');
 var cors = require('cors');
@@ -26,15 +28,66 @@ var app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+app.use(expressWinston.logger({
+    transports: [ new winston.transports.File({filename: "winston.log", level: "info"})],
+    // format: winston.format.combine(winston.format.colorize(), winston.format.json()),
+    format: winston.format.prettyPrint(),
+    meta: true,
+    // msg: "HTTP {{req.method}} {{req.url}} ",
+    msg : function(req, res) {
+        var jwt = require('jsonwebtoken');
+
+        var token = null;
+        var user = {id: null, position: null, userRole: null, email: null};
+        if (req.headers['authorization'] && req.headers['authorization'].length > 0 ) {
+            token = req.headers['authorization'].split(' ')[1];
+            var decoded = jwt.verify(token, 'innovation');
+            user = decoded.user;
+        }
+        return `${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`;},
+    expressFormat: false,
+    colorize: false,
+    ignoreRoute: function(req, res) { return false;}
+}));
 
 app.post('/api/auth', authRoutes.create);
+app.post('/api/auth/login', authRoutes.login);
 app.get('/api/user/filter', token(), userRoutes.filter);
 app.get('/api/user/filtertest',  userRoutes.filter);
 app.get('/api/user/getUserInfo', token(), userRoutes.getUserInfo);
 // app.get('/api/user/:userId', token(), userRoutes.getUserInfo);
+app.post('/api/user/updateUserInfo', token(), userRoutes.update);
 app.post('/api/user/update', token(), userRoutes.update);
 // app.post('/api/user/:userId', token(), userRoutes.update);
 app.post('/api/user/updatePassword', token(), userRoutes.updatePassword);
+app.post('/api/user/getCurrentUser', token(), userRoutes.getCurrentUser);
+
+app.post('/api/auth/login', authRoutes.login);
+
+
+
+
+app.use(expressWinston.errorLogger({
+    transports: [ new winston.transports.File({filename: "winston.log", level: "info"})],
+    // format: winston.format.combine(winston.format.colorize(), winston.format.json()),
+    format: winston.format.prettyPrint(),
+    meta: true,
+    // msg: "HTTP {{req.method}} {{req.url}} ",
+    msg : function(req, res) {
+        var jwt = require('jsonwebtoken');
+
+        var token = null;
+        var user = {id: null, position: null, userRole: null, email: null};
+        if (req.headers['authorization'] && req.headers['authorization'].length > 0 ) {
+            token = req.headers['authorization'].split(' ')[1];
+            var decoded = jwt.verify(token, 'innovation');
+            user = decoded.user;
+        }
+        return `ERROR - ${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`;},
+    expressFormat: false,
+    colorize: false,
+    ignoreRoute: function(req, res) { return false;}
+}));
 
     // //app.use('/file', fileRoutes);
     // app.use('/auth', authRoutes);

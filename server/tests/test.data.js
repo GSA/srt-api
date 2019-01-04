@@ -7,7 +7,8 @@ var user1 = {
     "position": "director",
     "userRole": "superuser",
     "isAccepted": true,
-    "tempPassword" : "tpass"
+    "tempPassword" : "tpass",
+    "creationDate" : "01/01/2019",
 };
 
 var user_accepted = {
@@ -19,7 +20,8 @@ var user_accepted = {
     "position": "director",
     "userRole": "superuser",
     "isAccepted": true,
-    "tempPassword" : "tpass"
+    "tempPassword" : "tpass",
+    "creationDate" : "01/02/2019",
 };
 
 var user_rejected = {
@@ -31,7 +33,8 @@ var user_rejected = {
     "position": "director",
     "userRole": "superuser",
     "isRejected": true,
-    "tempPassword" : "tpass"
+    "tempPassword" : "tpass",
+    "creationDate" : "01/03/2019",
 };
 
 

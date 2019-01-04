@@ -3,7 +3,7 @@
     "username": "utz6kah1zq8t2nyg",
     "password": "***REMOVED***",
     "database": "cgawsbrokerprodgq3wrvn8c8a772q",
-    "host": "192.168.1.130",
+    "host": "192.168.1.152",
     "port": 5432,
     "dialect": "postgres",
     "logging": false
@@ -12,7 +12,7 @@
     "username": "utz6kah1zq8t2nyg",
     "password": "***REMOVED***",
     "database": "cgawsbrokerprodgq3wrvn8c8a772q",
-    "host": "192.168.1.130",
+    "host": "192.168.1.152",
     "port": 5432,
     "dialect": "postgres",
     "logging": false
@@ -21,7 +21,7 @@
     "username": "utz6kah1zq8t2nyg",
     "password": "***REMOVED***",
     "database": "cgawsbrokerprodgq3wrvn8c8a772q",
-    "host": "192.168.1.130",
+    "host": "192.168.1.152",
     "port": 5432,
     "dialect": "postgres",
     "logging": false

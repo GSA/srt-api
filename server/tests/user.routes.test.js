@@ -59,19 +59,26 @@ describe ('User API Routes', () => {
                     expect(user.isRejected).toBe('false');
                 });
             })
-            // .then( () => {
-            //     return request(app)
-            //         .post("/api/user/" + user_1_id)
-            //         .send({isAccepted: true, isRejected: true})
-            //         .set('Authorization', `Bearer ${token}`)
-            //         .then((res) => {
-            //             expect(res.statusCode).toBe(200);
-            //             return User.findByPk(user_1_id).then((user) => {
-            //                 expect(user.isAccepted).toBe('true');
-            //                 expect(user.isRejected).toBe('true');
-            //             });
-            //         });
-            // })
+    });
+
+    test('/api/user/getCurrentUser', async () => {
+        await request(app)
+            .post("/api/user/getCurrentUser")
+            .send({})
+            .set('Authorization', `Bearer ${token}`)
+            .then((res) => {
+                expect(res.statusCode).toBe(200);
+                expect(res.body.creationDate).toBe(user_accepted.creationDate);
+            });
+
+        return request(app)
+            .post("/api/user/getCurrentUser")
+            .send({})
+            // .set('Authorization', `Bearer ${token}`)  // no token for this test!
+            .then((res) => {
+                expect(res.statusCode).toBe(401);
+            });
+
     });
 
     test ('/api/user/updatePassword', async () => {
@@ -134,19 +141,9 @@ describe ('User API Routes', () => {
             .then( (res) => {
                 expect(res.statusCode).toBe(200);
                 user = res.body;
+                // console.log (res.body);
                 expect(user.email).toBe(user_accepted.email + "");
             });
-
-        // we don't have this standard route form yet
-        // await request(app)
-        //     .get("/api/user/" + accepted_user_id)
-        //     .send({UserId: accepted_user_id})
-        //     .set('Authorization', `Bearer ${token}`)
-        //     .then( (res) => {
-        //         expect(res.statusCode).toBe(200);
-        //         user = res.body;
-        //         expect(user.email).toBe(user_accepted.email);
-        //     });
 
     });
 
@@ -178,7 +175,7 @@ describe ('User API Routes', () => {
         request(app)
             .get('/api/user/filter')
             .then( (response) => {
-                expect(response.statusCode).toBe(402, "should have rejected an unauthorized request. Got status code " + response.statusCode );
+                expect(response.statusCode).toBe(401, "should have rejected an unauthorized request. Got status code " + response.statusCode );
             });
     })
 

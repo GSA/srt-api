@@ -1,5 +1,6 @@
 var express = require('express');
 var bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const User = require('../models').User;
 // var RoleSchemas = require('../schemas/role.js')
@@ -10,25 +11,74 @@ const User = require('../models').User;
  * register
  */
 module.exports = {
-  create(req, res) {
+    create: function create(req, res) {
 
-      var obj = {};
-      ['firstName', 'lastName', 'email', 'password','position','isAccepted','isRejected','userRole','rejectionNote', 'creationDate','tempPassword', 'createdAt', 'updatedAt']
-          .forEach( (element) => {
-              obj[element] = req.body[element];
-          });
+        var obj = {};
+        ['firstName', 'lastName', 'email', 'password', 'position', 'isAccepted', 'isRejected', 'userRole', 'rejectionNote', 'creationDate', 'tempPassword', 'createdAt', 'updatedAt']
+            .forEach((element) => {
+                obj[element] = req.body[element];
+            });
 
-    return User.create(obj)
-        .then(user => {
-            return res.status(201).send(user);} )
-        .catch(error => {
-          res.status(400).send(error);
-          console.log(error);
-        }
-        );
-  }
-};
-//
+        return User.create(obj)
+            .then(user => {
+                return res.status(201).send(user);
+            })
+            .catch(error => {
+                    res.status(401).send(error);
+                }
+            );
+    },
+
+    login: function (req, res, next) {
+
+        User.find({where: {email: req.body.email}})
+            .then(user => {
+                var temp = req.body.password == user.tempPassword
+                if (!(bcrypt.compareSync(req.body.password, user.password) || temp)) {
+                    return res.status(401).send({
+                        title: 'Login failed',
+                        error: {message: 'Invalid user Email Address or Password.'}
+                    });
+                }
+
+                if (!user.isAccepted) {
+                    return res.status(401).send({
+                        title: 'Login failed',
+                        error: {message: 'Your account has not been approved, please wait for Administrator Approval.'}
+                    });
+                }
+
+                // if user doesn't use temp password login, we need to clear temp password for the user.
+                // This means user still remember her/his password
+                if (!temp) {
+                    user.tempPassword = "";
+                    user.save();
+                }
+
+                var token = jwt.sign({user: user}, 'innovation', {expiresIn: 7200}); // token is good for 2 hours
+
+                res.status(200).send({
+                    message: 'Successfully logged in',
+                    token: token,
+                    firstName: user.firstName, // save name and agency to local browser storage
+                    lastName: user.lastName,
+                    email: user.email,
+                    agency: user.agency,
+                    position: user.position,
+                    userRole: user.userRole,
+                    id: user._id,
+                    tempPassword: user.tempPassword
+                });
+
+            })
+            .catch(err => {
+                return res.status(401).send({
+                    title: 'Unauthorized'
+                });
+            });
+    },
+
+}
 //
 // /**
 //  * login
