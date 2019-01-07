@@ -2,25 +2,26 @@ image: node:8
 
 
 stages:
-  - build
+  # - build
   - test
 
 cache:
   untracked: true
-  key: "$CI_BUILD_REF_NAME"
+  key: "$CI_COMMIT_REF_NAME"
   paths:
     - node_modules/
 
-install_dependencies:
-  stage: build
-  script:
-    - npm install
-  artifacts:
-    paths:
-      - node_modules/
+#install_dependencies:
+#  stage: build
+#  script:
+#    - npm install
+#  artifacts:
+#    paths:
+#      - node_modules/
 
 test_with_lab:
   stage: test
   script:
+    - npm install
     - export NODE_ENV=sqlite
     - npm test
