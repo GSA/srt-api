@@ -27,21 +27,39 @@ describe ('User API Routes', () => {
         status: function(stat) {this.statusCode = stat; return this;}
     };
 
-    beforeAll( async ()=>{
+    beforeAll(  ()=>{
 
-        await auth_routes.create( new MockExpressRequest({method: 'PUT', body: user1}), new MockExpressResponse())
-            .then ( (res) => {
-                var user = JSON.parse( res._responseData.toString('utf8'));
-                user_1_id = user.id;
-            });
+        console.log("starting beforeall")
 
-        return auth_routes.create( new MockExpressRequest({method: 'PUT', body: user_accepted}), new MockExpressResponse())
-            .then( (res) => {
-                var user = JSON.parse( res._responseData.toString('utf8'));
-                token = mockToken(user);
-                accepted_user_id = user.id;
-                return auth_routes.create( new MockExpressRequest({method: 'PUT', body: user_rejected}), new MockExpressResponse());
+        return User.create(user1)
+            .then( (user) => {
+               user_1_id = user.id;
+               console.log ("created user1");
             })
+            .then( () => {
+                return User.create(user_accepted)
+                    .then( (user2) => {
+                        token = mockToken(user2);
+                        accepted_user_id = user2.id;
+                    })
+            })
+            .then( () => {
+                return User.create(user_rejected);
+                console.log("created rejected user)");
+            })
+        // await auth_routes.create( new MockExpressRequest({method: 'PUT', body: user1}), new MockExpressResponse())
+        //     .then ( (res) => {
+        //         var user = JSON.parse( res._responseData.toString('utf8'));
+        //         user_1_id = user.id;
+        //     });
+        //
+        // return auth_routes.create( new MockExpressRequest({method: 'PUT', body: user_accepted}), new MockExpressResponse())
+        //     .then( (res) => {
+        //         var user = JSON.parse( res._responseData.toString('utf8'));
+        //         token = mockToken(user);
+        //         accepted_user_id = user.id;
+        //         return auth_routes.create( new MockExpressRequest({method: 'PUT', body: user_rejected}), new MockExpressResponse());
+        //     })
     });
     afterAll( ()=>{
        return User.destroy({where:{firstName: "beforeAllUser"}});
@@ -55,8 +73,8 @@ describe ('User API Routes', () => {
             .then( (res) => {
                 expect(res.statusCode).toBe(200);
                 return User.findByPk(user_1_id).then( (user) => {
-                    expect(user.isAccepted).toBe('false');
-                    expect(user.isRejected).toBe('false');
+                    expect(user.isAccepted).toBeFalsy;
+                    expect(user.isRejected).toBeFalsy;
                 });
             })
     });
@@ -148,27 +166,14 @@ describe ('User API Routes', () => {
     });
 
     test('test filter', async () => {
-        var mock_request = new MockExpressRequest({
-            method: 'GET',
-            body:{"isAccepted": "true" }
-        });
-
-
-        await user_routes.filter(mock_request, mock_response);
-        expect(mock_response.statusCode).toBe(200);  // http status created
-        expect(mock_response.body.length).toBeMoreThan  (0, "didn't get any results from the user filter");
-
-
-
-        mock_request = new MockExpressRequest({
-            method: 'GET',
-            body:{"isRejected": "true" }
-        });
-
-        await user_routes.filter(mock_request, mock_response);
-        expect(mock_response.statusCode).toBe(200);  // http status created
-        expect(mock_response.body.length).toBeMoreThan  (0, "didn't get any results from the user filter looking for rejected users");
-
+        return request(app)
+            .get("/api/user/filter")
+            .send({isAccepted : true})
+            .set('Authorization', `Bearer ${token}`)
+            .then( (res) => {
+                expect(res.statusCode).toBe(200);  // http status created
+                expect(res.body.length).toBeMoreThan  (0, "didn't get any results from the user filter");
+            });
     });
 
     test('authentication required', async () => {
