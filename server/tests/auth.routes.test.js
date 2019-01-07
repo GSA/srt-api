@@ -42,13 +42,13 @@ describe ('/api/auth/', () => {
         return User.destroy({where:{firstName: "auth-beforeAllUser"}});
     });
 
-    test ( '/api/auth/token', async () => {
+    test ( '/api/auth/tokenCheck', async () => {
         var user = Object.assign({}, myuser);
         user.userRole = "Administrator"
         var token = mockToken(user);
 
         return request(app)
-            .post('/api/auth/token')
+            .post('/api/auth/tokenCheck')
             .send({token:token})
             // send a real token (GSA)
             .then( (res) => {
@@ -62,7 +62,7 @@ describe ('/api/auth/', () => {
                 user.userRole = "Public";
                 var token = mockToken(user);
                 return request(app)
-                    .post('/api/auth/token')
+                    .post('/api/auth/tokenCheck')
                     .send( {token : "token fake"})
                     .then ( (res) => {
                         expect(res.statusCode).toBe(200);
@@ -73,7 +73,7 @@ describe ('/api/auth/', () => {
             // send a fake token
             .then ( (res) => {
                 return request(app)
-                    .post('/api/auth/token')
+                    .post('/api/auth/tokenCheck')
                     .send( {token : "token fake"})
                     .then ( (res) => {
                         expect(res.statusCode).toBe(200);
@@ -84,7 +84,7 @@ describe ('/api/auth/', () => {
             // send NO token
             .then ( () => {
                 return request(app)
-                    .post('/api/auth/token')
+                    .post('/api/auth/tokenCheck')
                     .send( {no_token : "token fake"})
                     .then ( (res) => {
                         expect(res.statusCode).toBe(400);

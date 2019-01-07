@@ -100,7 +100,7 @@ module.exports = {
             });
     },
 
-    token: function (req, res, next) {
+    tokenCheck: function (req, res, next) {
       var token = req.body.token;
       var isLogin = false;
       var isGSAAdmin = false;
