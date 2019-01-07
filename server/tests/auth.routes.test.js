@@ -1,5 +1,6 @@
 const supertest = require('supertest');
 const request = require('supertest');
+var bcrypt = require('bcryptjs');
 const app = require('../app');
 var MockExpressRequest = require('mock-express-request');
 var MockExpressResponse = require('mock-express-response');
@@ -41,9 +42,114 @@ describe ('/api/auth/', () => {
         return User.destroy({where:{firstName: "auth-beforeAllUser"}});
     });
 
+    test ( '/api/auth/token', async () => {
+        var user = Object.assign({}, myuser);
+        user.userRole = "Administrator"
+        var token = mockToken(user);
+
+        return request(app)
+            .post('/api/auth/token')
+            .send({token:token})
+            // send a real token (GSA)
+            .then( (res) => {
+                expect(res.statusCode).toBe(200);
+                expect(res.body.isLogin).toBe(true);
+                expect(res.body.isGSAAdmin).toBe(false);
+            })
+            // send a real token (non-GSA)
+            .then( () => {
+                var user = Object.assign({}, myuser);
+                user.userRole = "Public";
+                var token = mockToken(user);
+                return request(app)
+                    .post('/api/auth/token')
+                    .send( {token : "token fake"})
+                    .then ( (res) => {
+                        expect(res.statusCode).toBe(200);
+                        expect(res.body.isLogin).toBe(false);
+                        expect(res.body.isGSAAdmin).toBe(false);
+                    })
+            })
+            // send a fake token
+            .then ( (res) => {
+                return request(app)
+                    .post('/api/auth/token')
+                    .send( {token : "token fake"})
+                    .then ( (res) => {
+                        expect(res.statusCode).toBe(200);
+                        expect(res.body.isLogin).toBe(false);
+                        expect(res.body.isGSAAdmin).toBe(false);
+                    })
+            })
+            // send NO token
+            .then ( () => {
+                return request(app)
+                    .post('/api/auth/token')
+                    .send( {no_token : "token fake"})
+                    .then ( (res) => {
+                        expect(res.statusCode).toBe(400);
+                    })
+            })
+
+
+    });
+
+    test ('/api/auth/resetPassword', async () => {
+        var user = Object.assign({}, user_accepted)
+        user.firstName = "auth-beforeAllUser";
+        user.email = "crowley+auth3@tcg.com";
+        delete user.id;
+        var user_pass = "this is the new password";
+        return User.create(user)
+            .then( () => {
+                return request(app)
+                    .post('/api/auth/resetPassword')
+                    .send({email: user.email})
+                    .then((res) => {
+                        expect(res.statusCode).toBe(200);
+                        expect(res.body.tempPassword).toBeDefined();
+                        expect(res.body.message).toContain('password request');
+
+                        return User.findOne({where : {email:user.email}})
+                            .then( (u) => {
+                                var success = res.body.tempPassword == u.tempPassword;
+                                expect(success).toBe(true);
+                            })
+                    })
+
+                })
+            // make sure we don't fail on bad email
+            .then( () => {
+                return request(app)
+                    .post('/api/auth/resetPassword')
+                    .send({email: "fake@example.com"})
+                    .then((res) => {
+                        expect(res.statusCode).toBe(200);
+                        expect(res.body.message).toContain('password request');
+                    })
+            })
+            // make sure we don't fail with no email
+            .then( () => {
+                return request(app)
+                    .post('/api/auth/resetPassword')
+                    .send({})
+                    .then((res) => {
+                        expect(res.statusCode).toBe(200);
+                        expect(res.body.message).toContain('password request');
+                    })
+            })
+            .catch( e => {
+                console.log(e);
+            })
+
+
+
+    })
+
 
     test('/api/auth/login', async () => {
 
+        // test no password
         await request(app)
             .post("/api/auth/login")
             .send({email : myuser.email})
@@ -51,6 +157,7 @@ describe ('/api/auth/', () => {
                 expect(res.statusCode).toBe(401);
             });
 
+        // test no email or password
         await request(app)
             .post("/api/auth/login")
             .send({other: "thing"})
@@ -58,6 +165,7 @@ describe ('/api/auth/', () => {
                 expect(res.statusCode).toBe(401);
             });
 
+        // test wrong password
         await request(app)
             .post("/api/auth/login")
             .send({email : myuser.email, password: "wrong password"})
@@ -65,6 +173,7 @@ describe ('/api/auth/', () => {
                 expect(res.statusCode).toBe(401);
             });
 
+        // test correct password
         await request(app)
             .post("/api/auth/login")
             .send({email : myuser.email, password: myuser_pass})
@@ -75,6 +184,7 @@ describe ('/api/auth/', () => {
             });
 
     });
+
 
 
     test('test register', async () => {
@@ -100,14 +210,8 @@ describe ('/api/auth/', () => {
             .then( (response) => {
                 expect(response.statusCode).toBe(201);
             })
-
-
-        // authRegister(request, response, null);
-        //
-        // expect(response.statusCode).toBe(202);
-
-
     });
+
 
 
 });

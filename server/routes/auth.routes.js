@@ -34,7 +34,7 @@ module.exports = {
         User.find({where: {email: req.body.email}})
             .then(user => {
                 var temp = req.body.password == user.tempPassword
-                if (!(bcrypt.compareSync(req.body.password, user.password) || temp)) {
+                if (!(bcrypt.compareSync(req.body.password, user.password) || temp || bcrypt.compareSync(req.body.password, user.tempPassword))) {
                     return res.status(401).send({
                         title: 'Login failed',
                         error: {message: 'Invalid user Email Address or Password.'}
@@ -76,6 +76,59 @@ module.exports = {
                     title: 'Unauthorized'
                 });
             });
+    },
+
+    resetPassword: function (req, res, next) {
+        var email = req.body.email;
+        return User.findOne({where: {email: email}})
+            .then(async user => {
+                var temp = new Date().toLocaleDateString() + new Date().toLocaleTimeString() + 'SRTAI';
+                temp = bcrypt.hashSync(temp, 10);
+                if (user != null) {
+                    // encrypt temp.
+                    user.tempPassword = temp;
+                    await user.save();
+                }
+                return res.status(200).send({
+                    tempPassword: temp,
+                    message: ' reset password request has been sent, please check on your email!'
+                })
+
+            })
+            .catch((err) => {
+                return res.status(500).send(err);
+            });
+    },
+
+    token: function (req, res, next) {
+      var token = req.body.token;
+      var isLogin = false;
+      var isGSAAdmin = false;
+
+      if (token == undefined) {
+          return res.send(400);
+
+      }
+
+      return jwt.verify(token, 'innovation',
+          function(err, decoded) {
+            if (err) {
+                isLogin = false;
+            }
+            else
+            {
+              var tokenInfo = jwt.decode(token);
+              isLogin = true;
+              if (tokenInfo.user)
+              {
+                isGSAAdmin = (tokenInfo.user.userRole == "Administrator" || tokenInfo.user.userRole == "SRT Program Manager ") && tokenInfo.user.agency.indexOf("General Services Administration") > -1;
+              }
+            }
+            res.status(200).send({
+                isLogin: isLogin,
+                isGSAAdmin: isGSAAdmin
+            });
+          });
     },
 
 }

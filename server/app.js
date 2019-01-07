@@ -63,7 +63,8 @@ app.post('/api/user/updatePassword', token(), userRoutes.updatePassword);
 app.post('/api/user/getCurrentUser', token(), userRoutes.getCurrentUser);
 
 app.post('/api/auth/login', authRoutes.login);
-
+app.post('/api/auth/resetPassword', authRoutes.resetPassword);
+app.post('/api/auth/token', authRoutes.token);
 
 
 
