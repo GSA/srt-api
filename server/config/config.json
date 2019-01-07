@@ -25,5 +25,12 @@
     "port": 5432,
     "dialect": "postgres",
     "logging": false
+  },
+  "sqlite" : {
+    "env_name" : "sqlite",
+    "dialect": "sqlite",
+    "host" : "localhost",
+    "storage" : "database.sqlite",
+    "logging": false
   }
 }

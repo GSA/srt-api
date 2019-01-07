@@ -19,4 +19,6 @@ install_dependencies:
 
 test_with_lab:
   stage: test
-  script: npm test
+  script:
+    - export NODE_ENV=sqlite
+    - npm test

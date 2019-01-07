@@ -34,6 +34,7 @@
     "winston": "^3.1.0"
   },
   "devDependencies": {
+    "@types/jest": "*",
     "expect": "^1.20.2",
     "jest": "*",
     "mocha": "^3.2.0",
@@ -41,9 +42,9 @@
     "mock-express-response": "^0.2.2",
     "mongoose-sql": "^1.0.45",
     "nodemon": "^1.11.0",
-    "supertest": "^2.0.1",
-    "@types/jest": "*",
-    "randomstring": "*"
+    "randomstring": "*",
+    "sqlite3": "^4.0.4",
+    "supertest": "^2.0.1"
   },
   "engines": {
     "node": "6.15.0",
