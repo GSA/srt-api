@@ -1,9 +1,10 @@
 ---
 applications:
-- name: str-server
+- name: srt-server
   command: node server/server.js
   memory: 512M
   disk_quota: 1024M
+#  health-check-type: process
   instances: 1
   buildpack: https://github.com/cloudfoundry/nodejs-buildpack
 
