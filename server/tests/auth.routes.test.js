@@ -88,7 +88,11 @@ describe ('/api/auth/', () => {
                     .post('/api/auth/tokenCheck')
                     .send( {no_token : "token fake"})
                     .then ( (res) => {
-                        expect(res.statusCode).toBe(400);
+                        // legacy app expects a 200 response here!
+                        //expect(res.statusCode).toBe(400);
+                        expect(res.statusCode).toBe(200);
+                        expect(res.body.isLogin).toBe(false);
+                        expect(res.body.isGSAAdmin).toBe(false);
                     })
             })
 

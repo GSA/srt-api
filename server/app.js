@@ -5,6 +5,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 var cors = require('cors');
 var token = require('./security/token');
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/config/config.json')[env];
 
 
 
@@ -28,6 +30,10 @@ var app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+if (env == 'development' || env == 'sqlite') {
+    expressWinston.requestWhitelist.push('body');
+}
+
 app.use(expressWinston.logger({
     transports: [ new winston.transports.File({filename: "winston.log", level: "info"})],
     // format: winston.format.combine(winston.format.colorize(), winston.format.json()),
@@ -44,6 +50,7 @@ app.use(expressWinston.logger({
             var decoded = jwt.verify(token, 'innovation');
             user = decoded.user;
         }
+        var post_data = JSON.stringify(req.body);
         return `${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`;},
     expressFormat: false,
     colorize: false,
