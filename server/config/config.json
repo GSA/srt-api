@@ -31,6 +31,6 @@
     "dialect": "sqlite",
     "host" : "localhost",
     "storage" : "database.sqlite",
-    "logging": true
+    "logging": false
   }
 }

@@ -21,6 +21,10 @@ cache:
 
 test_with_lab:
   stage: test
+  coverage: '/All files[^0-9]*\d+\.\d+/'
+  artifacts:
+    paths:
+      - coverage/
   script:
     - npm install
     - export NODE_ENV=sqlite

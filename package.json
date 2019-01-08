@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server/server.js",
     "old-test": "export NODE_ENV=test || SET NODE_ENV=test && mocha server/**/*.test.js",
-    "test": "jest",
+    "test": "jest --runInBand --config=jest.config.js",
     "test-watch": "nodemon --exec 'npm test'"
   },
   "author": "TCG",
