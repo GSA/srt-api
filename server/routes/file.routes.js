@@ -42,18 +42,14 @@ var fs = require('fs');
 // router.post('/upload', function (req, res) {
 //   upload(req, res, function (err) {
 //     if (err) {
-//       console.log(err)
 //       return res.send(err.toString());
 //     }
-//     console.log(req.files)
-//     console.log('File is uploaded')
 //     res.send('File is uploaded');
 //   });
 // });
 
 router.post('/upload', (req, res) => {
     router.use(multerObj.any());
-    console.log("backend")
 });
  
 

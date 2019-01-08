@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models').User;
+const logger = require('../config/winston');
 
 
 
@@ -24,6 +25,7 @@ module.exports = {
                 res.status(200).send(users);
             })
             .catch( e => {
+                logger.error(e);
                 res.status(400).send(e);
             })
     },
@@ -34,10 +36,11 @@ module.exports = {
             user.isAccepted = req.body.isAccepted;
             user.isRejected = req.body.isRejected;
             user.save().then( () => {
-                res.status(200).send(user);
+                return res.status(200).send(user);
             })
         }).catch ( e => {
-            res.status(500).send(e);
+            logger.error(e);
+            return res.status(500).send(e);
         })
     },
 
@@ -112,8 +115,6 @@ module.exports = {
 //     var current = jwt.decode(token).user;;
 //
 //     UserSchemas.findOne({_id : current._id}, function (err, user){
-//         console.log(req.body.oldpassword);
-//         console.log(user)
 //         if(!bcrypt.compareSync(req.body.oldpassword, user.password) && req.body.oldpassword != user.tempPassword ){
 //
 //             res.json({message: 'current password is not correct!'})
@@ -145,7 +146,6 @@ module.exports = {
 //  */
 // router.post('/checkPassword', function(req, res){
 //     var password = req.body.password;
-//     console.log(password);
 // })
 //
 // /**
@@ -158,7 +158,6 @@ module.exports = {
 //         if(err){
 //             res.send(err);
 //         }else{
-//             console.log(user)
 //             res.json(user.creationDate)
 //         }
 //     })

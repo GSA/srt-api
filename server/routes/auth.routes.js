@@ -144,7 +144,6 @@ module.exports = {
 //         error: err
 //       });
 //     }
-//     console.log(user)
 //     if (!user) {
 //       return res.status(401).json({
 //         title: 'Login failed',

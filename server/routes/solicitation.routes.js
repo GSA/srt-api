@@ -17,7 +17,6 @@ var {Prediction} = require('../schemas/prediction');
  */
 router.post('/filter', function (req, res) {
     
-    console.log(req.body);
     var numData = 10;
     var filterParams = {
         "$and": [

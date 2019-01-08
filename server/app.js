@@ -66,6 +66,7 @@ app.post('/api/auth/login', authRoutes.login);
 app.post('/api/auth/resetPassword', authRoutes.resetPassword);
 app.post('/api/auth/tokenCheck', authRoutes.tokenCheck);
 
+app.post('/api/email', token(), emailRoutes.email);
 
 
 app.use(expressWinston.errorLogger({
@@ -230,7 +231,6 @@ app.use(expressWinston.errorLogger({
     //                 if (predictions[i].parseStatus.length != 0)
     //                 {
     //
-    //                     // if (predictions[i].parseStatus.length != Number(predictions[i].numDocs)) console.log(predictions[i].solNum);
     //
     //                     // Machine Readable Document
     //                     for (var j = 0; j < predictions[i].parseStatus.length; j ++)
@@ -519,7 +519,6 @@ app.use(expressWinston.errorLogger({
     //  */
     // app.post('/predictions/filter', (req, res) => {
     //
-    //     console.log(req.body);
     //     var filterParams = {
     //         "$and": [
     //             {'eitLikelihood.value': 'Yes'},
@@ -612,7 +611,6 @@ app.use(expressWinston.errorLogger({
     // app.put('/predictionshistory', (req, res) => {
     //     PredictionHistory.findOne({solNum:req.body.solnum}, function(err, solicitation){
     //         if(err){
-    //             console.log("fail to put prediction history");
     //             res.send(err);
     //         }
     //         if(solicitation) {
@@ -656,12 +654,9 @@ app.use(expressWinston.errorLogger({
     //  * Get the certain prediction history and feedback
     //  */
     // app.post('/predictionshistory', (req, res) => {
-    //     console.log(req.body.solicitationID)
     //     Prediction.findOne({_id : req.body.solicitationID}).then((result) => {
     //         if(result){
-    //             console.log(result.solNum);
     //             PredictionHistory.findOne({solNum : result.solNum}).then((history) => {
-    //                 console.log(history);
     //                 if(history != null){
     //                     res.send(history);
     //                 }else {
@@ -712,7 +707,6 @@ app.use(expressWinston.errorLogger({
     //
     //         if (err)
     //         {
-    //             console.log("error on put prediction");
     //             res.send(err);
     //         }
     //
