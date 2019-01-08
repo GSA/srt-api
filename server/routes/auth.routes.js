@@ -106,7 +106,9 @@ module.exports = {
       var isGSAAdmin = false;
 
       if (token == undefined) {
-          return res.send(400);
+          // client expects a response here even though the request was malformed
+          return res.status(200).send( {isLogin: false, isGSAAdmin: false} );
+          //return res.send(400);
 
       }
 
