@@ -61,12 +61,14 @@ module.exports = {
                 res.status(401).send({message: 'current password is not correct!'});
             }
         }).catch(e => {
+            logger.error(e);
             res.status(500).send({message: 'Update failed - ' + e.stack});
         })
 
     },
 
     getUserInfo: function(req, res) {
+        logger.info("this is info!");
         return User.findByPk(req.body.UserId)
             .then( user => {
                 return res.status(200).send(user);
@@ -92,6 +94,7 @@ module.exports = {
                  return res.status(200).send({ creationDate : user.creationDate});
              })
              .catch(e => {
+                 logger.error(e);
                  return res.status(500).send(e);
              });
      }

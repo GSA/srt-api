@@ -11,6 +11,7 @@ const mockToken = require("./mocktoken");
 const user_routes = require('../routes/user.routes');
 const auth_routes = require('../routes/auth.routes');
 const User = require('../models').User;
+const logger = require('../config/winston');
 
 const {user1, user_accepted, user_rejected} = require ('./test.data');
 
@@ -29,8 +30,6 @@ describe ('User API Routes', () => {
 
     beforeAll(  ()=>{
 
-        console.log("starting beforeall")
-
         var filter_user = Object.assign({}, user_accepted);
         filter_user.firstName = "beforeAll-filter";
         filter_user.isAccepted = true;
@@ -40,18 +39,15 @@ describe ('User API Routes', () => {
             return User.create(user1)
                 .then( (user) => {
                     user_1_id = user.id;
-                    console.log ("created user1");
                 })
                 .then( () => {
                     return User.create(user_accepted)
                         .then( (user2) => {
-                            console.log ("token created here");
                             token = mockToken(user2);
                             accepted_user_id = user2.id;
                         })
                 })
                 .then( () => {
-                    console.log("created rejected user)");
                     return User.create(user_rejected);
                 })
         });
@@ -66,8 +62,6 @@ describe ('User API Routes', () => {
     });
 
     test('/api/user/update', async() => {
-        console.log (` using token`);
-        console.log (token);
         return request(app)
             .post("/api/user/update")
             .send({_id: user_1_id, isAccepted: false, isRejected: false})
@@ -161,7 +155,7 @@ describe ('User API Routes', () => {
             .then( (res) => {
                 expect(res.statusCode).toBe(200);
                 user = res.body;
-                // console.log (res.body);
+                // logger.error (res.body);
                 expect(user.email).toBe(user_accepted.email + "");
             });
 
