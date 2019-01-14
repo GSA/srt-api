@@ -32,7 +32,7 @@ connect:
   image: postgres
   stage: test
   script:
-    - echo "create user $POSTGRES_USER with password '$POSTGRES_PASSWORD' " | psql -h "postgres" -U postgres
+    - echo "create user $POSTGRES_USER with password '$POSTGRES_PASSWORD' " | psql -h "postgres"
     - echo "create database $POSTGRES_DB" | psql -h "postgres" -U postgres
     - echo "grant all privileges on database $POSTGRES_DB to $POSTGRES_USER" | psql -h "postgres" -U postgres
     - export PGPASSWORD=$POSTGRES_PASSWORD
