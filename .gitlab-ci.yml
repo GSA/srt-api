@@ -35,5 +35,5 @@ test_with_lab:
       - coverage/
   script:
     - npm install
-    - export NODE_ENV=sqlite
+    - export NODE_ENV=gitlab
     - npm test
