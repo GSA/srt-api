@@ -1,7 +1,5 @@
 image: node:8
 
-services:
-  - postgres
 
 variables:
   # Configure postgres service (https://hub.docker.com/_/postgres/)
@@ -11,7 +9,6 @@ variables:
 
 
 stages:
-  # - build
   - test
 
 cache:
@@ -20,23 +17,15 @@ cache:
   paths:
     - node_modules/
 
-#install_dependencies:
-#  stage: build
-#  script:
-#    - npm install
-#  artifacts:
-#    paths:
-#      - node_modules/
+services:
+   - postgres
 
 connect:
   image: postgres
   stage: test
   script:
-    - echo "create user $POSTGRES_USER with password '$POSTGRES_PASSWORD' " | psql -h "postgres"
-    - echo "create database $POSTGRES_DB" | psql -h "postgres" -U postgres
-    - echo "grant all privileges on database $POSTGRES_DB to $POSTGRES_USER" | psql -h "postgres" -U postgres
     - export PGPASSWORD=$POSTGRES_PASSWORD
-    - psql -h "postgres" -U $POSTGRES_USER $POSTGRES_DB < stl-database.sql
+    - psql -h "postgres"  $POSTGRES_DB $POSTGRES_USER < srt-database.sql
 
 test_with_lab:
   stage: test
