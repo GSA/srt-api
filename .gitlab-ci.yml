@@ -33,7 +33,7 @@ connect:
   stage: test
   script:
     - export PGPASSWORD=$POSTGRES_PASSWORD
-    - psql -h "postgres" -U "$POSTGRES_USER"  < srt-database.sql
+    - psql -h "postgres" -U postgres  < srt-database.sql
 
 test_with_lab:
   stage: test
