@@ -1,5 +1,14 @@
 image: node:8
 
+services:
+  - postgres
+
+variables:
+  # Configure postgres service (https://hub.docker.com/_/postgres/)
+  POSTGRES_DB: cgawsbrokerprodgq3wrvn8c8a772q
+  POSTGRES_USER: utz6kah1zq8t2nyg
+  POSTGRES_PASSWORD: ***REMOVED***
+
 
 stages:
   # - build
@@ -18,6 +27,13 @@ cache:
 #  artifacts:
 #    paths:
 #      - node_modules/
+
+connect:
+  image: postgres
+  stage: test
+  script:
+    - export PGPASSWORD=$POSTGRES_PASSWORD
+    - psql -h "postgres" -U "$POSTGRES_USER" -D "$POSTGRES_DB" < srt-database.sql
 
 test_with_lab:
   stage: test
