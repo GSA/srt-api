@@ -39,7 +39,6 @@ describe ('/api/agencies', () => {
                 expect(res.statusCode).toBe(200);
                 return Agency.findOne({where : {acronym: "def"}})
                     .then ( (a) => {
-                        console.log (a);
                         return expect(a.agency).toBe(agency);
                     })
 

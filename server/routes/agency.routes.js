@@ -17,8 +17,6 @@ module.exports = {
 
         Agency.create(agency)
             .then((agency) => {
-                console.log ("CREATED");
-                console.log (agency);
                 return res.status(200).send(agency);
             })
             .catch( (e) => {
@@ -28,10 +26,7 @@ module.exports = {
     },
 
     getAgency: function (req, res) {
-        console.log ("in get");
-
         return Agency.findAll().then((age) => {
-            console.log ("find");
             let a = new Array();
             age.forEach( (e) => {
                 a.push ( {agency: e.dataValues.agency, acronym: e.dataValues.acronym} );
