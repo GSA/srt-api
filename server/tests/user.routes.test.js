@@ -56,7 +56,11 @@ describe ('User API Routes', () => {
     });
     afterAll( ()=>{
        return User.destroy({where:{firstName: "beforeAllUser"}})
-           .then ( () => {
+           .then ( async () => {
+               await User.destroy({where:{email: "crowley+Phineas@tcg.com"}});
+               await User.destroy({where:{email: "crowley+accepted@tcg.com"}});
+               await User.destroy({where:{email: "crowley+rejected@tcg.com"}});
+               await User.destroy({where:{email: null}});
                return User.destroy({where:{firstName: "beforeAll-filter"}});
            });
     });
