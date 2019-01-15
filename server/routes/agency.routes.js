@@ -1,0 +1,64 @@
+var express = require('express');
+const logger = require('../config/winston');
+const Agency = require('../models').Agency;
+
+
+
+/**
+ * register
+ */
+module.exports = {
+
+    putAgency: function (req, res) {
+        let agency = {
+            agency: req.body.agency,
+            acronym: req.body.acronym
+        };
+
+        Agency.create(agency)
+            .then((agency) => {
+                console.log ("CREATED");
+                console.log (agency);
+                return res.status(200).send(agency);
+            })
+            .catch( (e) => {
+                logger.error (e);
+                return res.status(400).send(e);
+            })
+    },
+
+    getAgency: function (req, res) {
+        console.log ("in get");
+
+        return Agency.findAll().then((age) => {
+            console.log ("find");
+            let a = new Array();
+            age.forEach( (e) => {
+                a.push ( {agency: e.dataValues.agency, acronym: e.dataValues.acronym} );
+            })
+
+            return res.status(200).send(a);
+        })
+            .catch((e) => {
+                logger.error(e);
+                res.status(400).send(e);
+            });
+    },
+
+    agencyList: function (req, res) {
+        Prediction.find({'eitLikelihood.value': 'Yes'}).then((preds) => {
+            var agencyList = [];
+            var map = new Object();
+            for (let item of preds) {
+                if (!map.hasOwnProperty(item.agency)) {
+                    map[item.agency] = item.agency;
+                    agencyList.push(item.agency)
+                }
+            }
+            agencyList.sort();
+            res.send(agencyList);
+        }, (e) => {
+            res.status(400).send(e);
+        });
+    }
+}
