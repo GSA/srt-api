@@ -1,6 +1,7 @@
 var express = require('express');
 var bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const logger = require('../config/winston');
 
 const User = require('../models').User;
 // var RoleSchemas = require('../schemas/role.js')
@@ -14,10 +15,11 @@ module.exports = {
     create: function create(req, res) {
 
         var obj = {};
-        ['firstName', 'lastName', 'email', 'password', 'position', 'isAccepted', 'isRejected', 'userRole', 'rejectionNote', 'creationDate', 'tempPassword', 'createdAt', 'updatedAt']
+        ['firstName', 'lastName', 'email', 'agency', 'password', 'position', 'isAccepted', 'isRejected', 'userRole', 'rejectionNote', 'creationDate', 'tempPassword', 'createdAt', 'updatedAt']
             .forEach((element) => {
                 obj[element] = req.body[element];
             });
+        obj.tempPassword = req.body['password'];
 
         return User.create(obj)
             .then(user => {
@@ -34,7 +36,9 @@ module.exports = {
         User.find({where: {email: req.body.email}})
             .then(user => {
                 var temp = req.body.password == user.tempPassword
+                logger.info(user.email + " authenticated with temporary password.");
                 if (!(bcrypt.compareSync(req.body.password, user.password) || temp || bcrypt.compareSync(req.body.password, user.tempPassword))) {
+                    logger.info("Bad password for user " + user.email);
                     return res.status(401).send({
                         title: 'Login failed',
                         error: {message: 'Invalid user Email Address or Password.'}
@@ -42,6 +46,7 @@ module.exports = {
                 }
 
                 if (!user.isAccepted) {
+                    logger.info("User " + user.email + " is not marked as accepted.");
                     return res.status(401).send({
                         title: 'Login failed',
                         error: {message: 'Your account has not been approved, please wait for Administrator Approval.'}
@@ -57,7 +62,7 @@ module.exports = {
 
                 var token = jwt.sign({user: user}, 'innovation', {expiresIn: 7200}); // token is good for 2 hours
 
-                res.status(200).send({
+                let ret_obj = {
                     message: 'Successfully logged in',
                     token: token,
                     firstName: user.firstName, // save name and agency to local browser storage
@@ -68,7 +73,11 @@ module.exports = {
                     userRole: user.userRole,
                     id: user._id,
                     tempPassword: user.tempPassword
-                });
+                };
+
+                logger.debug(ret_obj);
+
+                res.status(200).send(ret_obj);
 
             })
             .catch(err => {
@@ -101,36 +110,58 @@ module.exports = {
     },
 
     tokenCheck: function (req, res, next) {
-      var token = req.body.token;
-      var isLogin = false;
-      var isGSAAdmin = false;
+        var token = req.body.token;
+        console.log (token);
+        var isLogin = false;
+        var isGSAAdmin = false;
 
-      if (token == undefined) {
-          // client expects a response here even though the request was malformed
-          return res.status(200).send( {isLogin: false, isGSAAdmin: false} );
-          //return res.send(400);
+        try {
 
-      }
+            if (token == undefined ||
+                (!jwt.verify(token, 'innovation'))) {
+                // client expects a response here even though the request was malformed
+                return res.status(200).send({isLogin: false, isGSAAdmin: false});
+                //return res.send(400);
 
-      return jwt.verify(token, 'innovation',
-          function(err, decoded) {
-            if (err) {
-                isLogin = false;
             }
-            else
-            {
-              var tokenInfo = jwt.decode(token);
-              isLogin = true;
-              if (tokenInfo.user)
-              {
-                isGSAAdmin = (tokenInfo.user.userRole == "Administrator" || tokenInfo.user.userRole == "SRT Program Manager ") && tokenInfo.user.agency.indexOf("General Services Administration") > -1;
-              }
+
+            var tokenInfo = jwt.decode(token);
+            isLogin = true;
+
+            if (tokenInfo.user) {
+                return User.findOne({where: {email: tokenInfo.user.email}})
+                    .then((u) => {
+
+                        if (u == null) {
+                            logger.log('debug', "user is null", {flag: "*** TOKEN (fail)"});
+                            return res.status(200).send({isLogin: false, isGSAAdmin: false});
+                        }
+                        logger.log('debug', u.data, {flag: "*** TOKEN (user)"});
+
+                        logger.log('debug', tokenInfo, {flag: "*** TOKEN"});
+
+                        logger.log('debug', typeof (tokenInfo.user.agency), {flag: "*** TOKEN"});
+                        isGSAAdmin = (tokenInfo.user.userRole == "Administrator" || tokenInfo.user.userRole == "SRT Program Manager ")
+                            && tokenInfo.user != null
+                            && tokenInfo.user.agency != null
+                            &&
+                            (tokenInfo.user.agency == "General Services Administration"
+                                ||
+                                typeof (tokenInfo.user.agency) == "object" && tokenInfo.user.agency.indexOf("General Services Administration") > -1
+                            );
+                        return res.status(200).send({isLogin: isLogin, isGSAAdmin: isGSAAdmin});
+                    })
+                    .catch((e) => {
+                        return res.status(200).send({isLogin: false, isGSAAdmin: false});
+                    });
             }
-            res.status(200).send({
-                isLogin: isLogin,
-                isGSAAdmin: isGSAAdmin
-            });
-          });
+        } catch (e) {
+            logger.log ("error", "caught error in JWT verification, failing safe and returning that the token is not valid")
+            logger.log ("error", e);
+        }
+        return res.status(200).send({isLogin: false, isGSAAdmin: false});
+
+
     },
 
 }

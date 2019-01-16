@@ -14,7 +14,6 @@ describe ('/api/agencies', () => {
     beforeAll( ()=>{});
     afterAll ( () => {
         return Agency.destroy( {where: {agency: agency}});
-
     });
 
     test( '/api/agencies (get)', async () => {
@@ -23,7 +22,7 @@ describe ('/api/agencies', () => {
             .then( (res) => {
                 expect(res.statusCode).toBe(200);
                 expect(res.body.length).toBeGreaterThan(2);
-                expect(res.body).toContainEqual({"acronym": "GSA", "agency": "General Services Administration"});
+                expect(res.body).toContainEqual({"Acronym": "GSA", "Agency": "General Services Administration"});
 
             });
     });

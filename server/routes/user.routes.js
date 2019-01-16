@@ -50,15 +50,19 @@ module.exports = {
         var token = req.headers['authorization'].split(' ')[1];
         var me = jwt.decode(token).user;
 
+        logger.debug ("Updating password for user " + me.email + " changing to " + newPassword + " old password was " + oldPassword);
+
         return User.findByPk(me.id).then((user) => {
             if (oldPassword == user.tempPassword || bcrypt.compareSync(oldPassword, user.password)) {
                 user.password = bcrypt.hashSync(newPassword, 10);
                 user.tempPassword = "";
                 user.save().then(() => {
-                    res.status(200).send({message: "Password changed."})
+                    return res.status(200).send({message: "Password changed."})
                 })
             } else {
-                res.status(401).send({message: 'current password is not correct!'});
+
+                logger.log("info", "Failed attempt to change password by " + me.email);
+                return res.status(401).send({message: 'current password is not correct!'});
             }
         }).catch(e => {
             logger.error(e);

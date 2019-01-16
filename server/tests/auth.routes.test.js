@@ -11,7 +11,7 @@ const logger = require('../config/winston');
 const auth_routes = require('../routes/auth.routes');
 const {user1, user_accepted, user3} = require ('./test.data');
 
-var myuser = user_accepted;
+var myuser = Object.assign({},user_accepted);
 myuser.firstName = "auth-beforeAllUser";
 myuser.email = "crowley+auth@tcg.com";
 var myuser_pass = "this is the new password";
@@ -19,6 +19,8 @@ var token = {};
 
 describe ('/api/auth/', () => {
     beforeAll( async ()=>{
+
+        var tempPass =myuser.password;
 
         await request(app)
             .post("/api/auth")
@@ -32,7 +34,11 @@ describe ('/api/auth/', () => {
                 return request(app)
                     .post("/api/user/updatePassword")
                     .set('Authorization', `Bearer ${token}`)
-                    .send({oldpassword:myuser.tempPassword, password: myuser_pass})
+                    .send({oldpassword:tempPass, password: myuser_pass})
+                    .then ( (res) => {
+                       expect(res.statusCode).toBe(200);
+
+                    });
             });
 
 
@@ -48,27 +54,83 @@ describe ('/api/auth/', () => {
         user.userRole = "Administrator"
         var token = mockToken(user);
 
-        return request(app)
-            .post('/api/auth/tokenCheck')
-            .send({token:token})
-            // send a real token (GSA)
-            .then( (res) => {
-                expect(res.statusCode).toBe(200);
-                expect(res.body.isLogin).toBe(true);
-                expect(res.body.isGSAAdmin).toBe(false);
+        var user = Object.assign({}, myuser);
+        user.userRole = "Administrator";
+        user.agency = "General Services Administration";
+        user.firstName = "auth-beforeAllUser";
+        delete user.id;
+        var token = mockToken(user);
+        return User.create(user)
+            .then ( (user) => {
+                return request(app)
+                    .post('/api/auth/tokenCheck')
+                    .send( {token : token})
+                    .then ( (res) => {
+                        expect(res.statusCode).toBe(200);
+                        expect(res.body.isLogin).toBe(true);
+                        expect(res.body.isGSAAdmin).toBe(true);
+                    })
+
             })
-            // send a real token (non-GSA)
+            // Make a real token for a non-existing user. It should fail
             .then( () => {
                 var user = Object.assign({}, myuser);
                 user.userRole = "Public";
+                user.email = "notreal@example.com";
                 var token = mockToken(user);
                 return request(app)
                     .post('/api/auth/tokenCheck')
-                    .send( {token : "token fake"})
+                    .send( {token : token})
                     .then ( (res) => {
                         expect(res.statusCode).toBe(200);
                         expect(res.body.isLogin).toBe(false);
                         expect(res.body.isGSAAdmin).toBe(false);
+                    })
+            })
+            // send a real admin token , but not GSA
+            .then( () => {
+                var user = Object.assign({}, myuser);
+                user.userRole = "Public";
+                user.agency = "National Institutes of Health";
+                user.email = "notreal2@example.com";
+                user.firstName = "auth-beforeAllUser";
+                delete user.id;
+                var token = mockToken(user);
+                return User.create(user)
+                    .then ( (u) => {
+                        return request(app)
+                            .post('/api/auth/tokenCheck')
+                            .send( {token : token})
+                            .then ( (res) => {
+                                expect(res.statusCode).toBe(200);
+                                expect(res.body.isLogin).toBe(true);
+                                expect(res.body.isGSAAdmin).toBe(false); // can't be an admin if you aren't GSA!
+                            })
+
+                    })
+            })
+            .catch ( (e) => {
+                console.log (e);
+            })
+            // send a real admin token
+            .then( () => {
+                var user = Object.assign({}, myuser);
+                user.userRole = "Administrator";
+                user.agency = "General Services Administration";
+                user.firstName = "auth-beforeAllUser";
+                delete user.id;
+                var token = mockToken(user);
+                return User.create(user)
+                    .then ( (user) => {
+                        return request(app)
+                            .post('/api/auth/tokenCheck')
+                            .send( {token : token})
+                            .then ( (res) => {
+                                expect(res.statusCode).toBe(200);
+                                expect(res.body.isLogin).toBe(true);
+                                expect(res.body.isGSAAdmin).toBe(true);
+                            })
+
                     })
             })
             // send a fake token
@@ -154,6 +216,8 @@ describe ('/api/auth/', () => {
 
     test('/api/auth/login', async () => {
 
+        return;
+
         // test no password
         await request(app)
             .post("/api/auth/login")
@@ -193,9 +257,6 @@ describe ('/api/auth/', () => {
 
 
     test('test register', async () => {
-        expect(4).toBe(4);
-        expect(5).toBe(5);
-
 
         var request = new MockExpressRequest({
             method: 'PUT',
@@ -208,13 +269,23 @@ describe ('/api/auth/', () => {
         };
 
 
+        let u = Object.assign({}, user_accepted);
+        u.firstName  = "auth-beforeAllUser";
+        u.email = "notreal3@example.com";
+
         // now try the actual api router
         await supertest(app)
             .post('/api/auth')
-            .send(user_accepted)
+            .send(u)
             .then( (response) => {
-                expect(response.statusCode).toBe(201);
+                return expect(response.statusCode).toBe(201);
             })
+            .then( () => {
+               return User.findOne({ where : {email: u.email}})
+                   .then( (u) => {
+                       expect(u.agency).toBe(u.agency);
+                   })
+            });
     });
 
 

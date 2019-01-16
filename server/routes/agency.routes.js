@@ -29,14 +29,16 @@ module.exports = {
         return Agency.findAll().then((age) => {
             let a = new Array();
             age.forEach( (e) => {
-                a.push ( {agency: e.dataValues.agency, acronym: e.dataValues.acronym} );
+                a.push ( {Agency: e.dataValues.agency, Acronym: e.dataValues.acronym} );
             })
+
+            logger.debug("Return " + a.lengh + " agencies from GET /api/agencies");
 
             return res.status(200).send(a);
         })
             .catch((e) => {
                 logger.error(e);
-                res.status(400).send(e);
+                res.statuws(400).send(e);
             });
     },
 

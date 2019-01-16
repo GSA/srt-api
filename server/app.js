@@ -42,21 +42,29 @@ app.use(expressWinston.logger({
     meta: true,
     // msg: "HTTP {{req.method}} {{req.url}} ",
     msg : function(req, res) {
-        var jwt = require('jsonwebtoken');
+        let jwt = require('jsonwebtoken');
 
-        var token = null;
-        var user = {id: null, position: null, userRole: null, email: null};
+        let token = null;
+        let user = {id: null, position: null, userRole: null, email: null};
         if (req.headers['authorization'] && req.headers['authorization'].length > 0 ) {
             token = req.headers['authorization'].split(' ')[1];
-            var decoded = jwt.verify(token, 'innovation');
+            let decoded = jwt.verify(token, 'innovation');
             user = decoded.user;
         }
-        var post_data = JSON.stringify(req.body);
-        return `${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`;},
+        let post_data = JSON.stringify(req.body);
+        let dt = new Date().toLocaleString();
+        return `${dt} ${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`;},
     expressFormat: false,
     colorize: false,
     ignoreRoute: function(req, res) { return false;}
 }));
+
+// This will prevent express from sending 304 responses.
+// TODO: Maybe we can remove this for production when the site is working properly
+app.use(function(req, res, next) {
+    req.headers['if-none-match'] = 'no-match-for-this';
+    next();
+});
 
 app.post('/api/auth', authRoutes.create);
 app.post('/api/auth/login', authRoutes.login);
@@ -86,16 +94,17 @@ app.use(expressWinston.errorLogger({
     meta: true,
     // msg: "HTTP {{req.method}} {{req.url}} ",
     msg : function(req, res) {
-        var jwt = require('jsonwebtoken');
+        let jwt = require('jsonwebtoken');
 
-        var token = null;
-        var user = {id: null, position: null, userRole: null, email: null};
+        let token = null;
+        let user = {id: null, position: null, userRole: null, email: null};
         if (req.headers['authorization'] && req.headers['authorization'].length > 0 ) {
             token = req.headers['authorization'].split(' ')[1];
-            var decoded = jwt.verify(token, 'innovation');
+            let decoded = jwt.verify(token, 'innovation');
             user = decoded.user;
         }
-        return `ERROR - ${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`;},
+        let dt = new Date().toLocaleString();
+        return `ERROR - ${dt} ${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`;},
     expressFormat: false,
     colorize: false,
     ignoreRoute: function(req, res) { return false;}
