@@ -111,7 +111,6 @@ module.exports = {
 
     tokenCheck: function (req, res, next) {
         var token = req.body.token;
-        console.log (token);
         var isLogin = false;
         var isGSAAdmin = false;
 

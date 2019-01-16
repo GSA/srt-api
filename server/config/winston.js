@@ -2,7 +2,7 @@ var winston = require('winston')
 var options = {
 
     transports: [
-        new winston.transports.File({filename: "winston.log", level: "info"}),
+        new winston.transports.File({filename: "winston.log.json", level: "debug"}),
         new winston.transports.Console({level: "error", json:true})
     ],
     format: winston.format.prettyPrint(),

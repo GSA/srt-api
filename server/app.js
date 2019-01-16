@@ -36,7 +36,7 @@ if (env == 'development' || env == 'sqlite') {
 }
 
 app.use(expressWinston.logger({
-    transports: [ new winston.transports.File({filename: "winston.log", level: "info"})],
+    transports: [ new winston.transports.File({filename: "winston.log.json", level: "debug"})],
     // format: winston.format.combine(winston.format.colorize(), winston.format.json()),
     format: winston.format.prettyPrint(),
     meta: true,
@@ -88,7 +88,7 @@ app.get('/api/agencies', agencyRoutes.getAgency)
 app.put('/api/agencies', agencyRoutes.putAgency)
 
 app.use(expressWinston.errorLogger({
-    transports: [ new winston.transports.File({filename: "winston.log", level: "info"})],
+    transports: [ new winston.transports.File({filename: "winston.log.json", level: "debug"})],
     // format: winston.format.combine(winston.format.colorize(), winston.format.json()),
     format: winston.format.prettyPrint(),
     meta: true,

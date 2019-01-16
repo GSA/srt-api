@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server/server.js",
     "old-test": "export NODE_ENV=test || SET NODE_ENV=test && mocha server/**/*.test.js",
-    "test": "jest --runInBand --config=jest.config.js",
+    "test": "jest --detectOpenHandles --config=jest.config.js",
     "test-watch": "nodemon --exec 'npm test'"
   },
   "author": "TCG",
@@ -32,7 +32,7 @@
     "sequelize": "^4.42.0",
     "sequelize-cli": "^5.4.0",
     "validator": "^6.2.0",
-    "winston": "^3.1.0"
+    "winston": "^3.1.0",
   },
   "devDependencies": {
     "@types/jest": "*",
