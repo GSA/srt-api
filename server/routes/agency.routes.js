@@ -5,7 +5,7 @@ const Agency = require('../models').Agency;
 
 
 /**
- * register
+ * agency routes
  */
 module.exports = {
 

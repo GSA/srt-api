@@ -44,6 +44,7 @@
     "mongoose-sql": "^1.0.45",
     "nodemailer-mock": "^1.3.14",
     "nodemon": "^1.11.0",
+    "random-words": "^1.1.0",
     "randomstring": "*",
     "sqlite3": "^4.0.4",
     "supertest": "^2.0.1"

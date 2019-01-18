@@ -19,6 +19,7 @@ var authRoutes = require('./routes/auth.routes');
 var userRoutes = require('./routes/user.routes');
 var emailRoutes = require('./routes/email.routes');
 var agencyRoutes = require('./routes/agency.routes');
+var predictionRoutes = require('./routes/prediction.routes');
 //var solicitationRoutes = require('./routes/solicitation.routes');
 
 
@@ -86,6 +87,8 @@ app.post('/api/email', token(), emailRoutes.email);
 
 app.get('/api/agencies', agencyRoutes.getAgency)
 app.put('/api/agencies', agencyRoutes.putAgency)
+
+app.post('/api/predictions/filter', token(), predictionRoutes.predictionFilter);
 
 app.use(expressWinston.errorLogger({
     transports: [ new winston.transports.File({filename: "winston.log.json", level: "debug"})],
