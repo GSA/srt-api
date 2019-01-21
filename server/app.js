@@ -87,6 +87,7 @@ app.post('/api/email', token(), emailRoutes.email);
 
 app.get('/api/agencies', agencyRoutes.getAgency)
 app.put('/api/agencies', agencyRoutes.putAgency)
+app.get('/api/agencyList', token(), agencyRoutes.agencyList);
 
 app.post('/api/predictions/filter', token(), predictionRoutes.predictionFilter);
 

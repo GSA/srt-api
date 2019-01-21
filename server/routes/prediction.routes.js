@@ -1,41 +1,33 @@
 var express = require('express');
 const logger = require('../config/winston');
-const Agency = require('../models').Agency;
 
 require('../tests/test.lists');
 
 const randomWords = require('random-words');
 
-/**
- * prediction routes
- */
-module.exports = {
 
+// TODO: Remove this fake random implementation before going to production
+Math.seed = 52;
+Math.random = function(max, min) {
+    max = max || 1;
+    min = min || 0;
 
-    predictionFilter: function (req, res) {
+    Math.seed = (Math.seed * 9301 + 49297) % 233280;
+    var rnd = Math.seed / 233280;
 
-        // TODO: Remove this fake random implementation before going to production
-        Math.seed = 52;
-        Math.random = function(max, min) {
-            max = max || 1;
-            min = min || 0;
+    return min + rnd * (max - min);
+};
 
-            Math.seed = (Math.seed * 9301 + 49297) % 233280;
-            var rnd = Math.seed / 233280;
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+}
+function pickOne(a) {
+    return a[getRandomInt(0, a.length)]
+}
 
-            return min + rnd * (max - min);
-        };
-
-        function getRandomInt(min, max) {
-            min = Math.ceil(min);
-            max = Math.floor(max);
-            return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
-        }
-        function pickOne(a) {
-            return a[getRandomInt(0, a.length)]
-        }
-
-
+function mockData() {
         let reviewRecArray = ["Compliant", "Non-compliant (Action Required)", "Undetermined"];
         let noticeTypeArray = ["Presolicitation", "Combined Synopsis/Solicitation", "Sources Sought"];
         let actionStatusArray = ["Email Sent to POC", "reviewed solicitation action requested summary", "provided feedback on the solicitation prediction result"];
@@ -90,23 +82,48 @@ module.exports = {
 
         let sample_data = new Array();
 
-        for (let i=0; i < 49; i++) {
+        for (let i = 0; i < 49; i++) {
             let o = Object.assign({}, template);
 
-            o.title = randomWords({ exactly:1, wordsPerString: getRandomInt(2,7) })[0];
-            o.reviewRec = pickOne (reviewRecArray);
-            o.agency = pickOne( all_fed_agencies_array );
-            o.solNum = getRandomInt(999,99999999);
+            o.title = randomWords({exactly: 1, wordsPerString: getRandomInt(2, 7)})[0];
+            o.reviewRec = pickOne(reviewRecArray);
+            o.agency = pickOne(all_fed_agencies_array);
+            o.solNum = getRandomInt(999, 99999999);
             o.noticeType = pickOne(noticeTypeArray);
             o.actionStatus = pickOne(actionStatusArray);
-            o.actionDate = getRandomInt(1,12) + "/" + getRandomInt(1,28) + "/" + getRandomInt(2015,2020);
-            o.date = getRandomInt(1,12) + "/" + getRandomInt(1,28) + "/" + getRandomInt(2015,2020);
-            o.office = randomWords({ exactly:1, wordsPerString: getRandomInt(2,4) })[0];
+            o.actionDate = getRandomInt(1, 12) + "/" + getRandomInt(1, 28) + "/" + getRandomInt(2015, 2020);
+            o.date = getRandomInt(1, 12) + "/" + getRandomInt(1, 28) + "/" + getRandomInt(2015, 2020);
+            o.office = randomWords({exactly: 1, wordsPerString: getRandomInt(2, 4)})[0];
             o.predictions.value = pickOne(["RED", "GREEN"]);
-            sample_data.push( o );
-        }
+            o.eitLikelihood.naics = getRandomInt(10, 99999);
+            o.eitLikelihood.value = pickOne(['Yes', 'No']);
 
-        res.status(200).send(sample_data);
+            sample_data.push(o);
+        }
+        return sample_data;
+
+
+}
+
+/**
+ * prediction routes
+ */
+module.exports = {
+
+
+    mockData: mockData,
+
+    predictionFilter: function (req, res) {
+
+        try {
+            let sample_data = mockData();
+
+            return res.status(200).send(sample_data);
+        }catch (e) {
+
+            logger.log("error", e, {tag: "Prediction"});
+            return res.status(500);
+        }
 
     // var filterParams = {
     //     "$and": [
