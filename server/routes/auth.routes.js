@@ -132,14 +132,8 @@ module.exports = {
                     .then((u) => {
 
                         if (u == null) {
-                            logger.log('debug', "user is null", {flag: "*** TOKEN (fail)"});
                             return res.status(200).send({isLogin: false, isGSAAdmin: false});
                         }
-                        logger.log('debug', u.data, {flag: "*** TOKEN (user)"});
-
-                        logger.log('debug', tokenInfo, {flag: "*** TOKEN"});
-
-                        logger.log('debug', typeof (tokenInfo.user.agency), {flag: "*** TOKEN"});
                         isGSAAdmin = (tokenInfo.user.userRole == "Administrator" || tokenInfo.user.userRole == "SRT Program Manager ")
                             && tokenInfo.user != null
                             && tokenInfo.user.agency != null

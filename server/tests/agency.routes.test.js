@@ -47,14 +47,11 @@ describe ('/api/agencies', () => {
 
     test( '/api/AgencyList', async () => {
 
-        console.log("****** in list");
         return request(app)
             .get('/api/AgencyList')
             .set('Authorization', `Bearer ${token}`)
             .send({agency:agency, acronym: acronym})
             .then( (res) => {
-                console.log ("*** back");
-                console.log (res.body.agencyList);
                 expect(res.statusCode).toBe(200);
                 expect(res.body).toBeDefined();
                 expect(res.body.length).toBeGreaterThan(1);

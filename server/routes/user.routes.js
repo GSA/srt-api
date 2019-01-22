@@ -72,7 +72,6 @@ module.exports = {
     },
 
     getUserInfo: function(req, res) {
-        logger.info("this is info!");
         return User.findByPk(req.body.UserId)
             .then( user => {
                 return res.status(200).send(user);

@@ -35,8 +35,6 @@ module.exports = {
                 a.push ( {Agency: e.dataValues.agency, Acronym: e.dataValues.acronym} );
             })
 
-            logger.debug("Return " + a.lengh + " agencies from GET /api/agencies");
-
             return res.status(200).send(a);
         })
             .catch((e) => {

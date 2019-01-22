@@ -31,7 +31,7 @@ module.exports = {
 
 
         let transporter = nodemailer.createTransport(config.emailServer);
-        logger.info("Sending email");
+        logger.info("Sending email to " + mailOptions.to + " with subject " + mailOptions.subject);
 
         try {
             let info = await transporter.sendMail(mailOptions);

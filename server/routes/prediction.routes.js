@@ -1,5 +1,6 @@
-var express = require('express');
 const logger = require('../config/winston');
+const NodeCache = require( "node-cache" );
+const myCache = new NodeCache();
 
 require('../tests/test.lists');
 
@@ -9,8 +10,8 @@ const randomWords = require('random-words');
 // TODO: Remove this fake random implementation before going to production
 Math.seed = 52;
 Math.random = function(max, min) {
-    max = max || 1;
-    min = min || 0;
+    max = (max === undefined) ? 1 : max;
+    min = (min === undefined) ? 1 : min;
 
     Math.seed = (Math.seed * 9301 + 49297) % 233280;
     var rnd = Math.seed / 233280;
@@ -19,17 +20,25 @@ Math.random = function(max, min) {
 };
 
 function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+    max = (max === undefined) ? 1 : max;
+    min = (min === undefined) ? 1 : min;
+
+    Math.seed = (Math.seed * 9301 + 49297) % 233280;
+    var rnd = Math.seed / 233280;
+
+    return Math.floor(min + rnd * (max - min));
 }
 function pickOne(a) {
     return a[getRandomInt(0, a.length)]
 }
 
 function mockData() {
+    if (myCache.get("sample_data") != undefined) {
+        return myCache.get("sample_data");
+    }
+
         let reviewRecArray = ["Compliant", "Non-compliant (Action Required)", "Undetermined"];
-        let noticeTypeArray = ["Presolicitation", "Combined Synopsis/Solicitation", "Sources Sought"];
+        let noticeTypeArray = ["Presolicitation", "Combined Synopsis/Solicitation", "Sources Sought", "Special Notice", "Other"];
         let actionStatusArray = ["Email Sent to POC", "reviewed solicitation action requested summary", "provided feedback on the solicitation prediction result"];
         let template =
 
@@ -82,27 +91,40 @@ function mockData() {
 
         let sample_data = new Array();
 
-        for (let i = 0; i < 49; i++) {
+        for (let i = 0; i < 6000; i++) {
             let o = Object.assign({}, template);
 
             o.title = randomWords({exactly: 1, wordsPerString: getRandomInt(2, 7)})[0];
             o.reviewRec = pickOne(reviewRecArray);
             o.agency = pickOne(all_fed_agencies_array);
+            o.numDocs = getRandomInt(0,3);
             o.solNum = getRandomInt(999, 99999999);
             o.noticeType = pickOne(noticeTypeArray);
             o.actionStatus = pickOne(actionStatusArray);
-            o.actionDate = getRandomInt(1, 12) + "/" + getRandomInt(1, 28) + "/" + getRandomInt(2015, 2020);
-            o.date = getRandomInt(1, 12) + "/" + getRandomInt(1, 28) + "/" + getRandomInt(2015, 2020);
+            o.actionDate = new Date( getRandomInt(2018, 2020),  getRandomInt(0, 12),getRandomInt(1,27));;;
+            o.date = new Date( getRandomInt(2018, 2020),  getRandomInt(0, 12),getRandomInt(1,27));;
             o.office = randomWords({exactly: 1, wordsPerString: getRandomInt(2, 4)})[0];
+            o.predictions = Object.assign({}, template.predictions);
             o.predictions.value = pickOne(["RED", "GREEN"]);
+            o.eitLikelihood = Object.assign({}, template.eitLikelihood);
             o.eitLikelihood.naics = getRandomInt(10, 99999);
             o.eitLikelihood.value = pickOne(['Yes', 'No']);
+            o.undetermined = (getRandomInt(0,2) == 0);
+
+            o.parseStatus = [];
+            let count = getRandomInt(0,3);
+            for (let x=0; x < count; x++) {
+                let stat = {};
+                stat.name = "doc 1";
+                stat.status = pickOne( ["successfully parsed", "processing error"] )
+                o.parseStatus.push ( stat )
+            }
 
             sample_data.push(o);
         }
+
+        myCache.set("sample_data", sample_data);
         return sample_data;
-
-
 }
 
 /**
