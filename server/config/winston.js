@@ -7,7 +7,14 @@ var options = {
     ],
     format: winston.format.prettyPrint(),
     meta: true,
-    exitOnError: false
+    exitOnError: false,
+    requestFilter: function(req, propname) {
+        if (propname == "password") {
+            return "********";
+        } else {
+            return req[propname];
+        }
+    }
 };
 
 var logger = winston.createLogger(options);

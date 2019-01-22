@@ -58,7 +58,14 @@ app.use(expressWinston.logger({
         return `${dt} ${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`;},
     expressFormat: false,
     colorize: false,
-    ignoreRoute: function(req, res) { return false;}
+    ignoreRoute: function(req, res) { return false;},
+    requestFilter: function(req, propname) {
+        if (propname == "password") {
+            return "********";
+        } else {
+            return req[propname];
+        }
+    }
 }));
 
 // This will prevent express from sending 304 responses.
@@ -117,7 +124,14 @@ app.use(expressWinston.errorLogger({
         return `ERROR - ${dt} ${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`;},
     expressFormat: false,
     colorize: false,
-    ignoreRoute: function(req, res) { return false;}
+    ignoreRoute: function(req, res) { return false;},
+    requestFilter: function(req, propname) {
+        if (propname == "password") {
+            return "********";
+        } else {
+            return req[propname];
+        }
+    }
 }));
 
     // //app.use('/file', fileRoutes);
