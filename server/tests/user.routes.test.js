@@ -167,7 +167,7 @@ describe ('User API Routes', () => {
 
     test('test filter', async () => {
         return request(app)
-            .get("/api/user/filter")
+            .post("/api/user/filter")
             .send({isAccepted : true})
             .set('Authorization', `Bearer ${token}`)
             .then( (res) => {

@@ -77,8 +77,8 @@ app.use(function(req, res, next) {
 
 app.post('/api/auth', authRoutes.create);
 app.post('/api/auth/login', authRoutes.login);
-app.get('/api/user/filter', token(), userRoutes.filter);
-app.get('/api/user/filtertest',  userRoutes.filter);
+app.post('/api/user/filter', token(), userRoutes.filter);
+//app.get('/api/user/filtertest',  userRoutes.filter);
 app.get('/api/user/getUserInfo', token(), userRoutes.getUserInfo);
 // app.get('/api/user/:userId', token(), userRoutes.getUserInfo);
 app.post('/api/user/updateUserInfo', token(), userRoutes.update);

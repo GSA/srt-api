@@ -31,7 +31,7 @@ module.exports = {
     },
 
     update: function(req,res) {
-        var id = (req.params.userId) ? req.params.userId : req.body._id;
+        var id = (req.params.userId) ? req.params.userId : req.body.id;
         return User.findByPk(id).then( (user) => {
             user.isAccepted = req.body.isAccepted;
             user.isRejected = req.body.isRejected;
@@ -39,7 +39,7 @@ module.exports = {
                 return res.status(200).send(user);
             })
         }).catch ( e => {
-            logger.error(e);
+            logger.log("error", e, {tag: "user.routes.update", id: id});
             return res.status(500).send(e);
         })
     },

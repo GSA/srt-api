@@ -20,6 +20,7 @@ module.exports = {
                 obj[element] = req.body[element];
             });
         obj.tempPassword = req.body['password'];
+        obj.creationDate = new Date().toLocaleString();
 
         return User.create(obj)
             .then(user => {
