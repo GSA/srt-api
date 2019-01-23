@@ -39,7 +39,6 @@ describe ('User API Routes', () => {
             return User.create(user1)
                 .then( (user) => {
                     user_1_id = user.id;
-                    console.log ("completed user creation for " + user.id);
                     return user.id;
                 })
                 .then( () => {
@@ -82,22 +81,24 @@ describe ('User API Routes', () => {
     });
 
     test('/api/user/getCurrentUser', async () => {
-        await request(app)
+        return request(app)
             .post("/api/user/getCurrentUser")
             .send({})
             .set('Authorization', `Bearer ${token}`)
             .then((res) => {
                 expect(res.statusCode).toBe(200);
-                expect(res.body.creationDate).toBe(user_accepted.creationDate);
+                return expect(res.body.creationDate).toBe(user_accepted.creationDate);
+            })
+            .then( () => {
+                return request(app)
+                    .post("/api/user/getCurrentUser")
+                    .send({})
+                    // .set('Authorization', `Bearer ${token}`)  // no token for this test!
+                    .then((res) => {
+                        expect(res.statusCode).toBe(401);
+                    });
             });
 
-        return request(app)
-            .post("/api/user/getCurrentUser")
-            .send({})
-            // .set('Authorization', `Bearer ${token}`)  // no token for this test!
-            .then((res) => {
-                expect(res.statusCode).toBe(401);
-            });
 
     });
 

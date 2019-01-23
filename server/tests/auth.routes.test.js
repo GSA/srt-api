@@ -290,5 +290,17 @@ describe ('/api/auth/', () => {
 
 
 
+    // Test what happens when we send an invalid or null JWT
+    test ( 'bad token', () => {
+
+        return request(app)
+            .post('/api/predictions/filter')
+            .set('Authorization', `Bearer null`)
+            .send()
+            .then( (res) => {
+                return expect(res.statusCode).toBe(401);
+            });
+    });
+
 });
 
