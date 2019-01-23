@@ -33,9 +33,13 @@ module.exports = {
     update: function(req,res) {
         var id = (req.params.userId) ? req.params.userId : req.body.id;
         return User.findByPk(id).then( (user) => {
+            if (user == null) {
+                logger.log("error", "Unable to find User " + id, {tag: "user update"});
+                return res.status(404).send("Unable to find user " + id);
+            }
             user.isAccepted = req.body.isAccepted;
             user.isRejected = req.body.isRejected;
-            user.save().then( () => {
+            return user.save().then( () => {
                 return res.status(200).send(user);
             })
         }).catch ( e => {
@@ -50,13 +54,13 @@ module.exports = {
         var token = req.headers['authorization'].split(' ')[1];
         var me = jwt.decode(token).user;
 
-        logger.debug ("Updating password for user " + me.email + " changing to " + newPassword + " old password was " + oldPassword);
+        logger.log ("info", "Updating password for user " + me.email, {tag : "updatePassword"});
 
         return User.findByPk(me.id).then((user) => {
             if (oldPassword == user.tempPassword || bcrypt.compareSync(oldPassword, user.password)) {
                 user.password = bcrypt.hashSync(newPassword, 10);
                 user.tempPassword = "";
-                user.save().then(() => {
+                return user.save().then(() => {
                     return res.status(200).send({message: "Password changed."})
                 })
             } else {

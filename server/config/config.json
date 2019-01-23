@@ -17,6 +17,9 @@
         "user": "crowley",
         "pass": "thisisadummy"
       }
+    },
+    "srt_server": {
+      "port": 3000
     }
   },
   "gitlab": {
@@ -37,6 +40,32 @@
         "user": "crowley",
         "pass": "thisisadummy"
       }
+    },
+    "srt_server": {
+      "port": 3000
+    }
+  },
+  "clouddev": {
+    "username": "utz6kah1zq8t2nyg",
+    "password": "***REMOVED***",
+    "database": "cgawsbrokerprodgq3wrvn8c8a772q",
+    "host": "srt-postgres",
+    "port": 5432,
+    "dialect": "postgres",
+    "logging": false,
+
+    "emailFrom": "crowley+srt@tcg.com",
+    "emailServer" : {
+      "host": "smtp.not-gmail-here.com",
+      "port": 587,
+      "secure": true,
+      "auth": {
+        "user": "crowley",
+        "pass": "thisisadummy"
+      }
+    },
+    "srt_server": {
+      "port": 8080
     }
   },
   "test": {
@@ -57,6 +86,9 @@
         "user": "crowley",
         "pass": "thisisadummy"
       }
+    },
+    "srt_server": {
+      "port": 8080
     }
   },
   "production": {
@@ -77,6 +109,9 @@
         "user": "crowley",
         "pass": "thisisadummy"
       }
+    },
+    "srt_server": {
+      "port": 8080
     }
   },
   "sqlite" : {
@@ -95,6 +130,9 @@
         "user": "crowley",
         "pass": "thisisadummy"
       }
+    },
+    "srt_server": {
+      "port": 3000
     }
   }
 }

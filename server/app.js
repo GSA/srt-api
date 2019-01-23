@@ -49,9 +49,13 @@ app.use(expressWinston.logger({
         let token = null;
         let user = {id: null, position: null, userRole: null, email: null};
         if (req.headers['authorization'] && req.headers['authorization'].length > 0 ) {
-            token = req.headers['authorization'].split(' ')[1];
-            let decoded = jwt.verify(token, 'innovation');
-            user = decoded.user;
+            try {
+                token = req.headers['authorization'].split(' ')[1];
+                let decoded = jwt.verify(token, 'innovation');
+                user = decoded.user;
+            } catch (e) {
+                user.id = "Caught error decoding JWT";
+            }
         }
         let post_data = JSON.stringify(req.body);
         let dt = new Date().toLocaleString();
@@ -60,7 +64,7 @@ app.use(expressWinston.logger({
     colorize: false,
     ignoreRoute: function(req, res) { return false;},
     requestFilter: function(req, propname) {
-        if (propname == "password") {
+        if (propname == "password" || propname == "tempPassword") {
             return "********";
         } else {
             return req[propname];
@@ -100,6 +104,7 @@ app.get('/api/agencyList', token(), agencyRoutes.agencyList);
 app.post('/api/predictions/filter', token(), predictionRoutes.predictionFilter);
 
 app.post('/api/analytics', token(), analyticsRoutes.analytics);
+app.post('/api/Analytics', token(), analyticsRoutes.analytics);
 
 
 

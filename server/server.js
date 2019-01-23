@@ -1,5 +1,6 @@
 require('./config/config');
-
+const env = process.env.NODE_ENV || 'development';
+const config = require('./config/config.json')[env];
 
 
 const app = require('./app');
@@ -19,7 +20,7 @@ var multer = require('multer');
 var multerObj = multer({dest: './static/upload'})
 
 
-const port = process.env.PORT;
+const port = config.srt_server.port;
 
 
 

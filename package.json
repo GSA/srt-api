@@ -32,6 +32,7 @@
     "reflect-metadata": "^0.1.12",
     "sequelize": "^4.42.0",
     "sequelize-cli": "^5.4.0",
+    "umzug": "^2.2.0",
     "validator": "^6.2.0",
     "winston": "^3.1.0"
   },
@@ -51,7 +52,7 @@
     "supertest": "^2.0.1"
   },
   "engines": {
-    "node": "6.15.0",
+    "node": "8.15",
     "npm": "3.10.3"
   }
 }

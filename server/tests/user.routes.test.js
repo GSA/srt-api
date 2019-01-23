@@ -39,6 +39,8 @@ describe ('User API Routes', () => {
             return User.create(user1)
                 .then( (user) => {
                     user_1_id = user.id;
+                    console.log ("completed user creation for " + user.id);
+                    return user.id;
                 })
                 .then( () => {
                     return User.create(user_accepted)
@@ -68,14 +70,14 @@ describe ('User API Routes', () => {
     test('/api/user/update', async() => {
         return request(app)
             .post("/api/user/update")
-            .send({_id: user_1_id, isAccepted: false, isRejected: false})
+            .send({id: user_1_id, isAccepted: false, isRejected: false})
             .set('Authorization', `Bearer ${token}`)
             .then( (res) => {
-                // expect(res.statusCode).toBe(200);
-                // return User.findByPk(user_1_id).then( (user) => {
-                //     expect(user.isAccepted).toBeFalsy;
-                //     expect(user.isRejected).toBeFalsy;
-                // });
+                expect(res.statusCode).toBe(200);
+                return User.findByPk(user_1_id).then( (user) => {
+                    expect(user.isAccepted).toBeFalsy;
+                    return expect(user.isRejected).toBeFalsy;
+                });
             })
     });
 
@@ -177,10 +179,10 @@ describe ('User API Routes', () => {
     });
 
     test('authentication required', async () => {
-        request(app)
-            .get('/api/user/filter')
+        return request(app)
+            .post('/api/user/filter')
             .then( (response) => {
-                expect(response.statusCode).toBe(401, "should have rejected an unauthorized request. Got status code " + response.statusCode );
+                return expect(response.statusCode).toBe(401, "should have rejected an unauthorized request. Got status code " + response.statusCode );
             });
     })
 
