@@ -43,13 +43,14 @@ describe ('/api/email', () => {
         //     subject: req.body.subject
 
         let email = {
-            text: "srt text",
-            emailTo: "j@example.com",
+            text: "This is the message body text sent by a unit test.",
+            emailTo: "crowley@tcg.com",
             emailCC: "c@example.com",
-            subject: "srt sub"
+            subject: "srt unit test at " + (new Date()).toLocaleString()
         }
 
 
+        nodemailerMock.mock.reset();
         return request(app)
             .post ("/api/email")
             .set('Authorization', `Bearer ${token}`)
@@ -68,11 +69,27 @@ describe ('/api/email', () => {
                        var sentMail = nodemailerMock.mock.sentMail();
                        expect(res.statusCode).toBe(200);
                        expect(sentMail.length).toBe(1);
-                       expect(sentMail[0].to).toBe("j@example.com");
+                       expect(sentMail[0].to).toBe("crowley@tcg.com");
                        expect(sentMail[0].from).toBe(config.emailFrom);
                    })
             });
-    });
+    }, 15000);
+
+    test ( '/api/email/updatePassword', () => {
+        nodemailerMock.mock.reset();
+        return request(app)
+            .post ("/api/email/updatePassword")
+            .set('Authorization', `Bearer ${token}`)
+            .send ({})
+            .then( (res) => {
+                var sentMail = nodemailerMock.mock.sentMail();
+                expect(res.statusCode).toBe(200);
+                expect(sentMail.length).toBe(1);
+                expect(sentMail[0].to).toBe(myuser.email);
+                expect(sentMail[0].from).toBe(config.emailFrom);
+            })
+    }, 15000);
+
 
 });
 

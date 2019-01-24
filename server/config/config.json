@@ -10,14 +10,15 @@
 
     "emailFrom": "crowley+srt@tcg.com",
     "emailServer" : {
-      "host": "smtp.not-gmail-here.com",
-      "port": 587,
-      "secure": false,
+      "host": "smtp.sendgrid.net",
+      "port": 465,
+      "secure": true,
       "auth": {
-        "user": "crowley",
-        "pass": "thisisadummy"
+        "user": "apikey",
+        "pass": "ENV variable SENDGRID_API_KEY"
       }
     },
+    "emailLogOnly": false,
     "srt_server": {
       "port": 3000
     }
@@ -33,14 +34,15 @@
 
     "emailFrom": "crowley+srt@tcg.com",
     "emailServer" : {
-      "host": "smtp.not-gmail-here.com",
-      "port": 587,
-      "secure": false,
+      "host": "smtp.sendgrid.net",
+      "port": 465,
+      "secure": true,
       "auth": {
         "user": "crowley",
-        "pass": "thisisadummy"
+        "pass": "ENV variable SENDGRID_API_KEY"
       }
     },
+    "emailLogOnly": false,
     "srt_server": {
       "port": 3000
     }
@@ -56,14 +58,15 @@
 
     "emailFrom": "crowley+srt@tcg.com",
     "emailServer" : {
-      "host": "smtp.not-gmail-here.com",
-      "port": 587,
+      "host": "smtp.sendgrid.net",
+      "port": 465,
       "secure": true,
       "auth": {
         "user": "crowley",
-        "pass": "thisisadummy"
+        "pass": "ENV variable SENDGRID_API_KEY"
       }
     },
+    "emailLogOnly": false,
     "srt_server": {
       "port": 8080
     }
@@ -79,12 +82,12 @@
 
     "emailFrom": "crowley+srt@tcg.com",
     "emailServer" : {
-      "host": "smtp.not-gmail-here.com",
-      "port": 587,
+      "host": "smtp.sendgrid.net",
+      "port": 465,
       "secure": true,
       "auth": {
         "user": "crowley",
-        "pass": "thisisadummy"
+        "pass": "ENV variable SENDGRID_API_KEY"
       }
     },
     "srt_server": {
@@ -102,14 +105,15 @@
 
     "emailFrom": "crowley+srt@tcg.com",
     "emailServer" : {
-      "host": "smtp.not-gmail-here.com",
-      "port": 587,
+      "host": "smtp.sendgrid.net",
+      "port": 465,
       "secure": true,
       "auth": {
         "user": "crowley",
-        "pass": "thisisadummy"
+        "pass": "ENV variable SENDGRID_API_KEY"
       }
     },
+    "emailLogOnly": false,
     "srt_server": {
       "port": 8080
     }
@@ -123,14 +127,15 @@
 
     "emailFrom": "crowley+srt@tcg.com",
     "emailServer" : {
-      "host": "smtp.not-gmail-here.com",
-      "port": 587,
-      "secure": false,
+      "host": "smtp.sendgrid.net",
+      "port": 465,
+      "secure": true,
       "auth": {
         "user": "crowley",
-        "pass": "thisisadummy"
+        "pass": "ENV variable SENDGRID_API_KEY"
       }
     },
+    "emailLogOnly": false,
     "srt_server": {
       "port": 3000
     }

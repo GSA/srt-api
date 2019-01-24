@@ -96,6 +96,7 @@ app.post('/api/auth/resetPassword', authRoutes.resetPassword);
 app.post('/api/auth/tokenCheck', authRoutes.tokenCheck);
 
 app.post('/api/email', token(), emailRoutes.email);
+app.post('/api/email/updatePassword', token(), emailRoutes.updatePassword);
 
 app.get('/api/agencies', agencyRoutes.getAgency)
 app.put('/api/agencies', agencyRoutes.putAgency)

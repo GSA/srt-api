@@ -11,6 +11,38 @@ const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.json')[env];
 
 
+async function sendMessage(message, res) {
+    if (message.text == undefined ||
+        message.to == undefined ||
+        message.subject == undefined ) {
+        return res.status(400).send({message: "E-mail text, to, and subject are all required."})
+    }
+
+    if (process.env.SENDGRID_API_KEY) {
+        config.emailServer.auth.pass = process.env.SENDGRID_API_KEY;
+    }
+
+    let transporter = nodemailer.createTransport(config.emailServer);
+    logger.log("info", "Sending email to " + message.to + " with subject " + message.subject, {tag:"email"});
+
+    if (config.emailLogOnly) {
+        logger.log("debug", message, {tag : "email log"});
+        return res.status(200).send({message: "Email has been sent"});
+    } else {
+
+        try {
+            let info = await transporter.sendMail(message);
+            return res.status(200).send({
+                message: 'Email has been sent'
+            });
+        } catch (err) {
+            return res.status(400).send({
+                message: err
+            });
+        }
+    }
+
+}
 
 
 module.exports = {
@@ -23,29 +55,30 @@ module.exports = {
             subject: req.body.subject
         };
 
-        if (mailOptions.text == undefined ||
-            mailOptions.to == undefined ||
-            mailOptions.subject == undefined ) {
-            return res.status(400).send({message: "E-mail text, to, and subject are all required."})
+        return sendMessage(mailOptions, res);
+    },
+
+    updatePassword : async (req, res) => {
+        var token = req.headers['authorization'].split(' ')[1];
+        if (token != 'null') {
+
+            var user = jwt.decode(token).user;
+
+            var bodytext = "you request to change your password! if not your operation, Please let us know!"
+            var message = {
+                text: bodytext,
+                from: config.emailFrom,
+                to: user.email,//req.body.email,
+                cc: '',
+                subject: "Change password"
+            };
+
+            return sendMessage(message, res);
+
         }
-
-
-        let transporter = nodemailer.createTransport(config.emailServer);
-        logger.info("Sending email to " + mailOptions.to + " with subject " + mailOptions.subject);
-
-        try {
-            let info = await transporter.sendMail(mailOptions);
-                return res.status(200).send({
-                    message: 'Email has sent'
-                });
-        } catch (err) {
-            return res.status(400).send({
-                message: err
-            });
-
-        }
-
     }
+
+
 
 }
 
