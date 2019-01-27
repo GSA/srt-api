@@ -32,6 +32,9 @@ module.exports = {
   // An array of regexp pattern strings used to skip coverage collection
    coveragePathIgnorePatterns: [
      "\\\\node_modules\\\\",
+       "\\\\schemas\\\\",
+       "\\\\tests\\\\",
+       "\\\\server/server.js\\\\",
        "\\\\server/migrations\\\\"
    ],
 

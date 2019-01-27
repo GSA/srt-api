@@ -3,7 +3,10 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models').User;
 const logger = require('../config/winston');
+const emailRoutes = require('./email.routes');
 
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.json')[env];
 
 
 
@@ -61,7 +64,24 @@ module.exports = {
                 user.password = bcrypt.hashSync(newPassword, 10);
                 user.tempPassword = "";
                 return user.save().then(() => {
-                    return res.status(200).send({message: "Password changed."})
+                    let message = {
+                        text: "Your password is for the Solicitation Review Tool has been changed. If you did not request a password change, please contact " + config.emailFrom,
+                        from: config.emailFrom,
+                        to: user.email,
+                        cc: '',
+                        subject: "Change password"
+                      };
+
+                    return emailRoutes.sendMessage(message)
+                        .then( () => {
+                            return res.status(200).send({message: "Password changed."})
+                        })
+                        .catch( (err) => {
+                            logger.log ("error", "What happened here?")
+                            console.log (err);
+                            logger.log ("error", message, {tag: "error sending email with this contents"});
+                            return res.status(500).send({message: "error!!!????"})
+                        })
                 })
             } else {
 

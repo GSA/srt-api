@@ -1,5 +1,6 @@
 const request = require('supertest');
-const app = require('../app');
+let app = null; // require('../app');
+let user_routes = null; //
 const randomString = require('randomstring');
 const bcrypt = require('bcryptjs');
 
@@ -7,11 +8,13 @@ const MockExpressRequest = require('mock-express-request');
 const MockExpressResponse = require('mock-express-response');
 const expect = require("expect");
 const mockToken = require("./mocktoken");
+const nodemailerMock = require('nodemailer-mock');
 
-const user_routes = require('../routes/user.routes');
 const auth_routes = require('../routes/auth.routes');
 const User = require('../models').User;
 const logger = require('../config/winston');
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.json')[env];
 
 const {user1, user_accepted, user_rejected} = require ('./test.data');
 
@@ -30,6 +33,10 @@ describe ('User API Routes', () => {
 
     beforeAll(  ()=>{
 
+        process.env.MAIL_ENGINE = "nodemailer-mock";
+        app = require('../app'); // don't load the app till the mock is configured
+        user_routes = require('../routes/user.routes'); // don't load the user_routes till the email mock is configured
+
         var filter_user = Object.assign({}, user_accepted);
         filter_user.firstName = "beforeAll-filter";
         filter_user.isAccepted = true;
@@ -44,6 +51,7 @@ describe ('User API Routes', () => {
                 .then( () => {
                     return User.create(user_accepted)
                         .then( (user2) => {
+                            // token belongs to user_accepted
                             token = mockToken(user2);
                             accepted_user_id = user2.id;
                         })
@@ -105,6 +113,8 @@ describe ('User API Routes', () => {
     test ('/api/user/updatePassword', async () => {
         var new_password = randomString.generate();
 
+        let count = 1;
+        console.log (`********** ${count} **********`); count++
         // fail to update b/c we didn't use correct temp password
         await request(app)
             .post("/api/user/updatePassword")
@@ -114,19 +124,26 @@ describe ('User API Routes', () => {
                 expect(res.statusCode).toBe(401);
             })
 
+        console.log (`********** ${count} **********`); count++
 
         // update with correct temp password
+        nodemailerMock.mock.reset();
         await request(app)
             .post("/api/user/updatePassword")
             .send({password :new_password, oldpassword: 'tpass'}) // start out with the temp password
             .set('Authorization', `Bearer ${token}`)
             .then( (res) => {
                 expect(res.statusCode).toBe(200);
+                let sentMail = nodemailerMock.mock.sentMail();
+                expect(sentMail.length).toBe(1);
+                expect(sentMail[0].to).toBe(user_accepted.email);
+                expect(sentMail[0].from).toBe(config.emailFrom);
                 return User.findByPk(accepted_user_id)
                     .then ( (user) => {
                         expect( bcrypt.compareSync(new_password, user.password)).toBe(true);
                     })
             })
+        console.log (`********** ${count} **********`); count++
 
         // temp password shouldn't work any more
         await request(app)
@@ -137,14 +154,21 @@ describe ('User API Routes', () => {
                 expect(res.statusCode).toBe(401);
             })
 
-        var new_password_2 = randomString.generate();
+        console.log (`********** ${count} **********`); count++
+
         // update with correct temp password
+        var new_password_2 = randomString.generate();
+        nodemailerMock.mock.reset();
         return await request(app)
             .post("/api/user/updatePassword")
             .send({password :new_password_2, oldpassword: new_password})
             .set('Authorization', `Bearer ${token}`)
             .then( (res) => {
                 expect(res.statusCode).toBe(200);
+                let sentMail = nodemailerMock.mock.sentMail();
+                expect(sentMail.length).toBe(1);
+                expect(sentMail[0].to).toBe(user_accepted.email);
+                expect(sentMail[0].from).toBe(config.emailFrom);
                 return User.findByPk(accepted_user_id)
                     .then ( (user) => {
                         expect( bcrypt.compareSync(new_password_2, user.password)).toBe(true);

@@ -11,11 +11,13 @@ const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.json')[env];
 
 
-async function sendMessage(message, res) {
+async function sendMessage(message) {
     if (message.text == undefined ||
         message.to == undefined ||
         message.subject == undefined ) {
-        return res.status(400).send({message: "E-mail text, to, and subject are all required."})
+        return new Promise ( (resolve, reject) => {
+            reject({success: false, params_correct: false, message: "E-mail text, to, and subject are all required."})
+        });
     }
 
     if (process.env.SENDGRID_API_KEY) {
@@ -27,17 +29,21 @@ async function sendMessage(message, res) {
 
     if (config.emailLogOnly) {
         logger.log("debug", message, {tag : "email log"});
-        return res.status(200).send({message: "Email has been sent"});
+        return new Promise ( (resolve, reject) => {
+            resolve({success: true, params_correct: true, message: "Email has been sent"})
+        });
     } else {
 
         try {
             let info = await transporter.sendMail(message);
-            return res.status(200).send({
-                message: 'Email has been sent'
+            return new Promise ( (resolve, reject) => {
+                logger.log ("info", message, {tag: "sendMessage success"});
+                resolve({success: true, params_correct: true, message: "Email has been sent"})
             });
         } catch (err) {
-            return res.status(400).send({
-                message: err
+            logger.log("error", err, {tag: "sendMessage"});
+            return new Promise ( (resolve, reject) => {
+                reject({success: false, params_correct: true, message: err})
             });
         }
     }
@@ -46,6 +52,9 @@ async function sendMessage(message, res) {
 
 
 module.exports = {
+
+    sendMessage : sendMessage,
+
     email : async function (req, res, next) {
         var mailOptions = {
             text: req.body.text,
@@ -55,7 +64,20 @@ module.exports = {
             subject: req.body.subject
         };
 
-        return sendMessage(mailOptions, res);
+        return sendMessage(mailOptions, res)
+            .then ( (status) => {
+                return res.status(200).send("Email has been sent.");
+            })
+            .catch ( (status) => {
+                console.log (status);
+                if ( ! status.params_correct) {
+                    // params were not correct....so this is client error
+                    return res.status(400).send("Subject, to, and from are all required fields.");
+                } else {
+                    // client sent good data, we messed up somewhere
+                    return res.status(500).send("Error sending email.");
+                }
+            })
     },
 
     updatePassword : async (req, res) => {
@@ -64,7 +86,7 @@ module.exports = {
 
             var user = jwt.decode(token).user;
 
-            var bodytext = "you request to change your password! if not your operation, Please let us know!"
+            var bodytext = "You have requested to change your password! If you did not take this action please contact " + config.emailFrom
             var message = {
                 text: bodytext,
                 from: config.emailFrom,
@@ -73,7 +95,19 @@ module.exports = {
                 subject: "Change password"
             };
 
-            return sendMessage(message, res);
+            return sendMessage(message, res)
+                .then( (status) => {
+                    return res.status(200).send("Email has been sent.");
+                })
+                .catch( (status) => {
+                    if ( ! status.params_correct) {
+                        // params were not correct....so this is client error
+                        return res.status(400).send("Subject, to, and from are all required fields.");
+                    } else {
+                        // client sent good data, we messed up somewhere
+                        return res.status(500).send("Error sending email.");
+                    }
+                });
 
         }
     }

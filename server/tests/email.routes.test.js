@@ -73,7 +73,7 @@ describe ('/api/email', () => {
                        expect(sentMail[0].from).toBe(config.emailFrom);
                    })
             });
-    }, 15000);
+    });
 
     test ( '/api/email/updatePassword', () => {
         nodemailerMock.mock.reset();
@@ -88,7 +88,7 @@ describe ('/api/email', () => {
                 expect(sentMail[0].to).toBe(myuser.email);
                 expect(sentMail[0].from).toBe(config.emailFrom);
             })
-    }, 15000);
+    });
 
 
 });
