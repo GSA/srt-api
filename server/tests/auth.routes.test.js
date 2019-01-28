@@ -1,14 +1,11 @@
 const supertest = require('supertest');
 const request = require('supertest');
-var bcrypt = require('bcryptjs');
 const app = require('../app');
 var MockExpressRequest = require('mock-express-request');
-var MockExpressResponse = require('mock-express-response');
 const mockToken = require("./mocktoken");
 const User = require('../models').User;
 const logger = require('../config/winston');
 
-const auth_routes = require('../routes/auth.routes');
 const {user1, user_accepted, user3} = require ('./test.data');
 
 var myuser = Object.assign({},user_accepted);
