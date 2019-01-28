@@ -92,7 +92,10 @@ app.post('/api/user/updatePassword', token(), userRoutes.updatePassword);
 app.post('/api/user/getCurrentUser', token(), userRoutes.getCurrentUser);
 
 app.post('/api/auth/login', authRoutes.login);
-app.post('/api/auth/resetPassword', authRoutes.resetPassword);
+console.log (authRoutes.resetPasswordFake);
+console.log (authRoutes.newthing);
+app.post('/api/auth/resetPassword', authRoutes.resetPasswordFake);
+app.post('/api/email/resetPassword', authRoutes.resetPassword);
 app.post('/api/auth/tokenCheck', authRoutes.tokenCheck);
 
 app.post('/api/email', token(), emailRoutes.email);

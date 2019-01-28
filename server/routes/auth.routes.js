@@ -2,9 +2,12 @@ var express = require('express');
 var bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const logger = require('../config/winston');
+const emailRoutes = require ('./email.routes');
 
 const User = require('../models').User;
-// var RoleSchemas = require('../schemas/role.js')
+
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.json')[env];
 
 
 
@@ -88,24 +91,72 @@ module.exports = {
             });
     },
 
+    // this fake reset is used to handle a duplicate call the client makes
+    // when resetting passwords.
+    // TODO: The proper fix is to rework the client, but that is outside scope for now.
+
+    resetPasswordFake: function (req, res, next) {
+        return res.status(200).send({
+            tempPassword: "",
+            message: "First step password reset complete."
+        })
+    },
+
+
     resetPassword: function (req, res, next) {
-        var email = req.body.email;
+        let email = req.body.email;
+        let message = 'If this account was found in our system, an email with password reset instructions was sent to ' + req.body.email;
+        let temp = new Date().toLocaleDateString() + new Date().toLocaleTimeString() + 'SRTAI';
         return User.findOne({where: {email: email}})
             .then(async user => {
-                var temp = new Date().toLocaleDateString() + new Date().toLocaleTimeString() + 'SRTAI';
-                temp = bcrypt.hashSync(temp, 10);
+                let encryptedTemp = bcrypt.hashSync(temp, 10);
                 if (user != null) {
                     // encrypt temp.
-                    user.tempPassword = temp;
-                    await user.save();
+                    user.tempPassword = encryptedTemp;
+                    return user.save()
+                        .then( (user) => {
+                            var mailOptions = {
+                                text: "A password reset " +
+                                    "for the account associated with " + user.email + " " +
+                                    "in the Soliciation Review Tool was requested. " +
+                                    "The new password is " + temp,
+                                from: config.emailFrom,
+                                to: email,
+                                cc: "",
+                                subject: "Solicitation Review Tool Password Reset"
+                            };
+
+                            return emailRoutes.sendMessage(mailOptions)
+                                .then( status => {
+                                    logger.log("info", "Password reset for user " + email , {tag:"resetPassword"})
+                                    return res.status(200).send({
+                                        tempPassword: temp,
+                                        message: message
+                                    })
+                                })
+                                .catch (status => {
+                                    logger.log("error", status, {tag:"resetPassword - error sending email for resetPassword"})
+                                    logger.log ("error", mailOptions, {tag:"resetPassword - mail options"})
+                                    return res.status(500).send({
+                                        tempPassword: temp,
+                                        message: "There was an error resetting this password."
+                                    })
+                                })
+                        })
+                        .catch( err => {
+                            logger.log ("error", err, {tag: "resetPassword - catch save"});
+                        })
+
                 }
+                logger.log("info", "Password reset attempt for unknown user " + email , {tag:"resetPassword"})
                 return res.status(200).send({
                     tempPassword: temp,
-                    message: ' reset password request has been sent, please check on your email!'
+                    message: message
                 })
 
             })
             .catch((err) => {
+                logger.log("error", err, {tag:"resetPassword catch"});
                 return res.status(500).send(err);
             });
     },

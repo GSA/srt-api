@@ -65,7 +65,7 @@ module.exports = {
                 user.tempPassword = "";
                 return user.save().then(() => {
                     let message = {
-                        text: "Your password is for the Solicitation Review Tool has been changed. If you did not request a password change, please contact " + config.emailFrom,
+                        text: "Your password for the Solicitation Review Tool has been changed. If you did not request a password change, please contact " + config.emailFrom,
                         from: config.emailFrom,
                         to: user.email,
                         cc: '',
@@ -77,10 +77,9 @@ module.exports = {
                             return res.status(200).send({message: "Password changed."})
                         })
                         .catch( (err) => {
-                            logger.log ("error", "What happened here?")
-                            console.log (err);
-                            logger.log ("error", message, {tag: "error sending email with this contents"});
-                            return res.status(500).send({message: "error!!!????"})
+                            logger.log ("error", err, {tag: "updatePassword - error sending email"});
+                            logger.log ("error", message, {tag: "updatePassword - error sending email with this contents"});
+                            return res.status(500).send({message: "error updating password"})
                         })
                 })
             } else {

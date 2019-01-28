@@ -6,6 +6,7 @@ const mockToken = require("./mocktoken");
 const User = require('../models').User;
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.json')[env];
+var bcrypt = require('bcryptjs');
 
 const {user1, user_accepted, user3} = require ('./test.data');
 
@@ -21,8 +22,9 @@ describe ('/api/email', () => {
         app = require('../app'); // don't load the app till the mock is configured
 
         myuser = Object.assign({}, user_accepted);
+        myuser.firstName = "email-beforeAllUser";
         delete myuser.id;
-        return User.create({myuser})
+        return User.create(myuser)
             .then( (user) => {
                 myuser.id = user.id;
                 token = mockToken(myuser);
@@ -80,16 +82,45 @@ describe ('/api/email', () => {
         return request(app)
             .post ("/api/email/updatePassword")
             .set('Authorization', `Bearer ${token}`)
-            .send ({})
+            .send ({email: myuser.email})
             .then( (res) => {
                 var sentMail = nodemailerMock.mock.sentMail();
                 expect(res.statusCode).toBe(200);
                 expect(sentMail.length).toBe(1);
                 expect(sentMail[0].to).toBe(myuser.email);
                 expect(sentMail[0].from).toBe(config.emailFrom);
+                return User.findOne({where: {email:myuser.email}})
+                    .then ( user => {
+                        expect(sentMail).toBeInstanceOf(Object);
+                        expect(sentMail.length).toBeDefined();
+                        expect(sentMail.length).toBeGreaterThan(0)
+                    })
+
             })
     });
 
+    test ( '/api/email/resetPassword', () => {
+        nodemailerMock.mock.reset();
+        return request(app)
+            .post ("/api/email/resetPassword")
+            .send ({email: myuser.email})
+            .then( (res) => {
+                var sentMail = nodemailerMock.mock.sentMail();
+                expect(res.statusCode).toBe(200);
+                expect(sentMail.length).toBe(1);
+                expect(sentMail[0].to).toBe(myuser.email);
+                expect(sentMail[0].from).toBe(config.emailFrom);
+                console.log (sentMail[0]);
+                expect(sentMail[0].text).toMatch(res.body.tempPassword );
+                // return User.findOne( {where: {email: myuser.email}})
+                //     .then( (user) => {
+                //         console.log (res.body);
+                //             console.log(user.tempPassword, user.email)
+                //         return expect( bcrypt.compareSync(res.body.tempPassword, user.password) ).toBeTruthy();
+                //     })
+
+            })
+    });
 
 });
 

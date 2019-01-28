@@ -1,6 +1,7 @@
 const request = require('supertest');
 let app = null; // require('../app');
 let user_routes = null; //
+let auth_routes = null;
 const randomString = require('randomstring');
 const bcrypt = require('bcryptjs');
 
@@ -10,7 +11,6 @@ const expect = require("expect");
 const mockToken = require("./mocktoken");
 const nodemailerMock = require('nodemailer-mock');
 
-const auth_routes = require('../routes/auth.routes');
 const User = require('../models').User;
 const logger = require('../config/winston');
 const env = process.env.NODE_ENV || 'development';
@@ -36,6 +36,7 @@ describe ('User API Routes', () => {
         process.env.MAIL_ENGINE = "nodemailer-mock";
         app = require('../app'); // don't load the app till the mock is configured
         user_routes = require('../routes/user.routes'); // don't load the user_routes till the email mock is configured
+        auth_routes = require('../routes/auth.routes');
 
         var filter_user = Object.assign({}, user_accepted);
         filter_user.firstName = "beforeAll-filter";
