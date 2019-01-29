@@ -1,9 +1,6 @@
-var express = require('express');
-const request = require('supertest'); // for mock call to prediction
-const app = require('../app');        // for mock call to prediction
-
 const logger = require('../config/winston');
 const Agency = require('../models').Agency;
+const db = require('../models/index');
 const predictionRoutes = require('./prediction.routes');
 
 
@@ -44,27 +41,24 @@ module.exports = {
     },
 
     agencyList: function (req, res) {
+        db.sequelize.query("select distinct agency from notice order by agency", {type: db.sequelize.QueryTypes.SELECT})
+            .then ( agencies => {
+                let predictionFilterData = predictionRoutes.mockData();
 
-
-        try {
-            let predictionFilterData = predictionRoutes.mockData();
-
-            let agencyList = [];
-            let map = new Object();
-            for (let item of predictionFilterData) {
-                if (!map.hasOwnProperty(item.agency)) {
-                    map[item.agency] = item.agency;
-                    agencyList.push(item.agency)
+                let agencyList = [];
+                let map = new Object();
+                for (let item of predictionFilterData) {
+                    if (!map.hasOwnProperty(item.agency)) {
+                        map[item.agency] = item.agency;
+                        agencyList.push(item.agency)
+                    }
                 }
-            }
-            agencyList.sort();
-            return res.status(200).send(agencyList);
-        }catch(e){
-            console.log ("in error");
-            console.log(e);
-            logger.log("error", e, {tag: "agencyList"});
-            return res.status(500);
-        };
+                return res.status(200).send(agencyList);
+            })
+            .catch( e => {
+                logger.log("error", e, {tag: "agencyList"});
+                return res.status(500);
+            })
 
     }
 }
