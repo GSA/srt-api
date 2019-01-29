@@ -1,0 +1,23 @@
+{"aws-rds":[{
+  "label": "aws-rds",
+  "provider": null,
+  "plan": "shared-psql",
+  "name": "srt-postgres",
+  "tags": [
+    "database",
+    "RDS"
+  ],
+  "instance_name": "srt-postgres",
+  "binding_name": null,
+  "credentials": {
+    "db_name": "cgawsbrokerprodgq3wrvn8c8a772q",
+    "host": "192.168.1.126",
+    "password": "***REMOVED***",
+    "port": "5432",
+    "uri": "postgres://utz6kah1zq8t2nyg:***REMOVED***@192.168.1.126:5432/cgawsbrokerprodgq3wrvn8c8a772q",
+    "username": "utz6kah1zq8t2nyg"
+  },
+  "syslog_drain_url": null,
+  "volume_mounts": [
+  ]
+}]}
