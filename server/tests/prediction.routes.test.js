@@ -44,5 +44,5 @@ describe ('/api/email', () => {
                expect(res.body.length).toBeDefined();
                return expect(res.body[0].title).toBeDefined();
             });
-    });
+    }, 10000);
 });

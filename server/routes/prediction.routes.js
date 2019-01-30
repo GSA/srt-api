@@ -1,10 +1,68 @@
 const logger = require('../config/winston');
 const NodeCache = require( "node-cache" );
 const myCache = new NodeCache();
+const Notice = require('../models').notice;
+const Attachment = require('../models').attachment;
+const db = require('../models/index');
+
 
 require('../tests/test.lists');
 
+
 const randomWords = require('random-words');
+
+const mapping_documentation =
+
+    {
+        solNum: "N.notice_number",
+        title: "???",
+        url: "N.notice_data.url",
+        predictions: {
+            value: "attachment.prediction (1 is GREEN , 0 is RED)"
+        },
+        reviewRec: "??? should be enuumerated type with at least values of one of 'Compliant', 'Non-compliant (Action Required)', or 'Undetermined'",
+        date: "N.date",
+        numDocs: "count attachments where attachments.notice_id = N.id",
+        eitLikelihood: {
+            naics: "N.notice_data.naics",
+            value: "???? - expected one of 'Yes' or 'No'"
+        },
+        agency: "N.agency",
+        office: "N.notice_data.office",
+        contactInfo: {
+            contact: "N.notice_data.contact",
+            name: "N.notice_data.contact (not always well structured)",
+            position: "N.notice_data.contact (not always well structured)",
+            email: "N.notice_data.contact (not always well structured)"
+        },
+        position: "???",
+        reviewStatus: "??? enumerated type. One possible value is 'Incomplete'",
+        noticeType: "notice_type.notice_type - but probably needs to be mapped to UI expected values",
+        actionStatus: "N.action - parsing TBD",
+        actionDate: "N.action - parsing TBD",
+        parseStatus: [{
+            name: "attachment.name",
+            status: "??? enumeration - one of 'successfully parsed' or 'processing error'  " +
+                "maybe derived from attachment.validation, but that col is NULL for " +
+                "all test records."
+        }],
+        history: [{
+            date: "TBD - may be separate log table for user actions managed by web back end",
+            action: "TBD - may be separate log table for user actions managed by web back end",
+            user: "TBD - may be separate log table for user actions managed by web back end",
+            status: "TBD - may be separate log for user actions table managed by web back end"
+        }],
+        feedback: [{
+            questionID: "???",
+            question: "???",
+            answer: "???",
+        }],
+        undetermined: "??? UI expects 0 or 1"
+    };
+
+        let reviewRecArray = ["Compliant", "Non-compliant (Action Required)", "Undetermined"];
+        let noticeTypeArray = ["Presolicitation", "Combined Synopsis/Solicitation", "Sources Sought", "Special Notice", "Other"];
+        let actionStatusArray = ["Email Sent to POC", "reviewed solicitation action requested summary", "provided feedback on the solicitation prediction result"];
 
 
 // TODO: Remove this fake random implementation before going to production
@@ -31,6 +89,56 @@ function getRandomInt(min, max) {
 function pickOne(a) {
     return a[getRandomInt(0, a.length)]
 }
+
+let template =
+
+    {
+        solNum: "1234",
+        title: "sample title",
+        url: "http://www.tcg.com/",
+        predictions: {
+            value: "GREEN"
+        },
+        reviewRec: "Compliant", // one of "Compliant", "Non-compliant (Action Required)", or "Undetermined"
+        date: "01/01/2019",
+        numDocs: 3,
+        eitLikelihood: {
+            naics: "naics here",  // initial version uses NAICS code to determine
+            value: "45"
+        },
+        agency: "National Institutes of Health",
+        office: "Office of the Director",
+
+        contactInfo: {
+            contact: "contact str",
+            name: "Joe Smith",
+            position: "Manager",
+            email: "joe@example.com"
+        },
+        position: "pos string",
+        reviewStatus: "on time",
+        noticeType: "N type",
+        actionStatus: "ready",
+        actionDate: "02/02/2019",
+        parseStatus: [{
+            name: "attachment name",
+            status: "??? enumeration, one of 'successfully parsed', 'processing error'  maybe derived f"
+        }],
+        history: [{
+            date: "03/03/2018",
+            action: "sending",
+            user: "crowley",
+            status: "submitted"
+        }],
+        feedback: [{
+            questionID: "1",
+            question: "Is this a good solicitation?",
+            answer: "Yes",
+        }],
+        undetermined: true
+
+    };
+
 
 function mockData() {
     if (myCache.get("sample_data") != undefined) {
@@ -67,7 +175,7 @@ function mockData() {
                 },
                 position: "pos string",
                 reviewStatus: "on time",
-                noticeType: "notice type",
+                noticeType: "N type",
                 actionStatus: "ready",
                 actionDate: "02/02/2019",
                 parseStatus: [{
@@ -127,6 +235,16 @@ function mockData() {
         return sample_data;
 }
 
+function parseAction(action_string) {
+    return [
+        {
+            actionStatus: pickOne(actionStatusArray),
+            actionDate: new Date( getRandomInt(2018, 2020),  getRandomInt(0, 12),getRandomInt(1,27))
+        }
+        ];
+
+}
+
 /**
  * prediction routes
  */
@@ -135,16 +253,63 @@ module.exports = {
 
     mockData: mockData,
 
-    predictionFilter: function (req, res) {
+    predictionFilter:  function (req, res) {
+        let data = [];
 
-        try {
-            let sample_data = mockData();
+        // TODO: put in the actual filter
+        let sql = `
+            select * 
+            from notice n 
+            join ( 
+            select notice_id, json_agg(src) as attachment_json
+            from notice 
+            left join ( select * from attachment) src on notice.id = src.notice_id 
+            group by  notice_id) a on a.notice_id = n.id`;
 
-            return res.status(200).send(sample_data);
-        }catch (e) {
+        db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
+            .then(notices => {
+                for (let i = 0; i < notices.length; i++) {
+                    let n = notices[i];
+                    let o = Object.assign({}, template);
 
-            logger.log("error", e, {tag: "Prediction"});
-            return res.status(500);
+                    let act = parseAction(n.action);
+
+                    o.title = n.notice_data.subject;
+                    o.reviewRec = pickOne(reviewRecArray);
+                    o.agency = n.agency;
+                    o.numDocs = n.attachment_json.length;
+                    o.solNum = n.notice_number;
+                    o.noticeType = n.notice_type; //TODO: need to map these to values expected by the UI
+                    o.actionStatus = (act.length > 0) ? act[0].actionStatus : "";
+                    o.actionDate = (act.length > 0) ? act[0].actionDate : "";
+                    o.date = n.date;
+                    o.office = n.notice_data.office;
+                    o.predictions = {
+                        value: (n.compliant == 1) ? "GREEN" : "RED",
+                    };
+                    o.eitLikelihood = {
+                        naics: n.naics,
+                        value: 'Yes'
+                    }
+                    o.undetermined = (getRandomInt(0, 2) == 0);
+
+                    o.parseStatus = [];
+                    n.attachment_json.forEach(a => {
+                        o.parseStatus.push({
+                            name: a.id, //TODO: have to find out what is expected here
+                            status: (a.validation) ? 'successfully parsed' : 'processing error',
+                        });
+                    })
+
+                    data.push(o)
+                }
+                return res.status(200).send(data);
+            })
+            .catch(e => {
+                logger.log("error", e, {tag: "predictionFilter"});
+                return res.status(500).send(data);
+            });
+
         }
 
     // var filterParams = {
@@ -393,4 +558,3 @@ module.exports = {
 // });
 
 
-}
