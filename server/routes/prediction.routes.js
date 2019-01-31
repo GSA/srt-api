@@ -4,6 +4,7 @@ const myCache = new NodeCache();
 const Notice = require('../models').notice;
 const Attachment = require('../models').attachment;
 const db = require('../models/index');
+var SqlString = require('sequelize/lib/sql-string')
 
 
 require('../tests/test.lists');
@@ -245,68 +246,144 @@ function parseAction(action_string) {
 
 }
 
-/**
- * prediction routes
- */
-module.exports = {
+function  makePostgresDate (origDate) {
+    let split = origDate.split("/");
+    if (split.length < 3) {
+        split = origDate.split("-");
+    }
+    if (split.length < 3) { return ""; }
+    if (split[0] > 1900) {
+        // looks like it may have already been in year-month-day format
+        return origDate;
+    }
+    return split[2] + "-" + split[0] + "-" + split[1];
+
+}
+function getPredictions(filter) {
+    let agency = (filter.agency) ? filter.agency.split(' (')[0] : undefined;
+    let office = filter.office;
+    let numDocs = filter.numDocs;
+    let solNum = filter.solNum;
+    let startDate = (filter.startDate) ? filter.startDate : filter.fromPeriod;
+    let endDate = (filter.endDate) ? filter.endDate : filter.toPeriod;;
+
+    let where_array = [ "1 = 1"];
+    if (office && office != "") {
+        where_array.push( "notice_data->>'office' = " + SqlString.escape(office, null, 'postgres'));
+    }
+    if (agency && agency != "" && agency != "Government-wide") {
+        where_array.push( "agency = " + SqlString.escape(agency, null, "postgres"))
+    }
+    if (numDocs && numDocs != "") {
+        where_array.push( "attachment_count = " + SqlString.escape(numDocs, null, "postgres"))
+    }
+    if (solNum && solNum != "") {
+        where_array.push( "notice_number = " + SqlString.escape(solNum, null, "postgres"))
+    }
+    if (startDate && startDate != "") {
+        where_array.push( "date > " + SqlString.escape(makePostgresDate(startDate), null, "postgres"))
+    }
+    if (endDate && endDate != "") {
+        where_array.push( "date < " + SqlString.escape(makePostgresDate(endDate), null, "postgres"))
+    }
 
 
-    mockData: mockData,
-
-    predictionFilter:  function (req, res) {
-        let data = [];
-
-        // TODO: put in the actual filter
-        let sql = `
+    let where = where_array.join(" AND ");
+    let sql = `
             select * 
             from notice n 
-            join ( 
-            select notice_id, json_agg(src) as attachment_json
-            from notice 
-            left join ( select * from attachment) src on notice.id = src.notice_id 
-            group by  notice_id) a on a.notice_id = n.id`;
+            left join ( 
+                  select notice_id, json_agg(src) as attachment_json, count(*) as attachment_count
+                  from notice 
+                  left join ( select * from attachment) src on notice.id = src.notice_id             
+                  group by  notice_id
+                  ) a on a.notice_id = n.id
+            WHERE ${where}`;
 
-        db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
-            .then(notices => {
-                for (let i = 0; i < notices.length; i++) {
-                    let n = notices[i];
-                    let o = Object.assign({}, template);
+    return db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
+        .then(notices => {
+            let data = [];
+            for (let i = 0; i < notices.length; i++) {
+                let n = notices[i];
+                let o = Object.assign({}, template);
 
-                    let act = parseAction(n.action);
+                let act = parseAction(n.action);
 
-                    o.title = n.notice_data.subject;
-                    o.reviewRec = pickOne(reviewRecArray);
-                    o.agency = n.agency;
-                    o.numDocs = n.attachment_json.length;
-                    o.solNum = n.notice_number;
-                    o.noticeType = n.notice_type; //TODO: need to map these to values expected by the UI
-                    o.actionStatus = (act.length > 0) ? act[0].actionStatus : "";
-                    o.actionDate = (act.length > 0) ? act[0].actionDate : "";
-                    o.date = n.date;
-                    o.office = n.notice_data.office;
-                    o.predictions = {
-                        value: (n.compliant == 1) ? "GREEN" : "RED",
-                    };
-                    o.eitLikelihood = {
-                        naics: n.naics,
-                        value: 'Yes'
-                    }
-                    o.undetermined = (getRandomInt(0, 2) == 0);
+                o.title = n.notice_data.subject;
+                o.reviewRec = pickOne(reviewRecArray);
+                o.agency = n.agency;
+                o.numDocs = (n.attachment_json) ? n.attachment_json.length : 0;
+                o.solNum = n.notice_number;
+                o.noticeType = n.notice_type; //TODO: need to map these to values expected by the UI
+                o.actionStatus = (act.length > 0) ? act[0].actionStatus : "";
+                o.actionDate = (act.length > 0) ? act[0].actionDate : "";
+                o.date = n.date;
+                o.office = n.notice_data.office;
+                o.predictions = {
+                    value: (n.compliant == 1) ? "GREEN" : "RED",
+                };
+                o.eitLikelihood = {
+                    naics: n.naics,
+                    value: 'Yes'
+                }
+                o.undetermined = (getRandomInt(0, 2) == 0);
 
-                    o.parseStatus = [];
+                o.parseStatus = [];
+                if (n.attachment_json) {
                     n.attachment_json.forEach(a => {
                         o.parseStatus.push({
                             name: a.id, //TODO: have to find out what is expected here
                             status: (a.validation) ? 'successfully parsed' : 'processing error',
                         });
                     })
-
-                    data.push(o)
                 }
-                return res.status(200).send(data);
+
+                data.push(o)
+            }
+            return data;
+        })
+        .catch(e => {
+            logger.log("error", e, {tag: "getPredictions", sql: sql});
+            return null;
+        });
+
+}
+
+/**
+ * prediction routes
+ */
+module.exports = {
+
+    getPredictions: getPredictions,
+
+
+    predictionFilter:  function (req, res) {
+        let data = [];
+
+        // currently unsupported filters
+        var parseStatus = req.body.parsing_report;
+        var contactInfo = req.body.contactInfo;
+        var reviewRec = req.body.reviewRec;
+        var reviewStatus = req.body.reviewStatus;
+
+        // verify that only supported filter params are used
+        let keys = Object.keys(req.body);
+        for (let i=0; i< keys.length; i++) {
+            if ( req.body[keys[i]] != "" && ! ["agency", "office", "numDocs", "solNum", "eitLikelihood", "startDate", "fromPeriod", "endDate", "toPeriod"].includes (keys[i]) ) {
+                logger.log("error", req.body, {tag: "predictionFilter - " + "Received unsupported filter parameter " + keys[i]});
+                return res.status(500).send({message: "Received unsupported filter parameter " + keys[i]});
+            }
+        }
+
+        return getPredictions(req.body)
+            .then( (predictions) => {
+                if (predictions == null) {
+                    return res.status(500).send({});
+                }
+                return res.status(200).send(predictions);
             })
             .catch(e => {
-                logger.log("error", e, {tag: "predictionFilter"});
+                logger.log("error", e, {tag: "predictionFilter", sql: sql});
                 return res.status(500).send(data);
             });
 

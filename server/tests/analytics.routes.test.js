@@ -11,7 +11,7 @@ const {user1, user_accepted, user3} = require ('./test.data');
 var myuser = {};
 var token = {};
 
-describe ('/api/email', () => {
+describe ('/api/analytics', () => {
     beforeAll(  ()=>{
 
         myuser = Object.assign({}, user_accepted);
@@ -46,5 +46,5 @@ describe ('/api/email', () => {
 
 
 
-    });
+    }, 30000);
 });

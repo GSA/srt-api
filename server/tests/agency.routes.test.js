@@ -57,6 +57,6 @@ describe ('/api/agencies', () => {
                 expect(res.body.length).toBeGreaterThan(1);
                 return expect(typeof (res.body[0])).toBe("string");
             });
-    });
+    }, 10000);
 
 });
