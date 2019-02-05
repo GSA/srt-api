@@ -18,7 +18,7 @@
         "pass": "ENV variable SENDGRID_API_KEY"
       }
     },
-    "emailLogOnly": true,
+    "emailLogOnly": false,
     "srt_server": {
       "port": 3000
     }
