@@ -7,7 +7,8 @@
     "start": "node server/server.js",
     "old-test": "export NODE_ENV=test || SET NODE_ENV=test && mocha server/**/*.test.js",
     "test": "MAIL_ENGINE=nodemailer-mock  jest --detectOpenHandles --config=jest.config.js --runInBand ",
-    "test-watch": "export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock &&  jest --detectOpenHandles --config=jest.config.js --watch "
+    "test-watch": "export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock &&  jest --detectOpenHandles --config=jest.config.js --watch ",
+    "backup-db": "export PGPASSWORD=***REMOVED*** && pg_dump -U utz6kah1zq8t2nyg -d cgawsbrokerprodgq3wrvn8c8a772q -h 192.168.1.126 > srt-database.sql "
   },
   "author": "TCG",
   "license": "ISC",
