@@ -4,7 +4,9 @@
 module.exports = {
     up: (queryInterface, Sequelize) => {
 
-        return new Promise();
+        return new Promise( function (res, rej) {
+            resolve (true);
+        });
 
         // return queryInterface.addColumn("notice", "feedback", {type: "jsonb"})
         //     .then( () => {
