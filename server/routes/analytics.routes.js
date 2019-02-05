@@ -14,7 +14,7 @@ function predictionFind(params) {
                             allPredictions[i][prop].value &&
                             allPredictions[i][prop].value == params[prop] )
                     ) {
-                        filteredPredictions.push( allPredictions[i] );
+                        filteredPredictions.push( predictionRoutes.makeOnePrediction( allPredictions[i]) );
                     }
                 }
             }

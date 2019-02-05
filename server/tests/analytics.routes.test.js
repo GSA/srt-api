@@ -38,6 +38,7 @@ describe ('/api/analytics', () => {
             .send({agency: "Government-wide", fromPeriod: "1/1/1900", toPeriod: "12/31/2100"})
             .then ( (res) => {
                 expect(res.statusCode).toBe(200);
+                console.log (res.body)
                 expect(res.body.TopSRTActionChart).toBeDefined()
                 expect(res.body.TopSRTActionChart.determinedICT).toBeDefined()
                 expect(res.body.TopSRTActionChart.determinedICT).toBeGreaterThan(2);

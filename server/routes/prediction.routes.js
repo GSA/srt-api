@@ -243,7 +243,7 @@ function makeOnePrediction(notice) {
     let act = parseAction(notice.action);
 
     o.id = notice.id;
-    o.title = notice.notice_data.subject;
+    o.title = (notice.notice_data  != undefined) ? notice.notice_data.subject : "";
     o.reviewRec = pickOne(reviewRecArray);
     o.agency = notice.agency;
     o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0;
@@ -252,7 +252,7 @@ function makeOnePrediction(notice) {
     o.actionStatus = (act.length > 0) ? act[0].actionStatus : "";
     o.actionDate = (act.length > 0) ? act[0].actionDate : "";
     o.date = notice.date;
-    o.office = notice.notice_data.office;
+    o.office = (notice.notice_data != undefined) ? notice.notice_data.office : "";
     o.predictions = {
         value: (notice.compliant == 1) ? "GREEN" : "RED",
     };
@@ -262,8 +262,8 @@ function makeOnePrediction(notice) {
     }
     o.undetermined = (getRandomInt(0, 2) == 0);
     o.action = notice.action;
-    o.feedback = notice.feedback;
-    o.history = notice.history;
+    o.feedback = notice.feedback ? notice.feedback : [];
+    o.history = notice.history ? notice.history : [];
 
     o.parseStatus = [];
     if (notice.attachment_json) {
