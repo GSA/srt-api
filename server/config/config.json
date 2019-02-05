@@ -27,7 +27,7 @@
     "username": "utz6kah1zq8t2nyg",
     "password": "***REMOVED***",
     "database": "cgawsbrokerprodgq3wrvn8c8a772q",
-    "host": "postgres",
+    "host": "xxxxpostgres",
     "port": 5432,
     "dialect": "postgres",
     "logging": false,
