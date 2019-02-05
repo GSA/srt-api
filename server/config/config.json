@@ -27,10 +27,10 @@
     "username": "utz6kah1zq8t2nyg",
     "password": "***REMOVED***",
     "database": "cgawsbrokerprodgq3wrvn8c8a772q",
-    "host": "xxxxpostgres",
+    "host": "postgres",
     "port": 5432,
     "dialect": "postgres",
-    "logging": false,
+    "logging": true,
 
     "emailFrom": "crowley+srt@tcg.com",
     "emailServer" : {
