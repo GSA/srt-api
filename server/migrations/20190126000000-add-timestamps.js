@@ -3,6 +3,7 @@
 
 module.exports = {
     up: (queryInterface, Sequelize) => {
+        return new Promise();
 
         // return queryInterface.addColumn("notice", "createdAt", {type: "timestamptz", defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')})
         //     .then ( () => {

@@ -4,6 +4,8 @@
 module.exports = {
     up: (queryInterface, Sequelize) => {
 
+        return new Promise();
+
         // return queryInterface.addColumn("notice", "feedback", {type: "jsonb"})
         //     .then( () => {
         //         return queryInterface.removeColumn("notice", "action");
