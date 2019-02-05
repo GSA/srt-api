@@ -18,7 +18,7 @@
         "pass": "ENV variable SENDGRID_API_KEY"
       }
     },
-    "emailLogOnly": false,
+    "emailLogOnly": true,
     "srt_server": {
       "port": 3000
     }
@@ -30,7 +30,7 @@
     "host": "postgres",
     "port": 5432,
     "dialect": "postgres",
-    "logging": true,
+    "logging": false,
 
     "emailFrom": "crowley+srt@tcg.com",
     "emailServer" : {
