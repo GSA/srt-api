@@ -37,7 +37,15 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     action: {
-      type: "ARRAY",
+      type: DataTypes.JSONB,
+      allowNull: true
+    },
+    feedback: {
+      type: DataTypes.JSONB,
+      allowNull: true
+    },
+    history: {
+      type: DataTypes.JSONB,
       allowNull: true
     }
   }, {

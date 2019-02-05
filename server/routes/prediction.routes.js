@@ -68,15 +68,6 @@ const mapping_documentation =
 
 // TODO: Remove this fake random implementation before going to production
 Math.seed = 52;
-Math.random = function(max, min) {
-    max = (max === undefined) ? 1 : max;
-    min = (min === undefined) ? 1 : min;
-
-    Math.seed = (Math.seed * 9301 + 49297) % 233280;
-    var rnd = Math.seed / 233280;
-
-    return min + rnd * (max - min);
-};
 
 function getRandomInt(min, max) {
     max = (max === undefined) ? 1 : max;
@@ -246,6 +237,44 @@ function parseAction(action_string) {
 
 }
 
+function makeOnePrediction(notice) {
+    let o = Object.assign({}, template);
+
+    let act = parseAction(notice.action);
+
+    o.title = notice.notice_data.subject;
+    o.reviewRec = pickOne(reviewRecArray);
+    o.agency = notice.agency;
+    o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0;
+    o.solNum = notice.notice_number;
+    o.noticeType = notice.notice_type; //TODO: need to map these to values expected by the UI
+    o.actionStatus = (act.length > 0) ? act[0].actionStatus : "";
+    o.actionDate = (act.length > 0) ? act[0].actionDate : "";
+    o.date = notice.date;
+    o.office = notice.notice_data.office;
+    o.predictions = {
+        value: (notice.compliant == 1) ? "GREEN" : "RED",
+    };
+    o.eitLikelihood = {
+        naics: notice.naics,
+        value: 'Yes'
+    }
+    o.undetermined = (getRandomInt(0, 2) == 0);
+
+    o.parseStatus = [];
+    if (notice.attachment_json) {
+        notice.attachment_json.forEach(a => {
+            o.parseStatus.push({
+                name: a.id, //TODO: have to find out what is expected here
+                status: (a.validation) ? 'successfully parsed' : 'processing error',
+            });
+        })
+    }
+
+    return o;
+
+}
+
 function  makePostgresDate (origDate) {
     let split = origDate.split("/");
     if (split.length < 3) {
@@ -304,41 +333,7 @@ function getPredictions(filter) {
         .then(notices => {
             let data = [];
             for (let i = 0; i < notices.length; i++) {
-                let n = notices[i];
-                let o = Object.assign({}, template);
-
-                let act = parseAction(n.action);
-
-                o.title = n.notice_data.subject;
-                o.reviewRec = pickOne(reviewRecArray);
-                o.agency = n.agency;
-                o.numDocs = (n.attachment_json) ? n.attachment_json.length : 0;
-                o.solNum = n.notice_number;
-                o.noticeType = n.notice_type; //TODO: need to map these to values expected by the UI
-                o.actionStatus = (act.length > 0) ? act[0].actionStatus : "";
-                o.actionDate = (act.length > 0) ? act[0].actionDate : "";
-                o.date = n.date;
-                o.office = n.notice_data.office;
-                o.predictions = {
-                    value: (n.compliant == 1) ? "GREEN" : "RED",
-                };
-                o.eitLikelihood = {
-                    naics: n.naics,
-                    value: 'Yes'
-                }
-                o.undetermined = (getRandomInt(0, 2) == 0);
-
-                o.parseStatus = [];
-                if (n.attachment_json) {
-                    n.attachment_json.forEach(a => {
-                        o.parseStatus.push({
-                            name: a.id, //TODO: have to find out what is expected here
-                            status: (a.validation) ? 'successfully parsed' : 'processing error',
-                        });
-                    })
-                }
-
-                data.push(o)
+                data.push(makeOnePrediction(notices[i]));
             }
             return data;
         })

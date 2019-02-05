@@ -21,7 +21,7 @@ var emailRoutes = require('./routes/email.routes');
 var agencyRoutes = require('./routes/agency.routes');
 var predictionRoutes = require('./routes/prediction.routes');
 var analyticsRoutes = require('./routes/analytics.routes');
-//var solicitationRoutes = require('./routes/solicitation.routes');
+var solicitationRoutes = require('./routes/solicitation.routes');
 
 
 
@@ -92,8 +92,6 @@ app.post('/api/user/updatePassword', token(), userRoutes.updatePassword);
 app.post('/api/user/getCurrentUser', token(), userRoutes.getCurrentUser);
 
 app.post('/api/auth/login', authRoutes.login);
-console.log (authRoutes.resetPasswordFake);
-console.log (authRoutes.newthing);
 app.post('/api/auth/resetPassword', authRoutes.resetPasswordFake);
 app.post('/api/email/resetPassword', authRoutes.resetPassword);
 app.post('/api/auth/tokenCheck', authRoutes.tokenCheck);
@@ -110,6 +108,7 @@ app.post('/api/predictions/filter', token(), predictionRoutes.predictionFilter);
 app.post('/api/analytics', token(), analyticsRoutes.analytics);
 app.post('/api/Analytics', token(), analyticsRoutes.analytics);
 
+app.post('/api/solicitation', token(), solicitationRoutes.postSolicitation);
 
 
 
