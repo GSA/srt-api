@@ -1,0 +1,1472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="fdd17094-3c30-4418-91c7-cd5dc53df30f" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/server/migrations/20190205000000-remove-test-data.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/config/config.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/config/config.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/migrations/20190126000000-add-timestamps.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/migrations/20190126000000-add-timestamps.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/migrations/20190204000000-notice-changes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/migrations/20190204000000-notice-changes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/routes/email.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/routes/email.routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/srt-database.sql" beforeDir="false" afterPath="$PROJECT_DIR$/srt-database.sql" afterDir="false" />
+    </list>
+    <ignored path="$PROJECT_DIR$/.tmp/" />
+    <ignored path="$PROJECT_DIR$/temp/" />
+    <ignored path="$PROJECT_DIR$/tmp/" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CoverageDataManager">
+    <SUITE FILE_PATH="coverage/srt_server$Jest_Tests.info" NAME="Jest Tests Coverage Results" MODIFIED="1547936156485" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="JestJavaScriptTestRunnerCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/srt_server$Jest_Tests_SQLite.info" NAME="Jest Tests SQLite Coverage Results" MODIFIED="1546971324214" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="JestJavaScriptTestRunnerCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/srt_server$prediction_tests_Test_prediction_date_filters.info" NAME="prediction tests.Test prediction date filters Coverage Results" MODIFIED="1548898625532" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="JestJavaScriptTestRunnerCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+  </component>
+  <component name="CoverageViewManager">
+    <option name="myElementSize" value="362" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/server/config/config.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="221">
+              <caret line="13" column="18" lean-forward="true" selection-start-line="13" selection-start-column="18" selection-end-line="13" selection-end-column="18" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/server/routes/prediction.routes.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="643">
+              <caret line="637" lean-forward="true" selection-start-line="637" selection-end-line="637" />
+              <folding>
+                <element signature="e#3065#3287#0" />
+                <element signature="e#3308#3351#0" />
+                <element signature="e#3373#4758#0" />
+                <element signature="e#4782#8616#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/package.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="238">
+              <caret line="14" column="19" selection-start-line="14" selection-start-column="19" selection-end-line="14" selection-end-column="19" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/server/tests/auth.routes.test.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="533">
+              <caret line="231" column="15" selection-start-line="231" selection-start-column="15" selection-end-line="231" selection-end-column="15" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/server/tests/user.routes.test.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2346">
+              <caret line="138" column="40" selection-start-line="138" selection-start-column="40" selection-end-line="138" selection-end-column="40" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/server/tests/email.routes.test.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="417">
+              <caret line="61" column="26" lean-forward="true" selection-start-line="61" selection-start-column="26" selection-end-line="61" selection-end-column="26" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/server/routes/email.routes.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="289">
+              <caret line="17" column="5" lean-forward="true" selection-start-line="17" selection-start-column="5" selection-end-line="17" selection-end-column="5" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/server/routes/auth.routes.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="394">
+              <caret line="321" column="10" lean-forward="true" selection-start-line="321" selection-start-column="10" selection-end-line="321" selection-end-column="10" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/server/migrations/20190108171813-create-user.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="170">
+              <caret line="10" column="10" selection-end-line="29" selection-end-column="2" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/server/migrations/20190115034951-create-agency.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="442">
+              <caret line="26" column="33" selection-start-line="26" selection-start-column="33" selection-end-line="26" selection-end-column="33" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="JavaScript File" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>keys</find>
+      <find>data</find>
+      <find>.skip</find>
+      <find>hash</find>
+      <find>console.l</find>
+      <find>date</find>
+      <find>received unsuppo</find>
+      <find>post.*solicitation</find>
+      <find>\\n</find>
+      <find>post.*solic</find>
+      <find>push</find>
+      <find>post</find>
+      <find>solicitation</find>
+      <find>db</find>
+      <find>random-words</find>
+      <find>randomWoer</find>
+      <find>word</find>
+      <find>function.*random</find>
+      <find>status</find>
+      <find>actiondate</find>
+      <find>parsestatus</find>
+      <find>export</find>
+      <find>action</find>
+      <find>id</find>
+      <find>history</find>
+      <find>makeone</find>
+      <find>srt-data</find>
+      <find>gitlab</find>
+      <find>db.seq</find>
+      <find>notice</find>
+    </findStrings>
+    <replaceStrings>
+      <replace>&quot;string&quot;</replace>
+      <replace>'/api/auth/tokenCheck'</replace>
+      <replace>:</replace>
+      <replace>string</replace>
+      <replace>not-gmail-here</replace>
+      <replace>logger.error</replace>
+      <replace>General Services Administration</replace>
+      <replace>let</replace>
+      <replace>&quot;,\n</replace>
+      <replace>srt_server</replace>
+      <replace>587</replace>
+      <replace>&quot;secure&quot;: true,</replace>
+      <replace>465</replace>
+      <replace>ENV variable SENDGRID_API_KEY</replace>
+      <replace>\n</replace>
+    </replaceStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="Albert Crowley &lt;albert.crowley@tcg.com&gt;" />
+        <option value="Al Crowley &lt;albert.crowley@tcg.com&gt;" />
+      </list>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="49f3b95c8a0599fcbebab56c01363a30f4d888ea" />
+      </map>
+    </option>
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/server/config/datastores.js" />
+        <option value="$PROJECT_DIR$/server/migrations/20190108171813-create-user.js" />
+        <option value="$PROJECT_DIR$/server/routes/file.routes.js" />
+        <option value="$PROJECT_DIR$/winston.log" />
+        <option value="$PROJECT_DIR$/server/config/config.js" />
+        <option value="$PROJECT_DIR$/sqlite-srt-database.sql" />
+        <option value="$PROJECT_DIR$/srt-database.sql" />
+        <option value="$PROJECT_DIR$/server/models/agency.js" />
+        <option value="$PROJECT_DIR$/server/migrations/20190115034951-create-agency.js" />
+        <option value="$PROJECT_DIR$/server/test.js" />
+        <option value="$PROJECT_DIR$/filebeat-6.5.4-windows-x86_64/filebeat.yml" />
+        <option value="$PROJECT_DIR$/server/tests/test.lists.js" />
+        <option value="$PROJECT_DIR$/nodemon.json" />
+        <option value="$PROJECT_DIR$/server/config/winston.js" />
+        <option value="$PROJECT_DIR$/test.js" />
+        <option value="$PROJECT_DIR$/server/server.js" />
+        <option value="$PROJECT_DIR$/manifest.yml" />
+        <option value="$PROJECT_DIR$/server/config/vcap_serviecs.example.json" />
+        <option value="$PROJECT_DIR$/winston.log.json" />
+        <option value="$PROJECT_DIR$/server/security/token.js" />
+        <option value="$PROJECT_DIR$/jest.config.js" />
+        <option value="$PROJECT_DIR$/server/tests/user.routes.test.js" />
+        <option value="$PROJECT_DIR$/server/routes/user.routes.js" />
+        <option value="$PROJECT_DIR$/server/routes/auth.routes.js" />
+        <option value="$PROJECT_DIR$/server/tests/email.routes.test.js" />
+        <option value="$PROJECT_DIR$/server/tests/auth.routes.test.js" />
+        <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch.json" />
+        <option value="$PROJECT_DIR$/server/models/user.js" />
+        <option value="$PROJECT_DIR$/server/models/create_models.sh" />
+        <option value="$PROJECT_DIR$/server/migrations/20190126000000-add-cols.js" />
+        <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch_1.json" />
+        <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch_2.json" />
+        <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch_3.json" />
+        <option value="$PROJECT_DIR$/server/tests/agency.routes.test.js" />
+        <option value="$PROJECT_DIR$/server/routes/agency.routes.js" />
+        <option value="$PROJECT_DIR$/server/migrations/20190204000000-add-fedback.js" />
+        <option value="$PROJECT_DIR$/server/models/notice.js" />
+        <option value="$PROJECT_DIR$/server/models/index.js" />
+        <option value="$PROJECT_DIR$/server/app.js" />
+        <option value="$PROJECT_DIR$/server/routes/solicitation.routes.js" />
+        <option value="$PROJECT_DIR$/server/tests/solicitation.routes.test.js" />
+        <option value="$PROJECT_DIR$/server/routes/analytics.routes.js" />
+        <option value="$PROJECT_DIR$/server/tests/analytics.routes.test.js" />
+        <option value="$PROJECT_DIR$/package.json" />
+        <option value="$PROJECT_DIR$/.gitlab-ci.yml" />
+        <option value="$PROJECT_DIR$/server/migrations/20190204000000-notice-changes.js" />
+        <option value="$PROJECT_DIR$/server/migrations/20190126000000-add-timestamps.js" />
+        <option value="$PROJECT_DIR$/server/tests/prediction.routes.test.js" />
+        <option value="$PROJECT_DIR$/server/routes/prediction.routes.js" />
+        <option value="$PROJECT_DIR$/server/routes/email.routes.js" />
+        <option value="$PROJECT_DIR$/server/config/config.json" />
+      </list>
+    </option>
+  </component>
+  <component name="JsFlowSettings">
+    <service-enabled>true</service-enabled>
+    <exe-path />
+    <other-services-enabled>true</other-services-enabled>
+    <auto-save>true</auto-save>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="x" value="-11" />
+    <option name="width" value="1878" />
+    <option name="height" value="2171" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="srt-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="srt-server" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="srt-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="srt-server" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="srt-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="srt-server" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+              <item name="config" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="srt-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="srt-server" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+              <item name="migrations" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="srt-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="srt-server" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+              <item name="routes" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="srt-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="srt-server" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+              <item name="tests" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="JSON" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/server/tests/solicitation.routes.test.js" />
+    <property name="nodejs.jest.jest_package" value="$PROJECT_DIR$/node_modules/jest" />
+    <property name="nodejs.mocha.mocha_node_package_dir" value="$PROJECT_DIR$/node_modules/mocha" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="restartRequiresConfirmation" value="false" />
+    <property name="settings.editor.selected.configurable" value="web-ide.project.structure" />
+    <property name="ts.external.directory.path" value="C:\Program Files\JetBrains\WebStorm 2018.3\plugins\JavaScriptLanguage\jsLanguageServicesImpl\external" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\al\WebstormProjects\srt-server\server\tests" />
+      <recent name="C:\Users\al\WebstormProjects\srt-server\server" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\al\WebstormProjects\srt-server\server\migrations" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Jest.jest.config.js">
+    <configuration name="Jest Tests SQLite" type="JavaScriptTestRunnerJest">
+      <config-file value="$PROJECT_DIR$/jest.config.js" />
+      <node-interpreter value="project" />
+      <node-options value="--inspect" />
+      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$" />
+      <jest-options value="--watchAll" />
+      <envs>
+        <env name="NODE_ENV" value="sqlite" />
+      </envs>
+      <scope-kind value="ALL" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Jest Tests" type="JavaScriptTestRunnerJest">
+      <config-file value="$PROJECT_DIR$/jest.config.js" />
+      <node-interpreter value="project" />
+      <node-options value="--inspect" />
+      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$" />
+      <envs>
+        <env name="NODE_ENV" value="development" />
+        <env name="VCAP_SERVICES" value="{&quot;aws-rds&quot;:[{   &quot;label&quot;: &quot;aws-rds&quot;,   &quot;provider&quot;: null,   &quot;plan&quot;: &quot;shared-psql&quot;,   &quot;name&quot;: &quot;srt-postgres&quot;,   &quot;tags&quot;: [     &quot;database&quot;,     &quot;RDS&quot;   ],   &quot;instance_name&quot;: &quot;srt-postgres&quot;,   &quot;binding_name&quot;: null,   &quot;credentials&quot;: {     &quot;db_name&quot;: &quot;cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;host&quot;: &quot;192.168.1.126&quot;,     &quot;password&quot;: &quot;***REMOVED***&quot;,     &quot;port&quot;: &quot;5432&quot;,     &quot;uri&quot;: &quot;postgres://utz6kah1zq8t2nyg:***REMOVED***@192.168.1.126:5432/cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;username&quot;: &quot;utz6kah1zq8t2nyg&quot;   },   &quot;syslog_drain_url&quot;: null,   &quot;volume_mounts&quot;: [   ] }]}" />
+        <env name="SENDGRID_API_KEY" value="***REMOVED***" />
+        <env name="MAIL_ENGINE" value="nodemailer-mock" />
+      </envs>
+      <scope-kind value="ALL" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="JavaScriptTestRunnerJest">
+      <config-file value="Jest Tests" />
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/node_modules/jest/bin" />
+      <working-dir value="$PROJECT_DIR$" />
+      <envs />
+      <scope-kind value="ALL" />
+      <method v="2" />
+    </configuration>
+    <configuration name="jest.config.js" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
+      <config-file value="$PROJECT_DIR$/jest.config.js" />
+      <node-interpreter value="project" />
+      <node-options value="--inspect" />
+      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$" />
+      <envs>
+        <env name="NODE_ENV" value="development" />
+        <env name="VCAP_SERVICES" value="{&quot;aws-rds&quot;:[{   &quot;label&quot;: &quot;aws-rds&quot;,   &quot;provider&quot;: null,   &quot;plan&quot;: &quot;shared-psql&quot;,   &quot;name&quot;: &quot;srt-postgres&quot;,   &quot;tags&quot;: [     &quot;database&quot;,     &quot;RDS&quot;   ],   &quot;instance_name&quot;: &quot;srt-postgres&quot;,   &quot;binding_name&quot;: null,   &quot;credentials&quot;: {     &quot;db_name&quot;: &quot;cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;host&quot;: &quot;192.168.1.126&quot;,     &quot;password&quot;: &quot;***REMOVED***&quot;,     &quot;port&quot;: &quot;5432&quot;,     &quot;uri&quot;: &quot;postgres://utz6kah1zq8t2nyg:***REMOVED***@192.168.1.126:5432/cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;username&quot;: &quot;utz6kah1zq8t2nyg&quot;   },   &quot;syslog_drain_url&quot;: null,   &quot;volume_mounts&quot;: [   ] }]}" />
+        <env name="SENDGRID_API_KEY" value="***REMOVED***" />
+        <env name="MAIL_ENGINE" value="nodemailer-mock" />
+      </envs>
+      <scope-kind value="ALL" />
+      <method v="2" />
+    </configuration>
+    <configuration name="jest.config.js" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
+      <config-file value="$PROJECT_DIR$/jest.config.js" />
+      <node-interpreter value="project" />
+      <node-options value="--inspect" />
+      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$" />
+      <envs>
+        <env name="NODE_ENV" value="development" />
+        <env name="VCAP_SERVICES" value="{&quot;aws-rds&quot;:[{   &quot;label&quot;: &quot;aws-rds&quot;,   &quot;provider&quot;: null,   &quot;plan&quot;: &quot;shared-psql&quot;,   &quot;name&quot;: &quot;srt-postgres&quot;,   &quot;tags&quot;: [     &quot;database&quot;,     &quot;RDS&quot;   ],   &quot;instance_name&quot;: &quot;srt-postgres&quot;,   &quot;binding_name&quot;: null,   &quot;credentials&quot;: {     &quot;db_name&quot;: &quot;cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;host&quot;: &quot;192.168.1.126&quot;,     &quot;password&quot;: &quot;***REMOVED***&quot;,     &quot;port&quot;: &quot;5432&quot;,     &quot;uri&quot;: &quot;postgres://utz6kah1zq8t2nyg:***REMOVED***@192.168.1.126:5432/cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;username&quot;: &quot;utz6kah1zq8t2nyg&quot;   },   &quot;syslog_drain_url&quot;: null,   &quot;volume_mounts&quot;: [   ] }]}" />
+        <env name="SENDGRID_API_KEY" value="***REMOVED***" />
+        <env name="MAIL_ENGINE" value="nodemailer-mock" />
+      </envs>
+      <scope-kind value="ALL" />
+      <method v="2" />
+    </configuration>
+    <configuration name="jest.config.js" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
+      <config-file value="$PROJECT_DIR$/jest.config.js" />
+      <node-interpreter value="project" />
+      <node-options value="--inspect" />
+      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$" />
+      <envs>
+        <env name="NODE_ENV" value="development" />
+        <env name="VCAP_SERVICES" value="{&quot;aws-rds&quot;:[{   &quot;label&quot;: &quot;aws-rds&quot;,   &quot;provider&quot;: null,   &quot;plan&quot;: &quot;shared-psql&quot;,   &quot;name&quot;: &quot;srt-postgres&quot;,   &quot;tags&quot;: [     &quot;database&quot;,     &quot;RDS&quot;   ],   &quot;instance_name&quot;: &quot;srt-postgres&quot;,   &quot;binding_name&quot;: null,   &quot;credentials&quot;: {     &quot;db_name&quot;: &quot;cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;host&quot;: &quot;192.168.1.126&quot;,     &quot;password&quot;: &quot;***REMOVED***&quot;,     &quot;port&quot;: &quot;5432&quot;,     &quot;uri&quot;: &quot;postgres://utz6kah1zq8t2nyg:***REMOVED***@192.168.1.126:5432/cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;username&quot;: &quot;utz6kah1zq8t2nyg&quot;   },   &quot;syslog_drain_url&quot;: null,   &quot;volume_mounts&quot;: [   ] }]}" />
+        <env name="SENDGRID_API_KEY" value="***REMOVED***" />
+        <env name="MAIL_ENGINE" value="nodemailer-mock" />
+      </envs>
+      <scope-kind value="ALL" />
+      <method v="2" />
+    </configuration>
+    <configuration name="app.js" type="NodeJSConfigurationType" temporary="true" nameIsGenerated="true" path-to-js-file="$PROJECT_DIR$/server/app.js" working-dir="$PROJECT_DIR$">
+      <method v="2" />
+    </configuration>
+    <configuration name="node" type="NodeJSConfigurationType" path-to-js-file="$PROJECT_DIR$/server/tests/auth.routes.test.js" working-dir="$PROJECT_DIR$">
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Jest.Jest Tests" />
+      <item itemvalue="Jest.Jest Tests SQLite" />
+      <item itemvalue="Jest.jest.config.js" />
+      <item itemvalue="Node.js.node" />
+      <item itemvalue="Node.js.app.js" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Jest.jest.config.js" />
+        <item itemvalue="Jest.jest.config.js" />
+        <item itemvalue="Node.js.app.js" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration>C:\Users\al\AppData\Roaming\Subversion</configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="fdd17094-3c30-4418-91c7-cd5dc53df30f" name="Default Changelist" comment="" />
+      <created>1544049670550</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1544049670550</updated>
+      <workItem from="1544049671766" duration="1269000" />
+      <workItem from="1544210542614" duration="232000" />
+      <workItem from="1544642076691" duration="4938000" />
+      <workItem from="1544649226256" duration="11158000" />
+      <workItem from="1544719705313" duration="10050000" />
+      <workItem from="1544736713843" duration="9951000" />
+      <workItem from="1545066416550" duration="599000" />
+      <workItem from="1545315517888" duration="664000" />
+      <workItem from="1545338182151" duration="29196000" />
+      <workItem from="1546095553802" duration="156000" />
+      <workItem from="1546438376417" duration="57000" />
+      <workItem from="1546528636384" duration="20162000" />
+      <workItem from="1546803518868" duration="36529000" />
+      <workItem from="1547402964216" duration="44000" />
+      <workItem from="1547478279993" duration="1518000" />
+      <workItem from="1547489767566" duration="26704000" />
+      <workItem from="1547650013632" duration="4960000" />
+      <workItem from="1547655487967" duration="5066000" />
+      <workItem from="1547831314807" duration="122000" />
+      <workItem from="1547831505703" duration="65740000" />
+      <workItem from="1548599461939" duration="29860000" />
+      <workItem from="1548860105402" duration="10731000" />
+      <workItem from="1548872635808" duration="23759000" />
+      <workItem from="1549035598533" duration="723000" />
+      <workItem from="1549036829268" duration="244000" />
+      <workItem from="1549037275203" duration="23992000" />
+      <workItem from="1549380843692" duration="2721000" />
+      <workItem from="1549387769632" duration="1143000" />
+    </task>
+    <task id="LOCAL-00023" summary="Adding postgres service to CI">
+      <created>1547493839126</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1547493839126</updated>
+    </task>
+    <task id="LOCAL-00024" summary="Adding postgres service to CI">
+      <created>1547494138800</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1547494138800</updated>
+    </task>
+    <task id="LOCAL-00025" summary="Adding postgres service to CI (username change)">
+      <created>1547494827257</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1547494827257</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Adding postgres service to CI (create user)">
+      <created>1547505490206</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1547505490206</updated>
+    </task>
+    <task id="LOCAL-00027" summary="Adding postgres service to CI (create user)">
+      <created>1547505794017</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1547505794017</updated>
+    </task>
+    <task id="LOCAL-00028" summary="CI test">
+      <created>1547508377118</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1547508377118</updated>
+    </task>
+    <task id="LOCAL-00029" summary="CI test">
+      <created>1547508608060</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1547508608060</updated>
+    </task>
+    <task id="LOCAL-00030" summary="Added DB migrations to CI build">
+      <created>1547523174319</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1547523174319</updated>
+    </task>
+    <task id="LOCAL-00031" summary="Fixed test so it cleans up it's data">
+      <created>1547523944874</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1547523944874</updated>
+    </task>
+    <task id="LOCAL-00032" summary="Added agencies">
+      <created>1547527973084</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1547527973084</updated>
+    </task>
+    <task id="LOCAL-00033" summary="Removed debugging lines.">
+      <created>1547528443750</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1547528443750</updated>
+    </task>
+    <task id="LOCAL-00034" summary="batch of changes based on first client logon testing&#10;Includes better logging&#10;Correct handling of user's agency&#10;improved testing&#10;fixed a bug where JWTs were not being checked against actual user list">
+      <created>1547650755405</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1547650755405</updated>
+    </task>
+    <task id="LOCAL-00035" summary="Changed log extension to json">
+      <created>1547655864817</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1547655864817</updated>
+    </task>
+    <task id="LOCAL-00036" summary="Fixed typo in package.json">
+      <created>1547656357154</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1547656357154</updated>
+    </task>
+    <task id="LOCAL-00037" summary="Added fake data to the predictions.">
+      <created>1547837799821</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1547837799821</updated>
+    </task>
+    <task id="LOCAL-00038" summary="Added AgencyList API route">
+      <created>1548087464927</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1548087464927</updated>
+    </task>
+    <task id="LOCAL-00039" summary="Added analytics API route. Also greatly improved quality of test data. &#10;(still not perfect but much better)">
+      <created>1548186991024</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1548186991024</updated>
+    </task>
+    <task id="LOCAL-00040" summary="Do not log user submitted passwords in the winston logs.">
+      <created>1548189267548</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1548189267548</updated>
+    </task>
+    <task id="LOCAL-00041" summary="Updated some user management details to sync up with web UI.">
+      <created>1548189303531</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1548189303531</updated>
+    </task>
+    <task id="LOCAL-00042" summary="changes after cloud.gov testing &#10;Pull DB credentials from environment vars&#10;adjusted some routes&#10;fixed bug in user update">
+      <created>1548260171386</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1548260171386</updated>
+    </task>
+    <task id="LOCAL-00043" summary="Added forceExit to jest config - hope it will fix test hangs on gitlab CI">
+      <created>1548260796188</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1548260796188</updated>
+    </task>
+    <task id="LOCAL-00044" summary="Fixed bug in token check that caused hangs when bad token supplied&#10;Added another token test.">
+      <created>1548265670888</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1548265670888</updated>
+    </task>
+    <task id="LOCAL-00045" summary="Configured app to use SendGrid email router. Also added updatePassword API route.">
+      <created>1548363074318</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1548363074318</updated>
+    </task>
+    <task id="LOCAL-00046" summary="Reworked email so other parts of the API could directly call sendMessage function">
+      <created>1548616641071</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1548616641071</updated>
+    </task>
+    <task id="LOCAL-00047" summary="Adding support for password reset.&#10;&#10;Updates some email flow and testing&#10;also found that the client makes two calls for a password reset. I'm ignoring the first one.">
+      <created>1548701362063</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1548701362063</updated>
+    </task>
+    <task id="LOCAL-00048" summary="run tests in band to make debugging CI errors less complex.">
+      <created>1548709149870</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1548709149870</updated>
+    </task>
+    <task id="LOCAL-00049" summary="Set the mock mailer env variable before running tests">
+      <created>1548710217360</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1548710217360</updated>
+    </task>
+    <task id="LOCAL-00050" summary="Added models for notice and attachment tables.">
+      <created>1548782210659</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1548782210660</updated>
+    </task>
+    <task id="LOCAL-00051" summary="Now pull agenciList from notice table.">
+      <created>1548782233805</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1548782233806</updated>
+    </task>
+    <task id="LOCAL-00052" summary="Now pull notice data from the db rather than mock info">
+      <created>1548873417555</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1548873417556</updated>
+    </task>
+    <task id="LOCAL-00053" summary="extracted the prediction/notice filter into independent function&#10;connected analytices API to this function so data is now pulled from the DB">
+      <created>1548965809229</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1548965809229</updated>
+    </task>
+    <task id="LOCAL-00054" summary="Adding first solication route">
+      <created>1549331208318</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1549331208320</updated>
+    </task>
+    <task id="LOCAL-00055" summary="Fixed return format for solicitation&#10;added solicitation get API route">
+      <created>1549336366987</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1549336366987</updated>
+    </task>
+    <task id="LOCAL-00056" summary="Now return values for analytic routes in the format expected by the UI">
+      <created>1549337086390</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1549337086390</updated>
+    </task>
+    <task id="LOCAL-00057" summary="adding code to test CI database setup">
+      <created>1549337575069</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1549337575069</updated>
+    </task>
+    <task id="LOCAL-00058" summary="adding code to test CI database setup">
+      <created>1549337648984</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1549337648984</updated>
+    </task>
+    <task id="LOCAL-00059" summary="adding code to test CI database setup">
+      <created>1549337895101</created>
+      <option name="number" value="00059" />
+      <option name="presentableId" value="LOCAL-00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1549337895101</updated>
+    </task>
+    <task id="LOCAL-00060" summary="adding code to test CI database setup">
+      <created>1549338092028</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1549338092028</updated>
+    </task>
+    <task id="LOCAL-00061" summary="adding code to test CI database setup">
+      <created>1549338217345</created>
+      <option name="number" value="00061" />
+      <option name="presentableId" value="LOCAL-00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1549338217345</updated>
+    </task>
+    <task id="LOCAL-00062" summary="adding code to test CI database setup">
+      <created>1549374442050</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1549374442050</updated>
+    </task>
+    <task id="LOCAL-00063" summary="adding code to test CI database setup">
+      <created>1549375012799</created>
+      <option name="number" value="00063" />
+      <option name="presentableId" value="LOCAL-00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1549375012799</updated>
+    </task>
+    <task id="LOCAL-00064" summary="adding code to test CI database setup">
+      <created>1549375304456</created>
+      <option name="number" value="00064" />
+      <option name="presentableId" value="LOCAL-00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1549375304456</updated>
+    </task>
+    <task id="LOCAL-00065" summary="adding code to test CI database setup">
+      <created>1549375518508</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1549375518508</updated>
+    </task>
+    <task id="LOCAL-00066" summary="adding code to test CI database setup">
+      <created>1549376079774</created>
+      <option name="number" value="00066" />
+      <option name="presentableId" value="LOCAL-00066" />
+      <option name="project" value="LOCAL" />
+      <updated>1549376079774</updated>
+    </task>
+    <task id="LOCAL-00067" summary="adding code to test CI database setup">
+      <created>1549376371137</created>
+      <option name="number" value="00067" />
+      <option name="presentableId" value="LOCAL-00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1549376371137</updated>
+    </task>
+    <task id="LOCAL-00068" summary="adding code to test CI database setup">
+      <created>1549376741790</created>
+      <option name="number" value="00068" />
+      <option name="presentableId" value="LOCAL-00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1549376741790</updated>
+    </task>
+    <task id="LOCAL-00069" summary="adding code to test CI database setup">
+      <created>1549376991685</created>
+      <option name="number" value="00069" />
+      <option name="presentableId" value="LOCAL-00069" />
+      <option name="project" value="LOCAL" />
+      <updated>1549376991685</updated>
+    </task>
+    <task id="LOCAL-00070" summary="adding code to test CI database setup">
+      <created>1549377201428</created>
+      <option name="number" value="00070" />
+      <option name="presentableId" value="LOCAL-00070" />
+      <option name="project" value="LOCAL" />
+      <updated>1549377201428</updated>
+    </task>
+    <task id="LOCAL-00071" summary="updated DB. Took out migrations from gitlab CI deployment.">
+      <created>1549379788664</created>
+      <option name="number" value="00071" />
+      <option name="presentableId" value="LOCAL-00071" />
+      <option name="project" value="LOCAL" />
+      <updated>1549379788664</updated>
+    </task>
+    <option name="localTasksCounter" value="72" />
+    <servers />
+  </component>
+  <component name="TestHistory">
+    <history-entry file="prediction_tests_Empty_predictions_filter_ - 2019.02.05 at 11h 09m 12s.xml">
+      <configuration name="prediction tests.Empty predictions filter " configurationId="JavaScriptTestRunnerJest" />
+    </history-entry>
+    <history-entry file="Jest_Tests - 2019.02.05 at 12h 31m 08s.xml">
+      <configuration name="Jest Tests" configurationId="JavaScriptTestRunnerJest" />
+    </history-entry>
+    <history-entry file="Jest_Tests - 2019.02.05 at 12h 32m 05s.xml">
+      <configuration name="Jest Tests" configurationId="JavaScriptTestRunnerJest" />
+    </history-entry>
+    <history-entry file="Jest_Tests - 2019.02.05 at 12h 32m 40s.xml">
+      <configuration name="Jest Tests" configurationId="JavaScriptTestRunnerJest" />
+    </history-entry>
+    <history-entry file="_api_email__api_email - 2019.02.05 at 12h 34m 00s.xml">
+      <configuration name="/api/email./api/email" configurationId="JavaScriptTestRunnerJest" />
+    </history-entry>
+    <history-entry file="_api_email__api_email - 2019.02.05 at 12h 36m 00s.xml">
+      <configuration name="/api/email./api/email" configurationId="JavaScriptTestRunnerJest" />
+    </history-entry>
+    <history-entry file="_api_email__api_email - 2019.02.05 at 12h 36m 18s.xml">
+      <configuration name="/api/email./api/email" configurationId="JavaScriptTestRunnerJest" />
+    </history-entry>
+    <history-entry file="_api_email__api_email - 2019.02.05 at 12h 36m 46s.xml">
+      <configuration name="/api/email./api/email" configurationId="JavaScriptTestRunnerJest" />
+    </history-entry>
+    <history-entry file="_api_email__api_email - 2019.02.05 at 12h 37m 20s.xml">
+      <configuration name="/api/email./api/email" configurationId="JavaScriptTestRunnerJest" />
+    </history-entry>
+    <history-entry file="jest_config_js - 2019.02.05 at 12h 38m 46s.xml">
+      <configuration name="jest.config.js" configurationId="JavaScriptTestRunnerJest" />
+    </history-entry>
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="322288000" />
+  </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-7" y="1" width="1252" height="1085" extended-state="0" />
+    <editor active="true" />
+    <layout>
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24580537" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="npm" order="2" side_tool="true" />
+      <window_info id="Favorites" order="3" side_tool="true" />
+      <window_info id="Project Explorer" order="4" />
+      <window_info id="DB Browser" order="5" />
+      <window_info id="Job Explorer" order="6" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32724506" />
+      <window_info active="true" anchor="bottom" x="413" y="284" width="1444" height="796" id="Run" order="2" visible="true" weight="0.3924449" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.38677812" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32952815" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="8" weight="0.4524715" />
+      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" weight="0.32978722" />
+      <window_info anchor="bottom" id="Terminal" order="10" weight="0.44368342" />
+      <window_info anchor="bottom" id="TypeScript" order="11" />
+      <window_info anchor="bottom" id="Messages" order="12" weight="0.32927758" />
+      <window_info anchor="bottom" id="Console" order="13" />
+      <window_info anchor="bottom" id="DB Execution Console" order="14" />
+      <window_info anchor="bottom" id="Database Changes" order="15" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Coverage" order="3" side_tool="true" weight="0.32849973" />
+      <window_info anchor="right" id="Database" order="4" />
+    </layout>
+    <layout-to-restore>
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2720466" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="npm" order="2" side_tool="true" />
+      <window_info id="Favorites" order="3" side_tool="true" />
+      <window_info id="Project Explorer" order="4" />
+      <window_info id="DB Browser" order="5" />
+      <window_info id="Job Explorer" order="6" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32826748" />
+      <window_info anchor="bottom" x="413" y="284" width="1444" height="796" id="Run" order="2" weight="0.41673005" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.28593156" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32952815" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="8" weight="0.4524715" />
+      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="10" visible="true" weight="0.44410646" />
+      <window_info anchor="bottom" id="TypeScript" order="11" />
+      <window_info anchor="bottom" id="Messages" order="12" weight="0.32927758" />
+      <window_info anchor="bottom" id="Console" order="13" />
+      <window_info anchor="bottom" id="DB Execution Console" order="14" />
+      <window_info anchor="bottom" id="Database Changes" order="15" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Coverage" order="3" side_tool="true" weight="0.32861897" />
+      <window_info anchor="right" id="Database" order="4" />
+    </layout-to-restore>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="SHOW_OTHER_BRANCHES" value="true" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+              <option name="COLUMN_ORDER">
+                <list>
+                  <option value="0" />
+                  <option value="1" />
+                  <option value="2" />
+                  <option value="3" />
+                </list>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list />
+          </value>
+        </entry>
+        <entry key="User">
+          <value>
+            <list />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="batch of changes based on first client logon testing&#10;Includes better logging&#10;Correct handling of user's agency&#10;improved testing&#10;fixed a bug where JWTs were not being checked against actual user list" />
+    <MESSAGE value="Changed log extension to json" />
+    <MESSAGE value="Fixed typo in package.json" />
+    <MESSAGE value="Added fake data to the predictions." />
+    <MESSAGE value="Added AgencyList API route" />
+    <MESSAGE value="Added analytics API route. Also greatly improved quality of test data. &#10;(still not perfect but much better)" />
+    <MESSAGE value="Do not log user submitted passwords in the winston logs." />
+    <MESSAGE value="Updated some user management details to sync up with web UI." />
+    <MESSAGE value="changes after cloud.gov testing &#10;Pull DB credentials from environment vars&#10;adjusted some routes&#10;fixed bug in user update" />
+    <MESSAGE value="Added forceExit to jest config - hope it will fix test hangs on gitlab CI" />
+    <MESSAGE value="Fixed bug in token check that caused hangs when bad token supplied&#10;Added another token test." />
+    <MESSAGE value="Configured app to use SendGrid email router. Also added updatePassword API route." />
+    <MESSAGE value="Reworked email so other parts of the API could directly call sendMessage function" />
+    <MESSAGE value="Adding support for password reset.&#10;&#10;Updates some email flow and testing&#10;also found that the client makes two calls for a password reset. I'm ignoring the first one." />
+    <MESSAGE value="run tests in band to make debugging CI errors less complex." />
+    <MESSAGE value="Set the mock mailer env variable before running tests" />
+    <MESSAGE value="Added models for notice and attachment tables." />
+    <MESSAGE value="Now pull agenciList from notice table." />
+    <MESSAGE value="Now pull notice data from the db rather than mock info" />
+    <MESSAGE value="extracted the prediction/notice filter into independent function&#10;connected analytices API to this function so data is now pulled from the DB" />
+    <MESSAGE value="Adding first solication route" />
+    <MESSAGE value="Fixed return format for solicitation&#10;added solicitation get API route" />
+    <MESSAGE value="Now return values for analytic routes in the format expected by the UI" />
+    <MESSAGE value="adding code to test CI database setup" />
+    <MESSAGE value="updated DB. Took out migrations from gitlab CI deployment." />
+    <option name="LAST_COMMIT_MESSAGE" value="updated DB. Took out migrations from gitlab CI deployment." />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/server/routes/auth.routes.js</url>
+          <line>67</line>
+          <option name="timeStamp" value="34" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/server/routes/analytics.routes.js</url>
+          <line>389</line>
+          <option name="timeStamp" value="94" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/server/routes/auth.routes.js</url>
+          <line>108</line>
+          <option name="timeStamp" value="178" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/server/tests/email.routes.test.js</url>
+          <line>116</line>
+          <option name="timeStamp" value="180" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/server/routes/user.routes.js</url>
+          <line>65</line>
+          <option name="timeStamp" value="182" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/server/tests/prediction.routes.test.js</url>
+          <line>178</line>
+          <option name="timeStamp" value="200" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/server/routes/prediction.routes.js</url>
+          <line>347</line>
+          <option name="timeStamp" value="206" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/server/routes/prediction.routes.js</url>
+          <line>344</line>
+          <option name="timeStamp" value="207" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/server/routes/prediction.routes.js</url>
+          <line>340</line>
+          <option name="timeStamp" value="208" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/server/routes/solicitation.routes.js</url>
+          <line>35</line>
+          <option name="timeStamp" value="213" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/server/routes/email.routes.js</url>
+          <line>19</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="218" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="debuggerHistoryManager">
+    <expressions id="watch">
+      <expression>
+        <expression-string>predictions[i].date</expression-string>
+        <language-id>JavaScript</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>day</expression-string>
+        <language-id>JavaScript</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>predictions[i]</expression-string>
+        <language-id>JavaScript</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>o.eitLikelihood.value</expression-string>
+        <language-id>JavaScript</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>allPredictions[i]</expression-string>
+        <language-id>JavaScript</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+    </expressions>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/manifest.yml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="187">
+          <caret line="11" column="11" selection-start-line="11" selection-start-column="11" selection-end-line="11" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/winston.log.json" />
+    <entry file="file://$PROJECT_DIR$/node_modules/jsonwebtoken/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="136">
+          <caret line="8" selection-start-line="8" selection-end-line="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cloud.gov.winston.log.json" />
+    <entry file="file://$PROJECT_DIR$/server/config/winston.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="15" column="9" selection-start-line="15" selection-start-column="9" selection-end-line="15" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/routes/file.routes.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="16" selection-start-line="16" selection-end-line="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/expect/lib/assert.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="476">
+          <caret line="28" column="8" selection-start-line="28" selection-start-column="8" selection-end-line="28" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/jest.config.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="236">
+          <caret line="151" selection-start-line="151" selection-end-line="151" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/models/user.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="357">
+          <caret line="21" column="2" selection-start-line="21" selection-start-column="2" selection-end-line="21" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch.json">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/models/create_models.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="20" selection-start-line="10" selection-start-column="20" selection-end-line="10" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/models/agency.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="13" column="2" selection-start-line="13" selection-start-column="2" selection-end-line="13" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/routes/user.routes.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="4" selection-start-line="3" selection-end-line="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch_1.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="19" column="1" selection-start-line="19" selection-start-column="1" selection-end-line="19" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch_2.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="408">
+          <caret line="24" column="37" selection-start-line="24" selection-start-column="37" selection-end-line="24" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/models/attachment.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="51">
+          <caret line="3" column="37" selection-start-line="3" selection-start-column="27" selection-end-line="3" selection-end-column="37" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch_3.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="153">
+          <caret line="9" column="8" selection-start-line="9" selection-start-column="8" selection-end-line="9" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/@types/jest/index.d.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="328">
+          <caret line="712" column="8" selection-start-line="712" selection-start-column="8" selection-end-line="712" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/security/token.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="85">
+          <caret line="5" column="41" selection-start-line="5" selection-start-column="41" selection-end-line="5" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/models/prediction.js.back">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/models/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="289">
+          <caret line="20" column="30" selection-start-line="20" selection-start-column="30" selection-end-line="20" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/sequelize/lib/dialects/postgres/query.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="321">
+          <caret line="78" column="22" selection-start-line="78" selection-start-column="22" selection-end-line="78" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/sequelize/lib/sequelize.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="329">
+          <caret line="557" column="19" selection-start-line="557" selection-start-column="19" selection-end-line="557" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/sequelize/lib/sql-string.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="890">
+          <caret line="65" column="10" selection-start-line="65" selection-start-column="10" selection-end-line="65" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/sequelize/lib/dialects/postgres/data-types.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="329">
+          <caret line="587" column="21" selection-start-line="587" selection-start-column="21" selection-end-line="587" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/random-words/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="582">
+          <caret line="337" column="23" lean-forward="true" selection-start-line="337" selection-start-column="23" selection-end-line="337" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/models/notice.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="153">
+          <caret line="9" column="6" lean-forward="true" selection-start-line="9" selection-start-column="6" selection-end-line="9" selection-end-column="6" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="320">
+          <caret line="102" column="42" selection-start-line="102" selection-start-column="42" selection-end-line="102" selection-end-column="42" />
+          <folding>
+            <element signature="e#381#406#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/schemas/prediction.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret lean-forward="true" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/routes/solicitation.routes.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="200">
+          <caret line="22" column="18" selection-start-line="22" selection-start-column="18" selection-end-line="22" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/tests/analytics.routes.test.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="22" column="36" selection-start-line="22" selection-start-column="36" selection-end-line="22" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/routes/analytics.routes.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="16" column="80" selection-start-line="16" selection-start-column="80" selection-end-line="16" selection-end-column="80" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/tests/solicitation.routes.test.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="226">
+          <caret line="190" column="39" selection-start-line="190" selection-start-column="39" selection-end-line="190" selection-end-column="39" />
+          <folding>
+            <element signature="e#7464#9956#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/routes/agency.routes.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="799">
+          <caret line="47" selection-start-line="43" selection-end-line="47" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/srt-database.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4097">
+          <caret line="241" column="2" selection-start-line="241" selection-start-column="2" selection-end-line="241" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/migrations/20190126000000-add-timestamps.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="187">
+          <caret line="11" column="14" selection-start-line="11" selection-start-column="14" selection-end-line="11" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/tests/agency.routes.test.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="476">
+          <caret line="28" selection-start-line="28" selection-end-line="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/migrations/20190204000000-notice-changes.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="16" column="6" selection-start-line="16" selection-start-column="6" selection-end-line="16" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/tests/prediction.routes.test.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="799">
+          <caret line="47" column="15" selection-start-line="47" selection-start-column="15" selection-end-line="47" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitlab-ci.yml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="680">
+          <caret line="40" selection-start-line="40" selection-end-line="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/migrations/20181213201708-create-user.js">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/migrations/20190108171813-create-user.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="10" selection-end-line="29" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/migrations/20190115034951-create-agency.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="442">
+          <caret line="26" column="33" selection-start-line="26" selection-start-column="33" selection-end-line="26" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="14" column="19" selection-start-line="14" selection-start-column="19" selection-end-line="14" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/tests/auth.routes.test.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="533">
+          <caret line="231" column="15" selection-start-line="231" selection-start-column="15" selection-end-line="231" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/tests/user.routes.test.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2346">
+          <caret line="138" column="40" selection-start-line="138" selection-start-column="40" selection-end-line="138" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/routes/auth.routes.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="394">
+          <caret line="321" column="10" lean-forward="true" selection-start-line="321" selection-start-column="10" selection-end-line="321" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/routes/prediction.routes.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="643">
+          <caret line="637" lean-forward="true" selection-start-line="637" selection-end-line="637" />
+          <folding>
+            <element signature="e#3065#3287#0" />
+            <element signature="e#3308#3351#0" />
+            <element signature="e#3373#4758#0" />
+            <element signature="e#4782#8616#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/tests/email.routes.test.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="417">
+          <caret line="61" column="26" lean-forward="true" selection-start-line="61" selection-start-column="26" selection-end-line="61" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/routes/email.routes.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="289">
+          <caret line="17" column="5" lean-forward="true" selection-start-line="17" selection-start-column="5" selection-end-line="17" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/config/config.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="13" column="18" lean-forward="true" selection-start-line="13" selection-start-column="18" selection-end-line="13" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
