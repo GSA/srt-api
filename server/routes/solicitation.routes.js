@@ -2,8 +2,8 @@ const _ = require('lodash');
 var express = require('express');
 const logger = require('../config/winston');
 const Notice = require('../models').notice;
+const predictionRoute = require('../routes/prediction.routes');
 
-var {Prediction} = require('../schemas/prediction');
 
 
 module.exports = {
@@ -17,10 +17,13 @@ module.exports = {
 // });
 
         get: function (req, res) {
-                Prediction.findById(req.params.id).then((solicitation) => {
-                    res.send(solicitation);
-                }, (e) => {
-                    res.status(400).send(e);
+            return Notice.findById(req.params.id)
+                .then((notice) => {
+                    return res.status(200).send( predictionRoute.makeOnePrediction(notice) );
+                })
+                .catch( (e) => {
+                    console.log("error", e, {tag:"solicitation get"})
+                    return res.status(400).send("Error finding solicitation");
                 });
             },
 
@@ -53,7 +56,8 @@ module.exports = {
                     }
                     return notice.save()
                         .then((doc) => {
-                            return res.status(200).send(doc);
+                            console.log("error", doc, {tag:"notice"})
+                            return res.status(200).send( predictionRoute.makeOnePrediction(doc) );
                         })
                         .catch((e) => {
                             logger.log ("error", e, {tag: "postSolicitation - error on save"})

@@ -242,6 +242,7 @@ function makeOnePrediction(notice) {
 
     let act = parseAction(notice.action);
 
+    o.id = notice.id;
     o.title = notice.notice_data.subject;
     o.reviewRec = pickOne(reviewRecArray);
     o.agency = notice.agency;
@@ -260,6 +261,9 @@ function makeOnePrediction(notice) {
         value: 'Yes'
     }
     o.undetermined = (getRandomInt(0, 2) == 0);
+    o.action = notice.action;
+    o.feedback = notice.feedback;
+    o.history = notice.history;
 
     o.parseStatus = [];
     if (notice.attachment_json) {
@@ -351,6 +355,7 @@ module.exports = {
 
     getPredictions: getPredictions,
 
+    makeOnePrediction: makeOnePrediction,
 
     predictionFilter:  function (req, res) {
         let data = [];

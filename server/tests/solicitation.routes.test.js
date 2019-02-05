@@ -91,7 +91,6 @@ describe('prediction tests', () => {
                     )
                     .then((res) => {
                         expect(res.statusCode).toBe(200);
-                        console.log (res.body)
                         expect(res.body.feedback[0].questionID).toBe("1");
                         expect(res.body.action.actionDate).toBe(actionDate);
                         expect(res.body.history[0].user).toBe(word1)
@@ -103,80 +102,22 @@ describe('prediction tests', () => {
     });
 
     test('solicitation get', () => {
-        return request(app)
-            .get("/api/solicitation")
-            .set('Authorization', `Bearer ${token}`)
-            // TODO: fix send parameters
-            .send(
-                {
-                    "solNum": 5790550,
-                    "title": "undefined undefined",
-                    "url": "http://www.tcg.com/",
-                    "predictions": {
-                        "value": "GREEN"
-                    },
-                    "reviewRec": "Non-compliant (Action Required)",
-                    "date": "2019-12-26T00:00:00.000Z",
-                    "numDocs": 1,
-                    "eitLikelihood": {
-                        "naics": 85936,
-                        "value": "Yes"
-                    },
-                    "agency": "Operations Office",
-                    "office": "undefined undefined undefined",
-                    "contactInfo": {
-                        "contact": "contact str",
-                        "name": "Joe Smith",
-                        "position": "Manager",
-                        "email": "joe@example.com"
-                    },
-                    "position": "pos string",
-                    "reviewStatus": "on time",
-                    "noticeType": "Special Notice",
-                    "actionStatus": "reviewed solicitation action requested summary",
-                    "actionDate": "2019-11-23T00:00:00.000Z",
-                    "parseStatus": [
-                        {
-                            "name": "doc 1",
-                            "status": "successfully parsed"
-                        },
-                        {
-                            "name": "doc 1",
-                            "status": "successfully parsed"
-                        }
-                    ],
-                    "history": [
-                        {
-                            "date": "03/03/2018",
-                            "action": "sending",
-                            "user": "crowley",
-                            "status": "submitted"
-                        },
-                        {
-                            "date": "2/1/2019",
-                            "action": "reviewed solicitation action requested summary",
-                            "user": "Al Crowley",
-                            "status": ""
-                        }
-                    ],
-                    "feedback": [
-                        {
-                            "questionID": "1",
-                            "question": "Is this a good solicitation?",
-                            "answer": "Yes"
-                        }
-                    ],
-                    "undetermined": true
-                }
-            )
-            .then((res) => {
-                expect(res.statusCode).toBe(200);
-                expect(res.body.TopSRTActionChart).toBeDefined()
-                expect(res.body.TopSRTActionChart.determinedICT).toBeDefined()
-                expect(res.body.TopSRTActionChart.determinedICT).toBeGreaterThan(2);
-                return expect(res.body.TopAgenciesChart).toBeDefined();
-            });
+        return db.sequelize.query("select id from notice order by notice_number desc limit 1")
+            .then( (rows) => {
+                let id = rows[0][0].id;
+                expect(id).toBeDefined();
 
+                return request(app)
+                    .get("/api/solicitation/" + id)
+                    .set('Authorization', `Bearer ${token}`)
+                    .send( {} )
+                    .then((res) => {
+                        expect(res.statusCode).toBe(200);
+                        expect(res.body.solNum).toBeDefined();
+                        expect(res.body.id).toBe(id);
+                        return expect(res.body.agency).toBeDefined();
+                    });
+            });
     });
 
     test('solicitation feedback', () => {

@@ -109,7 +109,7 @@ app.post('/api/analytics', token(), analyticsRoutes.analytics);
 app.post('/api/Analytics', token(), analyticsRoutes.analytics);
 
 app.post('/api/solicitation', token(), solicitationRoutes.postSolicitation);
-
+app.get('/api/solicitation/:id', token(), solicitationRoutes.get);
 
 
 app.use(expressWinston.errorLogger({
