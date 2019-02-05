@@ -26,7 +26,7 @@ connect:
   script:
     - export PGPASSWORD=$POSTGRES_PASSWORD
     - psql -h "postgres"  $POSTGRES_DB $POSTGRES_USER < srt-database.sql
-    - psql -h "postgres"  $POSTGRES_DB $POSTGRES_USER -c "COPY ( select * from notice limit 5 ) TO STDOUT WITH CSV"
+    - psql -h "postgres"  $POSTGRES_DB $POSTGRES_USER -c "COPY ( select * from public.notice limit 5 ) TO STDOUT WITH CSV"
 
 test_with_lab:
   stage: test
