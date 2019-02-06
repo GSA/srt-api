@@ -35,10 +35,10 @@ module.exports = {
             );
     },
 
-    login: function (req, res, next) {
+    login: async function (req, res, next) {
 
         User.find({where: {email: req.body.email}})
-            .then(user => {
+            .then(async user => {
                 var temp = req.body.password == user.tempPassword
                 logger.info(user.email + " authenticated with temporary password.");
                 if (!(bcrypt.compareSync(req.body.password, user.password) || temp || bcrypt.compareSync(req.body.password, user.tempPassword))) {
@@ -59,12 +59,12 @@ module.exports = {
 
                 // if user doesn't use temp password login, we need to clear temp password for the user.
                 // This means user still remember her/his password
-                if (!temp) {
+                if (!temp && user.tempPassword != "") {
                     user.tempPassword = "";
-                    user.save();
+                    await user.save();
                 }
 
-                var token = jwt.sign({user: user}, 'innovation', {expiresIn: 7200}); // token is good for 2 hours
+                var token = jwt.sign({user: user}, 'innovation', {expiresIn: '2h'}); // token is good for 2 hours
 
                 let ret_obj = {
                     message: 'Successfully logged in',
