@@ -26,6 +26,7 @@ connect:
   script:
     - export PGPASSWORD=$POSTGRES_PASSWORD
     - cp srt-database-export.sql.gz srt-database.sql.gz
+    - rm srt-database.sql
     - gzip -d srt-database.sql.gz
     - psql -h "postgres"  $POSTGRES_DB $POSTGRES_USER < srt-database.sql
 #    - psql -h "postgres"  $POSTGRES_DB $POSTGRES_USER -c "COPY ( SELECT * FROM information_schema.tables WHERE table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys' ) TO STDOUT WITH CSV"
