@@ -55,7 +55,7 @@ module.exports = {
                     }
                     return notice.save()
                         .then((doc) => {
-                            logger.log("error", doc, {tag:"notice"})
+                            //logger.log("error", predictionRoute.makeOnePrediction(doc) , {tag:"notice"})
                             return res.status(200).send( predictionRoute.makeOnePrediction(doc) );
                         })
                         .catch((e) => {
