@@ -40,5 +40,5 @@ test_with_lab:
   script:
     - npm install
     - export NODE_ENV=gitlab
- #   - ./node_modules/.bin/sequelize db:migrate
+    - ./node_modules/.bin/sequelize db:migrate
     - npm test
