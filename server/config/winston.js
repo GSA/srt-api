@@ -5,7 +5,10 @@ var options = {
         new winston.transports.File({filename: "winston.log.json", level: "debug"}),
         new winston.transports.Console({level: "debug", json:true})
     ],
-    format: winston.format.prettyPrint(),
+    format: winston.format.combine(
+        winston.format.timestamp(),
+            winston.format.prettyPrint()
+        ),
     meta: true,
     exitOnError: false,
     requestFilter: function(req, propname) {
