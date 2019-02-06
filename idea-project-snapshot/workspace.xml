@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fdd17094-3c30-4418-91c7-cd5dc53df30f" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/server/migrations/20190205000000-remove-test-data.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/server/migrations/20190205000000-prime-data.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/config/config.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/config/config.json" afterDir="false" />

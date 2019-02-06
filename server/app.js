@@ -22,6 +22,7 @@ var agencyRoutes = require('./routes/agency.routes');
 var predictionRoutes = require('./routes/prediction.routes');
 var analyticsRoutes = require('./routes/analytics.routes');
 var solicitationRoutes = require('./routes/solicitation.routes');
+var surveyRoutes = require('./routes/survey.routes');
 
 
 
@@ -111,6 +112,7 @@ app.post('/api/Analytics', token(), analyticsRoutes.analytics);
 app.post('/api/solicitation', token(), solicitationRoutes.postSolicitation);
 app.get('/api/solicitation/:id', token(), solicitationRoutes.get);
 
+app.get('/api/surveys', token(), surveyRoutes.get);
 
 app.use(expressWinston.errorLogger({
     transports: [ new winston.transports.File({filename: "winston.log.json", level: "debug"})],
