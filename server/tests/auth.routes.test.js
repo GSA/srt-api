@@ -107,7 +107,7 @@ describe ('/api/auth/', () => {
                     })
             })
             .catch ( (e) => {
-                console.log (e);
+                logger.log ("error", e, {tag: "token check test}"});
             })
             // send a real admin token
             .then( () => {

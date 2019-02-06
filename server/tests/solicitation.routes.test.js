@@ -49,7 +49,6 @@ describe('prediction tests', () => {
                 let word1 = randomWords.wordList[Math.floor(Math.random() * randomWords.wordList.length)];
                 let word2 = randomWords.wordList[Math.floor(Math.random() * randomWords.wordList.length)];
                 let actionDate = (new Date()).toLocaleString();
-                console.log (actionDate)
 
                 return request(app)
                     .post("/api/solicitation")
@@ -120,7 +119,7 @@ describe('prediction tests', () => {
             });
     });
 
-    test('solicitation feedback', () => {
+    test.skip('solicitation feedback', () => {
         return request(app)
             .post("/api/feedback")
             .set('Authorization', `Bearer ${token}`)

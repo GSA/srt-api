@@ -110,11 +110,9 @@ describe ('/api/email', () => {
                 expect(sentMail.length).toBe(1);
                 expect(sentMail[0].to).toBe(myuser.email);
                 expect(sentMail[0].from).toBe(config.emailFrom);
-                console.log (sentMail[0]);
                 expect(sentMail[0].text).toMatch(res.body.tempPassword );
                 // return User.findOne( {where: {email: myuser.email}})
                 //     .then( (user) => {
-                //         console.log (res.body);
                 //             console.log(user.tempPassword, user.email)
                 //         return expect( bcrypt.compareSync(res.body.tempPassword, user.password) ).toBeTruthy();
                 //     })

@@ -115,7 +115,6 @@ describe ('User API Routes', () => {
         var new_password = randomString.generate();
 
         let count = 1;
-        console.log (`********** ${count} **********`); count++
         // fail to update b/c we didn't use correct temp password
         await request(app)
             .post("/api/user/updatePassword")
@@ -124,8 +123,6 @@ describe ('User API Routes', () => {
             .then( (res) => {
                 expect(res.statusCode).toBe(401);
             })
-
-        console.log (`********** ${count} **********`); count++
 
         // update with correct temp password
         nodemailerMock.mock.reset();
@@ -144,7 +141,6 @@ describe ('User API Routes', () => {
                         expect( bcrypt.compareSync(new_password, user.password)).toBe(true);
                     })
             })
-        console.log (`********** ${count} **********`); count++
 
         // temp password shouldn't work any more
         await request(app)
@@ -154,9 +150,7 @@ describe ('User API Routes', () => {
             .then( (res) => {
                 expect(res.statusCode).toBe(401);
             })
-
-        console.log (`********** ${count} **********`); count++
-
+        
         // update with correct temp password
         var new_password_2 = randomString.generate();
         nodemailerMock.mock.reset();

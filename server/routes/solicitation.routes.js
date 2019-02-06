@@ -22,7 +22,7 @@ module.exports = {
                     return res.status(200).send( predictionRoute.makeOnePrediction(notice) );
                 })
                 .catch( (e) => {
-                    console.log("error", e, {tag:"solicitation get"})
+                    logger.log("error", e, {tag:"solicitation get"})
                     return res.status(400).send("Error finding solicitation");
                 });
             },
@@ -47,7 +47,6 @@ module.exports = {
 
                     notice.history = req.body.history;
                     notice.feedback = req.body.feedback;
-                    console.log (status);
                     if (status.length > 1) {
                         notice.action = {
                             actionStatus: status[status.length - 1]["status"],
@@ -56,7 +55,7 @@ module.exports = {
                     }
                     return notice.save()
                         .then((doc) => {
-                            console.log("error", doc, {tag:"notice"})
+                            logger.log("error", doc, {tag:"notice"})
                             return res.status(200).send( predictionRoute.makeOnePrediction(doc) );
                         })
                         .catch((e) => {

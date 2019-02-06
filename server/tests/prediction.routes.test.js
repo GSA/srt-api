@@ -134,7 +134,6 @@ describe ('prediction tests', () => {
             })
             .then( (res) => {
                 expect(res.statusCode).toBe(500);
-                console.log (res.body);
                 expect(res.body.message).toMatch("unsupported");
             })
             .then ( () => {
