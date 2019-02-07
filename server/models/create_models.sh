@@ -6,6 +6,8 @@ sequelize model:generate --force --name User --attributes firstName:string,lastN
 # Agency table
 sequelize model:generate --force --name Agency --attributes agency:string,acronym:string
 
+sequelize model:generate --force --name Survey --attributes id:integer,question:string,choices:jsonb,section:string,type:string,answer:string,Note:string,choicesNote:jsonb
+
 # other table
 npm install sequelize-auto
 npm install pg@6.4.2

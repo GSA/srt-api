@@ -37,6 +37,7 @@ describe ('/api/analytics', () => {
             .send({})
             .then( res => {
                 expect(res.statusCode).toBe(200);
+                expect(res.body[0].Choices.length).toBeDefined();
                 return expect(res.body[0].ID).toBeDefined();
             })
 
