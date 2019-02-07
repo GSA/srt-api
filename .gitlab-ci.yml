@@ -23,8 +23,8 @@ services:
 connect:
   image: postgres
   stage: test
-#  script:
-#    - export PGPASSWORD=$POSTGRES_PASSWORD
+  script:
+    - export PGPASSWORD=$POSTGRES_PASSWORD
 #    - cp srt-database-export.sql.gz srt-database.sql.gz
 #    - rm srt-database.sql
 #    - gzip -d srt-database.sql.gz
