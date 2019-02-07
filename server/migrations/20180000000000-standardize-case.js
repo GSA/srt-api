@@ -1,28 +1,103 @@
 'use strict';
+
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.json')[env];
+const pg = require ('pg');
+
+var connectionString = "postgres://" + config.username + ":" +config.password+ "@"+ config.host+":" + config.port +"/" + config.database;
+
+var pgClient = new pg.Client(connectionString);
+
+
+
 module.exports = {
     up: (queryInterface, Sequelize) => {
-        console.log ('alter table "notice"  rename to "Notice"')
-        return queryInterface.sequelize.query('alter table "notice"  rename to "Notice"' )
+        return pgClient.connect()
             .then( () => {
-                return queryInterface.renameTable("attachment", "Attachment")
+                var sql = "BEGIN"
+                console.log (sql)
+                return pgClient.query(sql)
+                    .then( () => {
+                        var sql = 'alter table "notice"  rename to "Notice"';
+                        console.log (sql)
+                        return pgClient.query(sql)
+                    })
+                    .then( () => {
+                        var sql = 'alter table "notice_type"  rename to "Notice_Type"';
+                        console.log (sql)
+                        return pgClient.query(sql)
+                    })
+                    .then( () => {
+                        var sql = 'alter table "attachment"  rename to "Attachment"';
+                        console.log (sql)
+                        return pgClient.query(sql)
+                    })
+                    .then( () => {
+                        var sql = 'alter table "model"  rename to "Model"';
+                        console.log (sql)
+                        return pgClient.query(sql)
+                    })
+                    .then( () => {
+                        var sql = 'COMMIT';
+                        console.log (sql)
+                        return pgClient.query(sql)
+                    })
             })
-            .then( () => {
-                return queryInterface.renameTable("notice_type", "Notice_Type")
+            .then ( () => {
+                pgClient.end();
             })
-            .then( () => {
-                return queryInterface.renameTable("model", "Model")
+            .catch( (e) => {
+                var sql = 'ROLLBACK';
+                console.log (sql)
+                return pgClient.query(sql)
+                    .then ( () => {
+                        throw e;
+                    })
             })
     },
     down: (queryInterface, Sequelize) => {
-        return queryInterface.renameTable("Notice", "notice")
+        return pgClient.connect()
             .then( () => {
-                return queryInterface.renameTable("Attachment", "attachment")
+                var sql = "BEGIN"
+                console.log (sql)
+                return pgClient.query(sql)
+                    .then( () => {
+                        var sql = 'alter table "Notice"  rename to "notice"';
+                        console.log (sql)
+                        return pgClient.query(sql)
+                    })
+                    .then( () => {
+                        var sql = 'alter table "Attachment"  rename to "attachment"';
+                        console.log (sql)
+                        return pgClient.query(sql)
+                    })
+                    .then( () => {
+                        var sql = 'alter table "Notice_Type"  rename to "notice_type"';
+                        console.log (sql)
+                        return pgClient.query(sql)
+                    })
+                    .then( () => {
+                        var sql = 'alter table "Model"  rename to "model"';
+                        console.log (sql)
+                        return pgClient.query(sql)
+                    })
+                    .then( () => {
+                        var sql = 'COMMIT';
+                        console.log (sql)
+                        return pgClient.query(sql)
+                    })
             })
-            .then( () => {
-                return queryInterface.renameTable("Notice_type", "notice_Type")
+            .then ( () => {
+                pgClient.end();
             })
-            .then( () => {
-                return queryInterface.renameTable("Model", "model")
+            .catch( (e) => {
+                console.log (e)
+                var sql = 'ROLLBACK';
+                console.log (sql)
+                return pgClient.query(sql)
+                    .then ( () => {
+                        throw e;
+                    })
             })
     }
 };
