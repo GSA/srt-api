@@ -27,10 +27,10 @@ module.exports = {
         type: Sequelize.STRING
       },
       isAccepted: {
-        type: Sequelize.STRING
+        type: Sequelize.BOOLEAN
       },
       isRejected: {
-        type: Sequelize.STRING
+        type: Sequelize.BOOLEAN
       },
       userRole: {
         type: Sequelize.STRING
