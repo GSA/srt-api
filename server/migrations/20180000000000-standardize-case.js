@@ -18,6 +18,12 @@ module.exports = {
                 console.log (sql)
                 return pgClient.query(sql)
                     .then( () => {
+                        var sql = 'select * from notice limit 1';
+                        console.log (sql)
+                        return pgClient.query(sql)
+                    })
+                    .then( (result) => {
+                        console.log(result);
                         var sql = 'alter table "notice"  rename to "Notice"';
                         console.log (sql)
                         return pgClient.query(sql)
@@ -62,6 +68,12 @@ module.exports = {
                 console.log (sql)
                 return pgClient.query(sql)
                     .then( () => {
+                        var sql = 'select * from notice limit 1';
+                        console.log (sql)
+                        return pgClient.query(sql)
+                    })
+                    .then( (result) => {
+                        console.log(result);
                         var sql = 'alter table "Notice"  rename to "notice"';
                         console.log (sql)
                         return pgClient.query(sql)
