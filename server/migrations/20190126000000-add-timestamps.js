@@ -43,67 +43,66 @@ function runNext (sql) {
 
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        await pgClient.connect();
-        try {
-            while (increment < up_sql.length) {
-                await runNext(up_sql).catch( e => {throw e});
-            }
-            return;
-        } catch (e) {
-            console.log ("ROLLBACK");
-            console.log (e);
-            return pgClient.query("ROLLBACK")
-                .then ( () => {throw e});
-        }
+        // await pgClient.connect();
+        // try {
+        //     while (increment < up_sql.length) {
+        //         await runNext(up_sql).catch( e => {throw e});
+        //     }
+        //     return;
+        // } catch (e) {
+        //     console.log ("ROLLBACK");
+        //     console.log (e);
+        //     return pgClient.query("ROLLBACK")
+        //         .then ( () => {throw e});
+        // }
 
-        // return queryInterface.addColumn("notice", "createdAt", {type: "timestamptz", defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')})
-        //     .then ( () => {
-        //         return queryInterface.addColumn("notice", "updatedAt", {type: "timestamptz", defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')});
-        //     })
-        //     .then ( () => {
-        //         return queryInterface.addColumn("notice_type", "createdAt", {type: "timestamptz", defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')});
-        //     })
-        //     .then ( () => {
-        //         return queryInterface.addColumn("notice_type", "updatedAt", {type: "timestamptz", defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')});
-        //     })
-        //     .then ( () => {
-        //         return queryInterface.addColumn("attachment", "createdAt", {type: "timestamptz", defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')});
-        //     })
-        //     .then ( () => {
-        //         return queryInterface.addColumn("attachment", "updatedAt", {type: "timestamptz", defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')});
-        //     })
+        return queryInterface.addColumn("notice", "createdAt", {type: "timestamptz", defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')})
+            .then ( () => {
+                return queryInterface.addColumn("notice", "updatedAt", {type: "timestamptz", defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')});
+            })
+            .then ( () => {
+                return queryInterface.addColumn("notice_type", "createdAt", {type: "timestamptz", defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')});
+            })
+            .then ( () => {
+                return queryInterface.addColumn("notice_type", "updatedAt", {type: "timestamptz", defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')});
+            })
+            .then ( () => {
+                return queryInterface.addColumn("attachment", "createdAt", {type: "timestamptz", defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')});
+            })
+            .then ( () => {
+                return queryInterface.addColumn("attachment", "updatedAt", {type: "timestamptz", defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')});
+            })
     },
     down: async (queryInterface, Sequelize) => {
-        await pgClient.connect();
-        try {
-            while (increment < down_sql.length) {
-                await runNext(down_sql).catch( e => {throw e});
-            }
-            return;
-        } catch (e) {
-            console.log ("ROLLBACK");
-            console.log (e);
-            return pgClient.query("ROLLBACK")
-                .then ( () => {throw e});
+        // await pgClient.connect();
+        // try {
+        //     while (increment < down_sql.length) {
+        //         await runNext(down_sql).catch( e => {throw e});
+        //     }
+        //     return;
+        // } catch (e) {
+        //     console.log ("ROLLBACK");
+        //     console.log (e);
+        //     return pgClient.query("ROLLBACK")
+        //         .then ( () => {throw e});
+        // }
 
-        }
-
-        // return queryInterface.dropColumn("notice", "createdAt")
-        //     .then( () => {
-        //         return queryInterface.dropColumn("notice", "updatedAt")
-        //     })
-        //     .then( () => {
-        //         return queryInterface.dropColumn("notice_type", "createdAt")
-        //     })
-        //     .then( () => {
-        //         return queryInterface.dropColumn("notice_type", "updatedAt")
-        //     })
-        //     .then( () => {
-        //         return queryInterface.dropColumn("attachment", "createdAt")
-        //     })
-        //     .then( () => {
-        //         return queryInterface.dropColumn("attachment", "updatedAt")
-        //     })
+        return queryInterface.dropColumn("notice", "createdAt")
+            .then( () => {
+                return queryInterface.dropColumn("notice", "updatedAt")
+            })
+            .then( () => {
+                return queryInterface.dropColumn("notice_type", "createdAt")
+            })
+            .then( () => {
+                return queryInterface.dropColumn("notice_type", "updatedAt")
+            })
+            .then( () => {
+                return queryInterface.dropColumn("attachment", "createdAt")
+            })
+            .then( () => {
+                return queryInterface.dropColumn("attachment", "updatedAt")
+            })
 
     }
 };

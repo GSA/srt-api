@@ -46,7 +46,7 @@ describe ('prediction tests', () => {
                expect(res.body.length).toBeDefined();
                return expect(res.body[0].title).toBeDefined();
             });
-    }, 20000);
+    }, 60000);
 
     test ( 'Filter predictions to only return a certain office', () => {
 
@@ -75,7 +75,7 @@ describe ('prediction tests', () => {
 
                     })
             })
-    }, 20000);
+    }, 60000);
 
 
     test ( 'Filter predictions on multiple dimensions', () => {
@@ -99,7 +99,7 @@ describe ('prediction tests', () => {
                     expect(res.body[i].parseStatus.length).toBe(2);
                 }
             })
-    }, 20000);
+    }, 60000);
 
     test ( 'Filter predictions on solication number', () => {
 
@@ -122,7 +122,7 @@ describe ('prediction tests', () => {
                     })
             })
 
-    }, 20000);
+    }, 60000);
 
     test ( 'Test unsupported parameter for Filter predictions', () => {
 
@@ -159,7 +159,7 @@ describe ('prediction tests', () => {
                             })
                     })
             })
-    }, 20000);
+    }, 60000);
 
     test ( 'Test prediction date filters', () => {
 
@@ -180,5 +180,5 @@ describe ('prediction tests', () => {
                 }
 
             })
-    }, 20000);
+    }, 60000);
 });

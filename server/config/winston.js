@@ -22,6 +22,6 @@ var options = {
 
 var logger = winston.createLogger(options);
 
-logger.info("starting winston");
+// logger.info("starting winston");
 
 module.exports = logger;
