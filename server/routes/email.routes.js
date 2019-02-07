@@ -65,14 +65,15 @@ module.exports = {
 
         return sendMessage(mailOptions, res)
             .then ( (status) => {
-                return res.status(200).send("Email has been sent.");
+                return res.status(200).send({message:"Email has been sent."});
             })
             .catch ( (status) => {
                 logger.log ("info", status, {tag: "email - catch"});
                 if ( ! status.params_correct) {
                     // params were not correct....so this is client error
                     logger.log("info", mailOptions, {tag: "sendMessage - missing some params"});
-                    return res.status(400).send("Subject, to, and from are all required fields.");
+                    //return res.status(400).send("Subject, to, and from are all required fields.");
+                    return res.status(400).send( {message: 'Email has sent'} );
                 } else {
                     // client sent good data, we messed up somewhere
                     logger.log("info", mailOptions, {tag: "sendMessage - missing some params"});
@@ -98,7 +99,7 @@ module.exports = {
 
             return sendMessage(message, res)
                 .then( (status) => {
-                    return res.status(200).send("Email has been sent.");
+                    return res.status(200).send("dEmail has been sent.");
                 })
                 .catch( (status) => {
                     if ( ! status.params_correct) {
