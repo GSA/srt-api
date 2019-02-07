@@ -9,6 +9,7 @@ var pgClient = new pg.Client(connectionString);
 let up_sql = [
     'BEGIN',
     'select * from "Users" limit 1',
+    'SELECT * FROM pg_catalog.pg_tables',
     'select * from notice limit 1',
     'alter table "notice" add column "createdAt" timestamp default now(), add column "updatedAt" timestamp default now()',
     'alter table "notice_type" add column "createdAt" timestamp default now(), add column "updatedAt" timestamp default now()',
@@ -32,7 +33,12 @@ function runNext (sql) {
         promise = pgClient.query(sql[increment]);
     }
     increment++;
-    return promise;
+    return promise
+        .then ( (res) => {
+            res.rows.forEach ( r => {
+                console.log (r)
+            })
+        });
 }
 
 module.exports = {
