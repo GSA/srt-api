@@ -18,7 +18,7 @@ module.exports = {
                 console.log (sql)
                 return pgClient.query(sql)
                     .then( () => {
-                        var sql = 'select * from public.notice limit 1';
+                        var sql = 'select * from '+config.database+'.notice limit 1';
                         console.log (sql)
                         return pgClient.query(sql)
                     })
