@@ -8,6 +8,8 @@ var pgClient = new pg.Client(connectionString);
 
 let up_sql = [
     'BEGIN',
+    'select * from "Users" limit 1',
+    'select * from notice limit 1',
     'alter table "notice" add column "createdAt" timestamp default now(), add column "updatedAt" timestamp default now()',
     'alter table "notice_type" add column "createdAt" timestamp default now(), add column "updatedAt" timestamp default now()',
     'alter table "attachment" add column "createdAt" timestamp default now(), add column "updatedAt" timestamp default now()',
