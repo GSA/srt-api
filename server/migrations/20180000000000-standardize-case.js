@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
     up: (queryInterface, Sequelize) => {
-        return queryInterface.renameTable("notice", "Notice")
+        return queryInterface.sequelize.query('alter table "notice"  rename to "Notice"' )
             .then( () => {
                 return queryInterface.renameTable("attachment", "Attachment")
             })
