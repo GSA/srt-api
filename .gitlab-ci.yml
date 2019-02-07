@@ -38,6 +38,8 @@ test_with_lab:
     paths:
       - coverage/
   script:
+    - apt update
+    - apt install postgresql-client
     - export PGPASSWORD=$POSTGRES_PASSWORD
     - cp srt-database-export.sql.gz srt-database.sql.gz
     - rm srt-database.sql
