@@ -10,10 +10,12 @@ module.exports = function() {
       try {
           if (req.headers.hasOwnProperty('authorization')) {
               token = req.headers['authorization'].split(' ')[1];
+              // logger.log ("debug", token);
               if (token != 'null') {
                   let decoded = jwt.verify(token, 'innovation');  // will thrown an error on an invalid token
                   var current = jwt.decode(token).user;
                   failed = false;
+                  // logger.log("debug", {tag: "token check passed"})
                   next();
               }
           } else {
@@ -22,7 +24,7 @@ module.exports = function() {
 
       } catch (err) {
           // this will be logged in the if (failed) block
-          //logger.log("error", err, {tag:"token check error 2"});
+          logger.log("error", err, {tag:"token check error 2"});
       }
 
       if (failed) {
