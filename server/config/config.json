@@ -62,7 +62,7 @@
       "port": 465,
       "secure": true,
       "auth": {
-        "user": "crowley",
+        "user": "apikey",
         "pass": "ENV variable SENDGRID_API_KEY"
       }
     },

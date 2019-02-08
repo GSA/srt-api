@@ -77,6 +77,38 @@ describe ('/api/email', () => {
             });
     });
 
+    test ( 'HTML test', () => {
+
+        // text: req.body.text,
+        //     from: "Solicitation Review Tool <solicitationreview@gmail.com>",
+        //     to: req.body.emailTo,//req.body.email,
+        //     cc: req.body.emailCC,
+        //     subject: req.body.subject
+
+        let email = {
+            text: "This is the <b>message body</b> text sent by a unit test. <p class='myclass'>Sincerely, <br> Unit Tests</p>",
+            emailTo: "crowley@tcg.com",
+            emailCC: "c@example.com",
+            subject: "srt unit test at " + (new Date()).toLocaleString()
+        }
+
+
+        nodemailerMock.mock.reset();
+        return request(app)
+            .post("/api/email")
+            .set('Authorization', `Bearer ${token}`)
+            .send(email)
+            .then((res) => {
+                var sentMail = nodemailerMock.mock.sentMail();
+                expect(res.statusCode).toBe(200);
+                expect(sentMail.length).toBe(1);
+                expect(sentMail[0].to).toBe("crowley@tcg.com");
+                expect(sentMail[0].from).toBe(config.emailFrom);
+                console.log(sentMail[0].html);
+                expect(sentMail[0].html).toMatch('myclass');
+            });
+    });
+
     test ( '/api/email/updatePassword', () => {
         nodemailerMock.mock.reset();
         return request(app)
@@ -110,7 +142,7 @@ describe ('/api/email', () => {
                 expect(sentMail.length).toBe(1);
                 expect(sentMail[0].to).toBe(myuser.email);
                 expect(sentMail[0].from).toBe(config.emailFrom);
-                expect(sentMail[0].text).toMatch(res.body.tempPassword );
+                expect(sentMail[0].html).toMatch(res.body.tempPassword );
                 // return User.findOne( {where: {email: myuser.email}})
                 //     .then( (user) => {
                 //             console.log(user.tempPassword, user.email)

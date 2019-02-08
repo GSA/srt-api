@@ -9,12 +9,17 @@ const config = require(__dirname + '/../config/config.json')[env];
 
 
 function sendMessage(message) {
-    if (message.text == undefined ||
+    if ( (message.text == undefined && message.html == undefined  )||
         message.to == undefined ||
         message.subject == undefined ) {
         return new Promise ( (resolve, reject) => {
             reject({success: false, params_correct: false, message: "E-mail text, to, and subject are all required."})
         });
+    }
+
+    if (message.text != undefined && message.html == undefined) {
+        message.html = message.text;
+        delete message.text;
     }
 
     if (process.env.SENDGRID_API_KEY) {
