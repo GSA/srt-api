@@ -331,7 +331,9 @@ function getPredictions(filter) {
                   left join ( select * from attachment) src on notice.id = src.notice_id             
                   group by  notice_id
                   ) a on a.notice_id = n.id
-            WHERE ${where}`;
+            WHERE ${where} 
+            order by id desc
+            limit 40 `;
 
     return db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
         .then(notices => {
