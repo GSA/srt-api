@@ -238,9 +238,9 @@ function parseAction(action_string) {
 }
 
 function makeOnePrediction(notice) {
-    let o = Object.assign({}, template);
+    let o = {}; //Object.assign({}, template);
 
-    let act = parseAction(notice.action);
+    // let act = parseAction(notice.action);
 
     o.id = notice.id;
     o.title = (notice.notice_data  != undefined) ? notice.notice_data.subject : "";
@@ -249,8 +249,8 @@ function makeOnePrediction(notice) {
     o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0;
     o.solNum = notice.notice_number;
     o.noticeType = notice.notice_type; //TODO: need to map these to values expected by the UI
-    o.actionStatus = (act.length > 0) ? act[0].actionStatus : "";
-    o.actionDate = (act.length > 0) ? act[0].actionDate : "";
+    o.actionStatus = ""//(act.length > 0) ? act[0].actionStatus : "";
+    o.actionDate = ""//(act.length > 0) ? act[0].actionDate : "";
     o.date = notice.date;
     o.office = (notice.notice_data != undefined) ? notice.notice_data.office : "";
     o.predictions = {
@@ -260,20 +260,12 @@ function makeOnePrediction(notice) {
         naics: notice.naics,
         value: 'Yes'
     }
-    o.undetermined = (getRandomInt(0, 2) == 0);
+    o.undetermined = 0; //(getRandomInt(0, 2) == 0);
     o.action = notice.action;
     o.feedback = notice.feedback ? notice.feedback : [];
     o.history = notice.history ? notice.history : [];
 
-    o.parseStatus = [];
-    if (notice.attachment_json) {
-        notice.attachment_json.forEach(a => {
-            o.parseStatus.push({
-                name: a.id, //TODO: have to find out what is expected here
-                status: (a.validation) ? 'successfully parsed' : 'processing error',
-            });
-        })
-    }
+    o.parseStatus = (notice.attachment_json != undefined) ? notice.attachment_json : [];
 
     return o;
 
@@ -328,19 +320,26 @@ function getPredictions(filter) {
             left join ( 
                   select notice_id, json_agg(src) as attachment_json, count(*) as attachment_count
                   from notice 
-                  left join ( select * from attachment) src on notice.id = src.notice_id             
+                  left join ( 
+                    select id as name, case validation when 1 then 'successfully parsed' else 'unsuccessfuly parsed' end as status, notice_id 
+                    from attachment
+                    ) src on notice.id = src.notice_id             
                   group by  notice_id
                   ) a on a.notice_id = n.id
             WHERE ${where} 
             order by id desc
-            limit 40 `;
+            limit 400000 `;
 
+    console.time("sql")
     return db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
         .then(notices => {
+            console.timeEnd("sql")
             let data = [];
+            console.time("marshal")
             for (let i = 0; i < notices.length; i++) {
                 data.push(makeOnePrediction(notices[i]));
             }
+    console.timeEnd("marshal")
             return data;
         })
         .catch(e => {
@@ -382,6 +381,9 @@ module.exports = {
                 if (predictions == null) {
                     return res.status(500).send({});
                 }
+                console.time("test")
+                console.timeEnd("test")
+
                 return res.status(200).send(predictions);
             })
             .catch(e => {
