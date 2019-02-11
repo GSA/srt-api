@@ -196,4 +196,22 @@ describe('prediction tests', () => {
 
     });
 
+    test ( 'get solicitation feedback (using POST of all things because that is how the UI is coded', () => {
+
+        return request(app)
+            .post('/api/solicitation/feedback')
+            .set('Authorization', `Bearer ${token}`)
+            .send({$where: "{this.feedback.length > 0}"
+            })
+            .then( (res) => {
+                expect(res.statusCode).toBe(200);
+                expect(res.body.length).toBeGreaterThan(1);
+                for(let i=0; i < res.body.length; i++) {
+                    expect(res.body[i].feedback.length).toBeGreaterThan(0);
+                    expect(res.body[i].feedback[0].question).toBeDefined();
+                }
+
+            })
+    });
+
 }); // end describe

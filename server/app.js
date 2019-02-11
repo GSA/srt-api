@@ -111,6 +111,7 @@ app.post('/api/Analytics', token(), analyticsRoutes.analytics);
 
 app.post('/api/solicitation', token(), solicitationRoutes.postSolicitation);
 app.get('/api/solicitation/:id', token(), solicitationRoutes.get);
+app.post('/api/solicitation/feedback', token(), solicitationRoutes.solicitationFeedback);
 
 app.get('/api/surveys', token(), surveyRoutes.get);
 

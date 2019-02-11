@@ -75,7 +75,7 @@ describe ('prediction tests', () => {
 
                     })
             })
-    }, 60000);
+    });
 
 
     test ( 'Filter predictions on multiple dimensions', () => {
@@ -122,7 +122,7 @@ describe ('prediction tests', () => {
                     })
             })
 
-    }, 60000);
+    });
 
     test ( 'Test unsupported parameter for Filter predictions', () => {
 
@@ -159,7 +159,7 @@ describe ('prediction tests', () => {
                             })
                     })
             })
-    }, 60000);
+    });
 
     test ( 'Test prediction date filters', () => {
 
@@ -180,5 +180,5 @@ describe ('prediction tests', () => {
                 }
 
             })
-    }, 60000);
+    });
 });

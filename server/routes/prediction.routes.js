@@ -265,6 +265,14 @@ function makeOnePrediction(notice) {
     o.feedback = notice.feedback ? notice.feedback : [];
     o.history = notice.history ? notice.history : [];
 
+    o.contactInfo = {
+        contact: "Contact",
+        name: "Contact Name",
+        position: "Position",
+        email: "crowley+contact@tcg.com"
+
+    }
+
     o.parseStatus = (notice.attachment_json != undefined) ? notice.attachment_json : [];
 
     return o;

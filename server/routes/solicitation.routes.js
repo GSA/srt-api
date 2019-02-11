@@ -1,5 +1,5 @@
 const _ = require('lodash');
-var express = require('express');
+const db = require('../models/index');
 const logger = require('../config/winston');
 const Notice = require('../models').notice;
 const predictionRoute = require('../routes/prediction.routes');
@@ -74,11 +74,19 @@ module.exports = {
          * Get soliciation feedback
          */
         solicitationFeedback :  (req, res) => {
-            Prediction.find(req.body).then((predictions) => {
-                res.send(predictions);
-            }, (e) => {
-                res.status(400).send(e);
-            });
+
+            // find
+            let sql = "select * from notice where jsonb_array_length(feedback) > 0 ";
+            db.sequelize.query(sql);
+
+            return db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
+                .then((notice) => {
+                    res.status(200).send( notice.map(predictionRoute.makeOnePrediction) );
+                })
+                .catch(e => {
+                    logger.log ("error", e, {tag: "solicitationFeedback"});
+                    res.status(400).send(e);
+                })
         }
 
 
