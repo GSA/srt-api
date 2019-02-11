@@ -1,5 +1,5 @@
 const request = require('supertest');
-let app = null; // require('../app');;
+let app = null; // require('../app')();;
 const mockToken = require("./mocktoken");
 const User = require('../models').User;
 const env = process.env.NODE_ENV || 'development';
@@ -19,7 +19,7 @@ describe ('prediction tests', () => {
     beforeAll(  ()=>{
 
         process.env.MAIL_ENGINE = "nodemailer-mock";
-        app = require('../app'); // don't load the app till the mock is configured
+        app = require('../app')(); // don't load the app till the mock is configured
 
         myuser = Object.assign({}, user_accepted);
         delete myuser.id;

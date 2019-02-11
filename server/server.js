@@ -3,7 +3,7 @@ const env = process.env.NODE_ENV || 'development';
 const config = require('./config/config.json')[env];
 
 
-const app = require('./app');
+const app = require('./app')();
 
 // var {Prediction} = require('./schemas/prediction');
 // var {Agency} = require('./schemas/agency');

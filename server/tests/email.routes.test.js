@@ -1,6 +1,6 @@
 const supertest = require('supertest');
 const request = require('supertest');
-let app = null; // require('../app');;
+let app = null; // require('../app')();;
 const nodemailerMock = require('nodemailer-mock');
 const mockToken = require("./mocktoken");
 const User = require('../models').User;
@@ -19,7 +19,7 @@ describe ('/api/email', () => {
     beforeAll(  ()=>{
 
         process.env.MAIL_ENGINE = "nodemailer-mock";
-        app = require('../app'); // don't load the app till the mock is configured
+        app = require('../app')(); // don't load the app till the mock is configured
 
         myuser = Object.assign({}, user_accepted);
         myuser.firstName = "email-beforeAllUser";

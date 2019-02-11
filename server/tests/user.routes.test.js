@@ -1,5 +1,5 @@
 const request = require('supertest');
-let app = null; // require('../app');
+let app = null; // require('../app')();
 let user_routes = null; //
 let auth_routes = null;
 const randomString = require('randomstring');
@@ -34,7 +34,7 @@ describe ('User API Routes', () => {
     beforeAll(  ()=>{
 
         process.env.MAIL_ENGINE = "nodemailer-mock";
-        app = require('../app'); // don't load the app till the mock is configured
+        app = require('../app')(); // don't load the app till the mock is configured
         user_routes = require('../routes/user.routes'); // don't load the user_routes till the email mock is configured
         auth_routes = require('../routes/auth.routes');
 
@@ -61,9 +61,8 @@ describe ('User API Routes', () => {
                     return User.create(user_rejected);
                 })
         });
-
-
     });
+
     afterAll( ()=>{
        return User.destroy({where:{firstName: "beforeAllUser"}})
            .then ( async () => {
@@ -150,7 +149,7 @@ describe ('User API Routes', () => {
             .then( (res) => {
                 expect(res.statusCode).toBe(401);
             })
-        
+
         // update with correct temp password
         var new_password_2 = randomString.generate();
         nodemailerMock.mock.reset();
@@ -207,5 +206,4 @@ describe ('User API Routes', () => {
     })
 
 
-});
-
+})

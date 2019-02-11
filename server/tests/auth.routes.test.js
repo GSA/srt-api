@@ -1,6 +1,6 @@
 const supertest = require('supertest');
 const request = require('supertest');
-const app = require('../app');
+const app = require('../app')();
 var MockExpressRequest = require('mock-express-request');
 const mockToken = require("./mocktoken");
 const User = require('../models').User;

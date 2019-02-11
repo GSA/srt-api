@@ -1,14 +1,16 @@
 const _ = require('lodash');
-const db = require('../models/index');
+// const db = require('../models/index');
 const logger = require('../config/winston');
 const Notice = require('../models').notice;
 const predictionRoute = require('../routes/prediction.routes');
 
 
 
-module.exports = {
+module.exports = function (db) {
 
-    // app.get('/solicitation/:id', (req, res) => {
+    return {
+
+        // app.get('/solicitation/:id', (req, res) => {
 //     Prediction.findById(req.params.id).then((solicitation) => {
 //         res.send(solicitation);
 //     }, (e) => {
@@ -19,28 +21,28 @@ module.exports = {
         get: function (req, res) {
             return Notice.findById(req.params.id)
                 .then((notice) => {
-                    return res.status(200).send( predictionRoute.makeOnePrediction(notice) );
+                    return res.status(200).send(predictionRoute.makeOnePrediction(notice));
                 })
-                .catch( (e) => {
-                    logger.log("error", e, {tag:"solicitation get"})
+                .catch((e) => {
+                    logger.log("error", e, {tag: "solicitation get"})
                     return res.status(400).send("Error finding solicitation");
                 });
-            },
+        },
 
 
         /**
          * Update a history list of selected solicitation
          */
-        postSolicitation: function (req, res)  {
+        postSolicitation: function (req, res) {
 
             var status = req.body.history.filter(function (e) {
                 return e["status"] != '';
             })
 
-            return Notice.findOne( {where : {notice_number : req.body.solNum.toString()}})
+            return Notice.findOne({where: {notice_number: req.body.solNum.toString()}})
                 .then((notice) => {
                     if (notice == null) {
-                        logger.log ("error", req.body , {tag: "postSolicitation - solicitation not found"})
+                        logger.log("error", req.body, {tag: "postSolicitation - solicitation not found"})
                         return res.status(404).send({msg: "solicitation not found"});
                     }
 
@@ -56,16 +58,16 @@ module.exports = {
                     return notice.save()
                         .then((doc) => {
                             //logger.log("error", predictionRoute.makeOnePrediction(doc) , {tag:"notice"})
-                            return res.status(200).send( predictionRoute.makeOnePrediction(doc) );
+                            return res.status(200).send(predictionRoute.makeOnePrediction(doc));
                         })
                         .catch((e) => {
-                            logger.log ("error", e, {tag: "postSolicitation - error on save"})
+                            logger.log("error", e, {tag: "postSolicitation - error on save"})
                             res.status(400).send({msg: "error updating solicitation"});
                         })
 
                 })
                 .catch((e) => {
-                    logger.log ("error", e, {tag: "postSolicitation - error during find"})
+                    logger.log("error", e, {tag: "postSolicitation - error during find"})
                     res.status(400).send({msg: "error updating solicitation"});
                 })
         }, // end postSolicitation
@@ -73,25 +75,26 @@ module.exports = {
         /**
          * Get soliciation feedback
          */
-        solicitationFeedback :  (req, res) => {
+        solicitationFeedback: (req, res) => {
 
             // find
             let sql = "select * from notice where jsonb_array_length(feedback) > 0 ";
-            db.sequelize.query(sql);
 
             return db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
                 .then((notice) => {
-                    res.status(200).send( notice.map(predictionRoute.makeOnePrediction) );
+                    res.status(200).send(notice.map(predictionRoute.makeOnePrediction));
                 })
                 .catch(e => {
-                    logger.log ("error", e, {tag: "solicitationFeedback"});
+                    logger.log("error", e, {tag: "solicitationFeedback"});
                     res.status(400).send(e);
                 })
         }
 
 
-
+    }
 }
+
+
 
 
 /**

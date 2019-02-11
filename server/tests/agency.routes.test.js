@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../app');
+const app = require('../app')();
 const mockToken = require("./mocktoken");
 const logger = require('../config/winston');
 const Agency = require('../models').Agency;

@@ -1,6 +1,6 @@
 const logger = require('../config/winston');
 const request = require('supertest');
-let app = require('../app');
+let app = require('../app')();
 const mockToken = require("./mocktoken");
 const User = require('../models').User;
 const env = process.env.NODE_ENV || 'development';
