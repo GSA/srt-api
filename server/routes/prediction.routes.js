@@ -249,8 +249,6 @@ function makeOnePrediction(notice) {
     o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0;
     o.solNum = notice.notice_number;
     o.noticeType = notice.notice_type; //TODO: need to map these to values expected by the UI
-    o.actionStatus = ""//(act.length > 0) ? act[0].actionStatus : "";
-    o.actionDate = ""//(act.length > 0) ? act[0].actionDate : "";
     o.date = notice.date;
     o.office = (notice.notice_data != undefined) ? notice.notice_data.office : "";
     o.predictions = {
@@ -262,6 +260,8 @@ function makeOnePrediction(notice) {
     }
     o.undetermined = 0; //(getRandomInt(0, 2) == 0);
     o.action = notice.action;
+    o.actionStatus = (o.action != null && o.action.length > 0) ? o.action[0].actionStatus : "";
+    o.actionDate = (o.action != null && o.action.length > 0) ? o.action[0].actionDate : "";
     o.feedback = notice.feedback ? notice.feedback : [];
     o.history = notice.history ? notice.history : [];
 
