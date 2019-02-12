@@ -201,15 +201,26 @@ describe('prediction tests', () => {
 
         let mock_db =
             { sequelize:
-                    {   query: () => {
+                    {   query: (sql) => {
+
+                        let set = [
+                            {feedback: [{question: "q1", answer: "a1"}, {question: "q1", answer: "a1"}]},
+                            {},
+                            {feedback: [{question: "q1", answer: "a1"}, {question: "q1", answer: "a1"}]},
+                            {notice_number: "sprra1-19-r-0069", feedback: [{question: "q1", answer: "a1"}, {question: "q1", answer: "a1"}]},
+                            {feedback: []},
+                            {feedback: [{question: "q1", answer: "a1"}, {question: "q1", answer: "a1"}]},
+                        ];
+
+                        if (sql.match(/select.*where.*jsonb_array_length\(feedback\).?>.?0/i)) {
+                            set = set.filter( x => {return (x.feedback && x.feedback.length && x.feedback.length > 0) });
+                        }
+
+                        if (sql.match(/select.*where.*notice_number.?=.*sprra1-19-r-0069/i)) {
+                            set = set.filter( x => {return (x.notice_number && x.notice_number == "sprra1-19-r-0069")});
+                        }
                         return new Promise(function (resolve, reject) {
-
-                            resolve([
-                                {feedback: [{question: "q1", answer: "a1"}, {question: "q1", answer: "a1"}]},
-                                {feedback: [{question: "q1", answer: "a1"}, {question: "q1", answer: "a1"}]},
-                                {feedback: [{question: "q1", answer: "a1"}, {question: "q1", answer: "a1"}]},
-                            ])
-
+                            resolve(set)
                         })
                         },
                         QueryTypes: {SELECT:7}
@@ -218,7 +229,7 @@ describe('prediction tests', () => {
             };
 
 
-        let app = require('../app')(mock_db);
+        let app = require('../app')();
 
         return request(app)
             .post('/api/solicitation/feedback')
@@ -232,6 +243,18 @@ describe('prediction tests', () => {
                     expect(res.body[i].feedback.length).toBeGreaterThan(0);
                     expect(res.body[i].feedback[0].question).toBeDefined();
                 }
+
+            })
+            .then ( () => {
+                return request(app)
+                    .post('/api/solicitation/feedback')
+                    .set('Authorization', `Bearer ${token}`)
+                    .send({solNum: "sprra1-19-r-0069"})
+            })
+            .then ( (res) => {
+                expect(res.statusCode).toBe(200);
+                expect(res.body.length).toBe(1);
+                expect(res.body[0].solNum).toBe("sprra1-19-r-0069");
 
             })
     });

@@ -77,8 +77,20 @@ module.exports = function (db) {
          */
         solicitationFeedback: (req, res) => {
 
-            // find
-            let sql = "select * from notice where jsonb_array_length(feedback) > 0 ";
+            // translate mongo formatted parameters to postgres
+            let where = [" 1 = 1 "]
+            let limit = "";
+            let order = "";
+            if (req.body.solNum) {
+                where.push (` notice_number = '${req.body.solNum}' `);
+                limit = " limit 1 "; // notice number should be unique, but isn't in the test data. Yikes!
+                order = " order by id desc "
+            }
+            if (req.body["$where"] && req.body["$where"].match(/this.feedback.length.?>.?0/i)) {
+                where.push (` jsonb_array_length(feedback) > 0 `);
+            }
+
+            let sql = "select * from notice where " + where.join(" AND ") + order + limit;
 
             return db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
                 .then((notice) => {
