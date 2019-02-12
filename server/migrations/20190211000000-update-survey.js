@@ -10,7 +10,7 @@ module.exports = {
                             choices: JSON.stringify(["Yes", "No"]),
                             section: "Section1",
                             type: "choose one",
-                            answer: "-Answer-",
+                            answer: "",
                             note: "",
                             choicesNote: JSON.stringify(["Select this if answer is yes", "Select this if answer is no"]),
                             createdAt: new Date(),
@@ -21,7 +21,7 @@ module.exports = {
                             choices: JSON.stringify([]),
                             section: "Section1",
                             type: "essay",
-                            answer: "-Answer-",
+                            answer: "",
                             note: "",
                             choicesNote: JSON.stringify(["Select this if answer is yes", "Select this if answer is no"]),
                             createdAt: new Date(),
@@ -32,7 +32,7 @@ module.exports = {
                             choices: JSON.stringify(["Yes", "No"]),
                             section: "Section1",
                             type: "choose one",
-                            answer: "-Answer-",
+                            answer: "",
                             note: "",
                             choicesNote: JSON.stringify(["Select this if answer is yes", "Select this if answer is no"]),
                             createdAt: new Date(),
@@ -43,7 +43,7 @@ module.exports = {
                             choices: JSON.stringify(["Yes", "No"]),
                             section: "Section1",
                             type: "choose one",
-                            answer: "-Answer-",
+                            answer: "",
                             note: "",
                             choicesNote: JSON.stringify(["Select this if answer is yes", "Select this if answer is no"]),
                             createdAt: new Date(),
@@ -54,7 +54,7 @@ module.exports = {
                             choices: JSON.stringify(["Yes", "No"]),
                             section: "Section1",
                             type: "choose one",
-                            answer: "-Answer-",
+                            answer: "",
                             note: "",
                             choicesNote: JSON.stringify(["Select this if answer is yes", "Select this if answer is no"]),
                             createdAt: new Date(),
@@ -72,9 +72,9 @@ module.exports = {
                                 "Other -  Please explain"
                             ]),
                             section: "Section2",
-                            type: "choose one",
-                            answer: "-Answer-",
-                            note: "Please consider only the information listed above and not the classification.",
+                            type: "multiple response",
+                            answer: "",
+                            note: "",
                             choicesNote: JSON.stringify([
                                 "",
                                 "",
@@ -86,6 +86,20 @@ module.exports = {
                             createdAt: new Date(),
                             updatedAt: new Date()
                         },
+
+                        {
+                            question: "Other explanation",
+                            choices: JSON.stringify([  ]),
+                            section: "Section2",
+                            type: "essay",
+                            answer: "",
+                            note: "Why is the solicitation NOT Section 508 compliant?",
+                            choicesNote: JSON.stringify([]),
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        },
+
+
                         {
                             question: "Which specific document(s) in this solicitation should contain Section 508 requirements? (Multiple Choice)",
                             choices: JSON.stringify([
@@ -94,12 +108,13 @@ module.exports = {
                                 "Performance Work Statement (PWS)",
                                 "Request for Information (RFI)",
                                 "Request for Quotation (RFQ)",
-                                "Requirement Documents"
+                                "All of the Above",
+                                "Other -  Please explain"
                             ]),
                             section: "Section3",
-                            type: "essay",
-                            answer: "essay answer",
-                            note: "Do you have any additional feedback?",
+                            type: "multiple response",
+                            answer: "",
+                            note: "",
                             choicesNote: JSON.stringify([
                                 "",
                                 "",
@@ -112,6 +127,21 @@ module.exports = {
                             updatedAt: new Date()
 
                         },
+
+                        {
+                            question: "Other explanation",
+                            choices: JSON.stringify([  ]),
+                            section: "Section2",
+                            type: "essay",
+                            answer: "",
+                            note: "Which specific document(s) in this solicitation should contain Section 508 requirements?",
+                            choicesNote: JSON.stringify([]),
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        },
+
+
+
                         {
                             question: "Which specific document(s) in this solicitation should contain Section 508 requirements? (Multiple Choice)",
                             choices: JSON.stringify([
@@ -124,9 +154,9 @@ module.exports = {
                                 "Other -  Please explain"
                             ]),
                             section: "Section3",
-                            type: "essay",
-                            answer: "essay answer",
-                            note: "Do you have any additional feedback?",
+                            type: "multiple response",
+                            answer: "multiple response",
+                            note: "",
                             choicesNote: JSON.stringify([
                                 "",
                                 "",
@@ -139,7 +169,21 @@ module.exports = {
                             createdAt: new Date(),
                             updatedAt: new Date()
 
-                        }
+                        },
+
+                        {
+                            question: "Other explanation",
+                            choices: JSON.stringify([  ]),
+                            section: "Section2",
+                            type: "essay",
+                            answer: "",
+                            note: "Which specific document(s) in this solicitation should contain Section 508 requirements?",
+                            choicesNote: JSON.stringify([]),
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        },
+
+
                     ])
 
 
@@ -156,7 +200,7 @@ module.exports = {
                             choices: JSON.stringify(["Yes", "No"]),
                             section: "Section1",
                             type: "choose one",
-                            answer: "-Answer-",
+                            answer: "",
                             note: "Please consider only the classification and no issues with the data.",
                             choicesNote: JSON.stringify(["Select this if answer is yes", "Select this if answer is no"]),
                             createdAt: new Date(),
@@ -167,7 +211,7 @@ module.exports = {
                             choices: JSON.stringify(["Reading", "Searching", "Guessing"]),
                             section: "Section2",
                             type: "choose one",
-                            answer: "-Answer-",
+                            answer: "",
                             note: "Please consider only the information listed above and not the classification.",
                             choicesNote: JSON.stringify([
                                 "Select this if you have read all the supplied documentation",

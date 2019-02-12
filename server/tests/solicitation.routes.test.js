@@ -229,7 +229,7 @@ describe('prediction tests', () => {
             };
 
 
-        let app = require('../app')();
+        let app = require('../app')(mock_db);
 
         return request(app)
             .post('/api/solicitation/feedback')
