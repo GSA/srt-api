@@ -24,6 +24,8 @@ module.exports = {
             });
         obj.tempPassword = req.body['password'];
         obj.creationDate = new Date().toLocaleString();
+        obj.isAccepted = false;
+        obj.isRejected = false;
 
         return User.create(obj)
             .then(user => {
