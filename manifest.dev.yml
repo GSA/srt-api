@@ -1,0 +1,14 @@
+---
+applications:
+- name: srt-server
+  command: node server/server.js
+  memory: 512M
+  disk_quota: 1024M
+#  health-check-type: process # don't re-enable....move to port 8080 if you have problems
+  instances: 1
+  buildpack: https://github.com/cloudfoundry/nodejs-buildpack
+  env:
+    NODE_ENV: clouddev
+  services:
+    - srt-postgres
+
