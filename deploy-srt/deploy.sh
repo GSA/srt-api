@@ -7,10 +7,17 @@ CLIENT_REPO="http://acrowley:***REMOVED***@gitlab.tcg.com/SRT/srt-client.git"
 TIME_STR=`date +%Y-%m-%d.%H.%M.%S`
 CWD=`pwd`
 LOG_FILE="${CWD}/deploy-log-${TIME_STR}.log"
+CF_CLI=cf
+
+
+function log() {
+  echo "${@}" | tee -a ${LOG_FILE}
+  echo | tee -a ${LOG_FILE}
+
+}
 
 function runline() {
-  echo "Executing: ${@}" | tee -a ${LOG_FILE}
-  echo | tee -a ${LOG_FILE}
+  log "Executing:" $@
   $@ | tee -a ${LOG_FILE}
   RESULT=${PIPESTATUS[0]}
   if [[ "${RESULT}" -ne "0" ]]; then
@@ -19,9 +26,7 @@ function runline() {
     echo "COMMAND FAILED WITH EXIT CODE ${RESULT}." | tee  -a ${LOG_FILE}
     exit
   fi
-
-  echo | tee -a ${LOG_FILE}
-  echo | tee -a ${LOG_FILE}
+  log ""
 }
 
 function changedir() {
@@ -96,6 +101,7 @@ done
 
 SPACE=${POSITIONAL[0]}
 TAG=${POSITIONAL[1]}
+VERSION_INFO="{ \"version\" : \"${TAG}\" , \"build_date\" : \"${TIME_STR}\" } "
 
 if [[ "${TAG}" = "" ]]; then
     echo "You must provide a SPACE and a TAG"
@@ -125,7 +131,7 @@ echo TAG             = "${TAG}"| tee ${LOG_FILE}
 echo VERBOSE         = "${VERBOSE}"| tee ${LOG_FILE}
 
 
-runline "cf target -s ${SPACE}"
+runline "${CF_CLI} target -s ${SPACE}"
 
 
 #
@@ -154,7 +160,8 @@ if [ ! -d "${TEMP_DIR}/srt-client" ]; then
     runline "git clone ${CLIENT_REPO}"
     runline chmod 777 "${TEMP_DIR}/srt-client"
 fi
-
+changedir "${TEMP_DIR}/srt-client"
+runline "git fetch origin"
 
 
 changedir ${TEMP_DIR}
@@ -173,6 +180,8 @@ if [ ! -d "${TEMP_DIR}/srt-server" ]; then
     runline "git clone ${SERVER_REPO}"
     runline chmod 777 "${TEMP_DIR}/srt-server"
 fi
+changedir "${TEMP_DIR}/srt-server"
+runline "git fetch origin"
 
 #
 # create tag tag
@@ -180,12 +189,14 @@ fi
 if [[ "${CREATE_TAG}" == "true" ]]; then
     changedir "${TEMP_DIR}/srt-client"
     runline "git checkout ${BRANCH}"
-    runline git tag -a ${TAG} -m "baseline tag created for deployment"
+    log git tag -a ${TAG} -m "baseline tag created for deployment"
+    git tag -a ${TAG} -m "baseline tag created for deployment" || exit
     runline "git push origin ${TAG}"
 
     changedir "${TEMP_DIR}/srt-server"
     runline git checkout ${BRANCH}
-    runline git tag -a ${TAG} -m "baseline tag created for deployment"
+    log git tag -a ${TAG} -m "baseline tag created for deployment"
+    git tag -a ${TAG} -m "baseline tag created for deployment" || exit
     runline git push origin ${TAG}
 fi
 
@@ -200,14 +211,32 @@ runline git checkout ${TAG} 2>&1
 
 
 #
-# Build client
+# Build/prep client
 #
 changedir "${TEMP_DIR}/srt-client"
 runline npm install --loglevel=error
 runline ng build
 changedir "${TEMP_DIR}/srt-client/dist"
 runline touch Staticfile
-runline echo "DONE BUILD"
+log "Writing version info to ${TEMP_DIR}/srt-client/dist/version.html"
+echo "${VERSION_INFO}" >  "${TEMP_DIR}/srt-client/dist/version.html"
+runline echo "DONE CLIENT BUILD"
+
+
+#
+# Build/prep server
+#
+changedir "${TEMP_DIR}/srt-server"
+# verify we have a config file for $SPACE
+if [[ ! -f "manifest.${SPACE}.yml" ]]; then
+  runline echo "No manifest file for ${SPACE} found. Expected srt-server/manifest.${SPACE}.yml"
+  exit
+fi
+runline rm -f "${TEMP_DIR}/srt-server/manifest.yml"
+runline cp "manifest.${SPACE}.yml" manifest.yml
+log "Writing version info to ${TEMP_DIR}/srt-server/server/version.json"
+echo "${VERSION_INFO}" >  "${TEMP_DIR}/srt-server/server/version.json"
+runline echo "DONE CLIENT BUILD"
 
 if [[ $DRYRUN = "true" ]]; then
     runline echo
@@ -218,6 +247,6 @@ if [[ $DRYRUN = "true" ]]; then
 fi
 
 changedir "${TEMP_DIR}/srt-client/dist"
-runline cf push -m 64M srt-client-${SPACE}
+runline ${CF_CLI} push -m 64M srt-client-${SPACE}
 changedir "${TEMP_DIR}/srt-server"
-runline cf push srt-server-${SPACE}
+runline ${CF_CLI} push srt-server-${SPACE}
