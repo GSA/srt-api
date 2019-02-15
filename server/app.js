@@ -98,6 +98,7 @@ module.exports = function(db) {
 // app.post('/api/user/:userId', token(), userRoutes.update);
     app.post('/api/user/updatePassword', token(), userRoutes.updatePassword);
     app.post('/api/user/getCurrentUser', token(), userRoutes.getCurrentUser);
+    app.get('/api/user/getUserInfo', token(), userRoutes.getUserInfo);
 
     app.post('/api/auth/login', authRoutes.login);
     app.post('/api/auth/resetPassword', authRoutes.resetPasswordFake);
