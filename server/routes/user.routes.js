@@ -9,6 +9,18 @@ const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.json')[env];
 
 
+let performUpdatePassword = function (user, unencrypted_password) {
+    logger.log ("info", "Updating password for user " + user.email, {tag : "performUpdatePassword"});
+
+    user.password = bcrypt.hashSync(unencrypted_password, 10);
+    user.tempPassword = "";
+    return user.save()
+        .catch(e => {
+            logger.log("error", e, {tag: "performUpdatePassword"});
+            throw e;
+        })
+}
+
 
 module.exports = {
     filter: function(req, res) {
@@ -51,6 +63,8 @@ module.exports = {
         })
     },
 
+    performUpdatePassword: performUpdatePassword,
+
     updatePassword: function (req, res) {
         var newPassword = req.body.password;
         var oldPassword = req.body.oldpassword;
@@ -61,9 +75,8 @@ module.exports = {
 
         return User.findByPk(me.id).then((user) => {
             if (oldPassword == user.tempPassword || bcrypt.compareSync(oldPassword, user.password)) {
-                user.password = bcrypt.hashSync(newPassword, 10);
-                user.tempPassword = "";
-                return user.save().then(() => {
+
+                performUpdatePassword(user, newPassword).then(() => {
                     let message = {
                         text: "Your password for the Solicitation Review Tool has been changed. If you did not request a password change, please contact " + config.emailFrom,
                         from: config.emailFrom,
@@ -95,11 +108,14 @@ module.exports = {
     },
 
     getUserInfo: function(req, res) {
-        return User.findByPk(req.body.UserId)
+        return User.findByPk(req.body.UserID)
             .then( user => {
+                user.password = "*";
+                user.tempPassword = "*";
                 return res.status(200).send(user);
             })
             .catch ( e => {
+                logger.log ("info", e, {tag: "getUserInfo no user found"});
                 return res.status(400).send(e);
             })
     },

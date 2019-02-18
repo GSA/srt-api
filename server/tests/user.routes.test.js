@@ -205,5 +205,15 @@ describe ('User API Routes', () => {
             });
     })
 
+    test('test getUserInfo', async () => {
+        return request(app)
+            .post('/api/user/getUserInfo')
+            .set('Authorization', `Bearer ${token}`)
+            .send({UserID : 1})
+            .then( (response) => {
+                expect(response.statusCode).toBe(200);
+                expect(response.body.email).toMatch(/[a-zA-Z]+@[a-zA-Z]+\.[a-zA-Z]+/)
+            });
+    })
 
 })

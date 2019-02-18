@@ -77,11 +77,9 @@ module.exports = {
                     agency: user.agency,
                     position: user.position,
                     userRole: user.userRole,
-                    id: user._id,
+                    id: user.id,
                     tempPassword: user.tempPassword
                 };
-
-                logger.debug(ret_obj);
 
                 res.status(200).send(ret_obj);
 

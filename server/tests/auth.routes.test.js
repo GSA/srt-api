@@ -8,6 +8,7 @@ const logger = require('../config/winston');
 
 const {user1, user_accepted, user3} = require ('./test.data');
 
+const userRoutes = require('../routes/user.routes')
 var myuser = Object.assign({},user_accepted);
 myuser.firstName = "auth-beforeAllUser";
 myuser.email = "crowley+auth@tcg.com";
@@ -213,14 +214,12 @@ describe ('/api/auth/', () => {
 
     test('/api/auth/login', async () => {
 
-        return;
-
         // test no password
         await request(app)
             .post("/api/auth/login")
             .send({email : myuser.email})
             .then((res) => {
-                expect(res.statusCode).toBe(401);
+                return expect(res.statusCode).toBe(401);
             });
 
         // test no email or password
@@ -228,7 +227,7 @@ describe ('/api/auth/', () => {
             .post("/api/auth/login")
             .send({other: "thing"})
             .then((res) => {
-                expect(res.statusCode).toBe(401);
+                return expect(res.statusCode).toBe(401);
             });
 
         // test wrong password
@@ -236,20 +235,35 @@ describe ('/api/auth/', () => {
             .post("/api/auth/login")
             .send({email : myuser.email, password: "wrong password"})
             .then((res) => {
-                expect(res.statusCode).toBe(401);
+                return expect(res.statusCode).toBe(401);
             });
 
         // test correct password
-        await request(app)
-            .post("/api/auth/login")
-            .send({email : myuser.email, password: myuser_pass})
-            .then((res) => {
-                expect(res.statusCode).toBe(200);
-                expect(res.body.token).toBeDefined();
-                expect(res.body.firstName).toBe(user_accepted.firstName);
-            });
+        return User.findOne({where: {email: myuser.email}})
+            .then((u) => {
+                return userRoutes.performUpdatePassword(u, myuser_pass)
+                    .then((u) => {
+                        u.isAccepted = true;
+                        u.isRejected = false;
+                        u.save()
+                            .then((u) => {
+                                return request(app)
+                                    .post("/api/auth/login")
+                                    .send({email: myuser.email, password: myuser_pass})
+                                    .then((res) => {
+                                        expect(res.statusCode).toBe(200);
+                                        expect(res.body.token).toBeDefined();
+                                        expect(res.body.id).toBeDefined();
+                                        expect(res.body.id).toBeGreaterThan(0);
+                                        return expect(res.body.firstName).toBe(user_accepted.firstName);
+                                    });
+                            });
+                    });
+            })
 
-    });
+    })
+
+
 
 
 
