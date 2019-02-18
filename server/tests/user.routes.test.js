@@ -67,6 +67,7 @@ describe ('User API Routes', () => {
        return User.destroy({where:{firstName: "beforeAllUser"}})
            .then ( async () => {
                await User.destroy({where:{email: "crowley+Phineas@tcg.com"}});
+               await User.destroy({where:{email: "crowley+Phineas2@tcg.com"}});
                await User.destroy({where:{email: "crowley+accepted@tcg.com"}});
                await User.destroy({where:{email: "crowley+rejected@tcg.com"}});
                await User.destroy({where:{email: null}});
@@ -85,6 +86,31 @@ describe ('User API Routes', () => {
                     expect(user.isAccepted).toBeFalsy;
                     return expect(user.isRejected).toBeFalsy;
                 });
+            })
+            .then( () => {
+                return request(app)
+                    .post("/api/user/updateUserInfo")
+                    .send({id: user_1_id, isAccepted: false, isRejected: false})
+                    .set('Authorization', `Bearer ${token}`)
+                    .then( (res) => {
+                        expect(res.statusCode).toBe(200);
+                        return User.findByPk(user_1_id).then( (user) => {
+                            expect(user.isAccepted).toBeFalsy;
+                            return expect(user.isRejected).toBeFalsy;
+                        });
+                    })
+            })
+            .then( () => {
+                return request(app)
+                    .post("/api/user/updateUserInfo")
+                    .send({UserID: user_1_id, NewEmail: "crowley+Phineas2@tcg.com"})
+                    .set('Authorization', `Bearer ${token}`)
+                    .then( (res) => {
+                        expect(res.statusCode).toBe(200);
+                        return User.findByPk(user_1_id).then( (user) => {
+                            return expect(user.email).toBe("crowley+Phineas2@tcg.com");
+                        });
+                    })
             })
     });
 

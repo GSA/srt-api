@@ -46,14 +46,24 @@ module.exports = {
     },
 
     update: function(req,res) {
-        var id = (req.params.userId) ? req.params.userId : req.body.id;
+        let id = (req.body.userId) ? req.body.userId :
+                    (req.body.id) ? req.body.id :
+                        (req.body.UserID) ? req.body.UserID : -1 ;
         return User.findByPk(id).then( (user) => {
             if (user == null) {
-                logger.log("error", "Unable to find User " + id, {tag: "user update"});
+                logger.log("info", req.params, {tag: "could not find user, userID " + id});
                 return res.status(404).send("Unable to find user " + id);
             }
-            user.isAccepted = req.body.isAccepted;
-            user.isRejected = req.body.isRejected;
+            Object.keys(req.body).forEach( k => {
+                if (user.dataValues.hasOwnProperty(k)) {
+                    user[k] = req.body[k];
+                }
+            })
+            // take care of odd legacy UI expectations
+            if (req.body.NewEmail) {
+                user.email = req.body.NewEmail;
+            }
+
             return user.save().then( () => {
                 return res.status(200).send(user);
             })
@@ -76,7 +86,7 @@ module.exports = {
         return User.findByPk(me.id).then((user) => {
             if (oldPassword == user.tempPassword || bcrypt.compareSync(oldPassword, user.password)) {
 
-                performUpdatePassword(user, newPassword).then(() => {
+                return performUpdatePassword(user, newPassword).then(() => {
                     let message = {
                         text: "Your password for the Solicitation Review Tool has been changed. If you did not request a password change, please contact " + config.emailFrom,
                         from: config.emailFrom,
@@ -108,10 +118,18 @@ module.exports = {
     },
 
     getUserInfo: function(req, res) {
-        return User.findByPk(req.body.UserID)
+        let id =
+            (req.body.UserID) ? req.body.UserID :
+                (req.body.UserId) ? req.body.UserId :
+                    (req.body.id) ? req.body.id : -1;
+        return User.findOne({where : {id: id}})
             .then( user => {
-                user.password = "*";
-                user.tempPassword = "*";
+                if (user) {
+                    user.password = "*";
+                    user.tempPassword = "*";
+                } else {
+                    logger.log ("info", req.body, {tag: "getUserInfo no user found"});
+                }
                 return res.status(200).send(user);
             })
             .catch ( e => {
