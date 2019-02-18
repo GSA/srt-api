@@ -42,9 +42,8 @@ module.exports = {
         User.find({where: {email: req.body.email}})
             .then(async user => {
                 var temp = req.body.password == user.tempPassword
-                logger.info(user.email + " authenticated with temporary password.");
                 if (!(bcrypt.compareSync(req.body.password, user.password) || temp || bcrypt.compareSync(req.body.password, user.tempPassword))) {
-                    logger.info("Bad password for user " + user.email);
+                    // nothing matches
                     return res.status(401).send({
                         title: 'Login failed',
                         error: {message: 'Invalid user Email Address or Password.'}
@@ -66,6 +65,10 @@ module.exports = {
                     await user.save();
                 }
 
+                if (temp) {
+                    logger.info(user.email + " authenticated with temporary password.");
+                }
+
                 var token = jwt.sign({user: user}, 'innovation', {expiresIn: '2h'}); // token is good for 2 hours
 
                 let ret_obj = {
@@ -77,11 +80,9 @@ module.exports = {
                     agency: user.agency,
                     position: user.position,
                     userRole: user.userRole,
-                    id: user._id,
+                    id: user.id,
                     tempPassword: user.tempPassword
                 };
-
-                logger.debug(ret_obj);
 
                 res.status(200).send(ret_obj);
 
