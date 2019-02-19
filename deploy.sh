@@ -19,7 +19,7 @@ function log() {
 
 function runline() {
   log "Executing:" $@
-  $@ | tee -a ${LOG_FILE}
+  $@ 2>&1 | tee -a ${LOG_FILE}
   RESULT=${PIPESTATUS[0]}
   if [[ "${RESULT}" -ne "0" ]]; then
     echo "" | tee  -a ${LOG_FILE}
@@ -236,7 +236,7 @@ runline git checkout ${TAG} 2>&1
 #
 changedir "${TEMP_DIR}/srt-client"
 runline npm install --loglevel=error
-runline ng build
+runline ng build --env=prod
 changedir "${TEMP_DIR}/srt-client/dist"
 runline touch Staticfile
 log "Writing version info to ${TEMP_DIR}/srt-client/dist/version.html"
@@ -271,3 +271,14 @@ changedir "${TEMP_DIR}/srt-client/dist"
 runline ${CF_CLI} push -m 64M srt-client-${SPACE}
 changedir "${TEMP_DIR}/srt-server"
 runline ${CF_CLI} push srt-server-${SPACE}
+
+
+
+#
+# Don't use these yet, but we could use them to auto-route if necessary later.
+#
+#
+#   # create a new route "srt-server" in the dev space
+#   cf create-route dev app.cloud.gov --hostname srt-server
+#   # map the srt-server route to the srt-server-dev app
+#   cf map-route srt-server-dev app.cloud.gov --hostname srt-server
