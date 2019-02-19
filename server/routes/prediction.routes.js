@@ -1,8 +1,4 @@
 const logger = require('../config/winston');
-const NodeCache = require( "node-cache" );
-// const myCache = new NodeCache();
-// const Notice = require('../models').notice;
-// const Attachment = require('../models').attachment;
 const db = require('../models/index');
 var SqlString = require('sequelize/lib/sql-string')
 
