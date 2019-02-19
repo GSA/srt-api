@@ -6,6 +6,7 @@ SERVER_REPO="http://acrowley:***REMOVED***@gitlab.tcg.com/SRT/srt-server.git"
 CLIENT_REPO="http://acrowley:***REMOVED***@gitlab.tcg.com/SRT/srt-client.git"
 TIME_STR=`date +%Y-%m-%d.%H.%M.%S`
 CWD=`pwd`
+RECLONE=true
 LOG_FILE="${CWD}/deploy-log-${TIME_STR}.log"
 CF_CLI=cf
 
@@ -83,14 +84,18 @@ case $key in
     shift # past value
     ;;
     -y|--yes)
-    DEFAULT=YES
     YES=true
+    shift # past argument
+    ;;
+    -n|--no)
+    RECLONE=false
     shift # past argument
     ;;
     -b|--create-tag-from-branch)
     BRANCH="$2"
     CREATE_TAG=true
     shift # past argument
+    shift # past value
     ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
@@ -128,10 +133,22 @@ echo "" | tee ${LOG_FILE}| tee ${LOG_FILE}
 
 echo SPACE           = "${SPACE}"| tee ${LOG_FILE}
 echo TAG             = "${TAG}"| tee ${LOG_FILE}
-echo VERBOSE         = "${VERBOSE}"| tee ${LOG_FILE}
 
+log "Switching to space ${SPACEE} on cloud.gov"
+log "Executing: ${CF_CLI} target -s ${SPACE}"
+${CF_CLI} target -s ${SPACE}
+RESULT=${PIPESTATUS[0]}
+if [[ "${RESULT}" -ne "0" ]]; then
+    echo "" | tee  -a ${LOG_FILE}
+    echo "" | tee  -a ${LOG_FILE}
+    echo "CLOUD.GOV CLI COMMAND FAILED WITH EXIT CODE ${RESULT}." | tee  -a ${LOG_FILE}
+    echo "" | tee  -a ${LOG_FILE}
+    echo "If you are not logged into cloud.gov use the command:" | tee  -a ${LOG_FILE}
+    echo "cf login -u [email] -o gsa-ogp-srt -a api.fr.cloud.gov --sso" | tee  -a ${LOG_FILE}
+    echo "" | tee  -a ${LOG_FILE}
+    exit
+fi
 
-runline "${CF_CLI} target -s ${SPACE}"
 
 
 #
@@ -145,15 +162,17 @@ if [[ "${YES}" = "true" ]]; then
   runline "rm -rf srt-client"
 fi
 
-if [ -d "${TEMP_DIR}/srt-client" ]; then
-    while true; do
-        read -p "${TEMP_DIR}/srt-client exists. Delete and re-clone?" yn
-        case $yn in
-            [Yy]* ) rm -rf "${TEMP_DIR}/srt-client"; break;;
-            [Nn]* ) break;;
-            * ) echo "Please answer yes or no.";;
-        esac
-    done
+if [[ "${RECLONE}" = "true" ]]; then
+    if [ -d "${TEMP_DIR}/srt-client" ]; then
+        while true; do
+            read -p "${TEMP_DIR}/srt-client exists. Delete and re-clone?" yn
+            case $yn in
+                [Yy]* ) rm -rf "${TEMP_DIR}/srt-client"; break;;
+                [Nn]* ) break;;
+                * ) echo "Please answer yes or no.";;
+            esac
+        done
+    fi
 fi
 
 if [ ! -d "${TEMP_DIR}/srt-client" ]; then
@@ -165,15 +184,17 @@ runline "git fetch origin"
 
 
 changedir ${TEMP_DIR}
-if [ -d "${TEMP_DIR}/srt-server" ]; then
-    while true; do
-        read -p "${TEMP_DIR}/srt-server exists. Delete and re-clone?" yn
-        case $yn in
-            [Yy]* ) rm -rf "${TEMP_DIR}/srt-server"; break;;
-            [Nn]* ) break;;
-            * ) echo "Please answer yes or no.";;
-        esac
-    done
+if [[ "${RECLONE}" = "true" ]]; then
+    if [ -d "${TEMP_DIR}/srt-server" ]; then
+        while true; do
+            read -p "${TEMP_DIR}/srt-server exists. Delete and re-clone?" yn
+            case $yn in
+                [Yy]* ) rm -rf "${TEMP_DIR}/srt-server"; break;;
+                [Nn]* ) break;;
+                * ) echo "Please answer yes or no.";;
+            esac
+        done
+    fi
 fi
 
 if [ ! -d "${TEMP_DIR}/srt-server" ]; then
