@@ -8,7 +8,6 @@ const version_info = require('../version.json')
  */
 module.exports = () =>  {
     let info = Object.assign({env: env}, version_info);;
-console.log (info)
     return {
         version: function create(req, res) {
             return res.status(200).send(info);

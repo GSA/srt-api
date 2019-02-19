@@ -1,6 +1,5 @@
 const logger = require('../config/winston');
 const predictionRoutes = require('./prediction.routes');
-var _ = require('underscore');
 
 function predictionFind(params) {
     return predictionRoutes.getPredictions(params)
