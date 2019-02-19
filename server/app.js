@@ -33,6 +33,7 @@ module.exports = function(db) {
     var analyticsRoutes = require('./routes/analytics.routes');
     var solicitationRoutes = require('./routes/solicitation.routes') (db);
     var surveyRoutes = require('./routes/survey.routes');
+    var versionRoutes = require('./routes/version.routes') ();
 
 
     app.use(bodyParser.json());
@@ -122,6 +123,8 @@ module.exports = function(db) {
     app.post('/api/solicitation/feedback', token(), solicitationRoutes.solicitationFeedback);
 
     app.get('/api/surveys', token(), surveyRoutes.get);
+
+    app.get('/api/version', versionRoutes.version)
 
     app.use(expressWinston.errorLogger({
         transports: [new winston.transports.File({filename: "winston.log.json", level: "debug"})],
