@@ -4,7 +4,7 @@
   "description": "Web services to see 508 compliance predictions for solicitations posted to FBO",
   "main": "index.js",
   "scripts": {
-    "start": "node server/server.js",
+    "start": "node_modules/.bin/sequelize db:migrate && node server/server.js",
     "old-test": "export NODE_ENV=test || SET NODE_ENV=test && mocha server/**/*.test.js",
     "test": "MAIL_ENGINE=nodemailer-mock  jest --detectOpenHandles --config=jest.config.js --runInBand ",
     "test-watch": "export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock &&  jest --detectOpenHandles --config=jest.config.js --watch ",
@@ -28,11 +28,11 @@
     "umzug": "^2.2.0",
     "winston": "^3.2.0",
     "random-words": "^1.1.0",
-    "randomstring": "*"
+    "randomstring": "*",
+    "sequelize-auto": "^0.4.29",
+    "sequelize-cli": "^5.4.0"
   },
   "devDependencies": {
-    "sequelize-auto": "^0.4.29",
-    "sequelize-cli": "^5.4.0",
     "expect": "^1.20.2",
     "jest": "~23",
     "mocha": "^3.2.0",
