@@ -309,6 +309,7 @@ function mergeOnePrediction(older, newer) {
         merge.actionDate = (older.actionDate > newer.actionDate) ? older.actionDate : newer.actionDate;
     }
 
+    merge.contactInfo = Object.assign({}, older.contactInfo, newer.contactInfo)
 
     // console.log ("merge ", merge)
 
@@ -424,6 +425,7 @@ module.exports = {
         var reviewRec = req.body.reviewRec;
         var reviewStatus = req.body.reviewStatus;
 
+        // verify that only supported filter params are used
         let keys = Object.keys(req.body);
 
         // verify that only supported filter params are used
