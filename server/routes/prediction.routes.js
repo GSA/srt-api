@@ -247,6 +247,7 @@ function makeOnePrediction(notice) {
     o.noticeType = notice.notice_type; //TODO: need to map these to values expected by the UI
     o.date = notice.date;
     o.office = (notice.notice_data != undefined) ? notice.notice_data.office : "";
+    // TODO: There should be a reason this is plural and an object and not a string but I can't see why yet.
     o.predictions = {
         value: (notice.compliant == 1) ? "GREEN" : "RED",
     };
@@ -272,7 +273,62 @@ function makeOnePrediction(notice) {
     o.parseStatus = (notice.attachment_json != undefined) ? notice.attachment_json : [];
 
     return o;
+}
 
+function deepConcat (a, b) {
+    let res = [];
+    if (a != undefined && a.length > 0) {
+        for (let e of a) {
+            res.push(Object.assign({},e));
+        }
+    }
+    if (b != undefined && b.length > 0) {
+        for (let e of b) {
+            res.push(Object.assign({},e));
+        }
+    }
+    return res;
+}
+
+function mergeOnePrediction(older, newer) {
+    let merge = Object.assign ({}, older, newer);
+
+    // history and feedbck should be merged oldest to newest
+    merge.history = deepConcat(older.history, newer.history);
+    merge.feedback = deepConcat(older.feedback, newer.feedback);
+    merge.parseStatus = deepConcat(older.parseStatus, newer.parseStatus);
+
+    merge.numDocs = older.numDocs + newer.numDocs;
+
+    if ((newer.actionDate == undefined) || (older.actionDate == undefined)) {
+        merge.actionDate = older.actionDate || newer.actionDate;
+    } else {
+        merge.actionDate = (older.actionDate > newer.actionDate) ? older.actionDate : newer.actionDate;
+    }
+
+    merge.contactInfo = Object.assign({}, older.contactInfo, newer.contactInfo)
+
+    // console.log ("merge ", merge)
+
+    return merge;
+}
+
+function mergePredictions (predictionList) {
+    let merged = {};
+
+
+    for (let p of predictionList) {
+        if ( merged[p.solNum] ) {
+            let newer = ( merged[p.solNum].date > p.date ) ? merged[p.solNum] : p;
+            let older = ( merged[p.solNum].date > p.date ) ? p : merged[p.solNum];
+            merged[p.solNum] = mergeOnePrediction(older, newer)
+        } else {
+            merged[p.solNum] = Object.assign({}, p);
+        }
+    }
+    console.log (Object.keys(merged));
+
+    return (Object.keys(merged)).map ( key => merged[key] );
 }
 
 function  makePostgresDate (origDate) {
@@ -359,6 +415,7 @@ function getPredictions(filter) {
 module.exports = {
 
     getPredictions: getPredictions,
+    mergePredictions : mergePredictions,
 
     makeOnePrediction: makeOnePrediction,
 
