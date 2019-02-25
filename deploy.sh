@@ -143,7 +143,8 @@ function help() {
     echo "    -s --serverrepo : URI for srt-server repository"
     echo "    -c --clientrepo : URI for srt-client repository"
     echo "    -t --tempdir : defaults to /tmp"
-    echo "    -y --yes : deleting existing git repo in temp directory"
+    echo "    -y --yes : delete existing git repo in temp directory"
+    echo "    -n --no : do not delete any existing git repo in temp directory"
     echo "    -b --create-tag-from-branch : Create TAG at head of this branch"
     echo ""
     echo ""
@@ -224,13 +225,15 @@ function checkout_tag() {
     # create the tag if requested
     if [[ "${CREATE_TAG}" == "true" ]]; then
         changedir "${TEMP_DIR}/srt-client"
-        runline "git checkout ${BRANCH}"
+        runline git checkout ${BRANCH}
+        runline git pull origin ${BRANCH}
         log git tag -a ${TAG} -m "baseline tag created for deployment"
         git tag -a ${TAG} -m "baseline tag created for deployment" || exit
         runline "git push origin ${TAG}"
 
         changedir "${TEMP_DIR}/srt-server"
         runline git checkout ${BRANCH}
+        runline git pull origin ${BRANCH}
         log git tag -a ${TAG} -m "baseline tag created for deployment"
         git tag -a ${TAG} -m "baseline tag created for deployment" || exit
         runline git push origin ${TAG}
