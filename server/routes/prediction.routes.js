@@ -326,7 +326,6 @@ function mergePredictions (predictionList) {
             merged[p.solNum] = Object.assign({}, p);
         }
     }
-    console.log (Object.keys(merged));
 
     return (Object.keys(merged)).map ( key => merged[key] );
 }
@@ -393,20 +392,16 @@ function getPredictions(filter) {
     console.time("sql")
     return db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
         .then(notices => {
-            console.timeEnd("sql")
             let data = [];
-            console.time("marshal")
             for (let i = 0; i < notices.length; i++) {
                 data.push(makeOnePrediction(notices[i]));
             }
-    console.timeEnd("marshal")
-            return data;
+            return mergePredictions(data);
         })
         .catch(e => {
             logger.log("error", e, {tag: "getPredictions", sql: sql});
             return null;
         });
-
 }
 
 /**

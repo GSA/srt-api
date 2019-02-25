@@ -112,6 +112,27 @@ describe ('prediction tests', () => {
             });
     }, 60000);
 
+    test ( 'Test that all predictions with the same notice number are merged', () => {
+
+        return request(app)
+            .post('/api/predictions/filter')
+            .set('Authorization', `Bearer ${token}`)
+            .send()
+            .then( (res) => {
+                expect(res.statusCode).toBe(200);
+                expect(res.body.length).toBeDefined();
+
+                // test for no duplicate solNumbers
+                let solNumList = {};
+                for (p of res.body) {
+                    expect(solNumList[p.solNum]).toBeUndefined();
+                    solNumList[p.solNum] = true;
+                }
+
+                return expect(res.body[0].title).toBeDefined();
+            });
+    }, 60000);
+
     test ( 'Filter predictions to only return a certain office', () => {
 
         return request(app)
