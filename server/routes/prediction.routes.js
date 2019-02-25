@@ -386,8 +386,7 @@ function getPredictions(filter) {
                   group by  notice_id
                   ) a on a.notice_id = n.id
             WHERE ${where} 
-            order by id desc
-            limit 400000 `;
+            order by id desc`;
 
     console.time("sql")
     return db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})

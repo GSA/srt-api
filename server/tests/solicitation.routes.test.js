@@ -17,7 +17,7 @@ myuser.email = "crowley+sol@tcg.com";
 delete myuser.id;
 var token = {};
 
-describe('prediction tests', () => {
+describe('solicitation tests', () => {
     beforeAll(() => {
 
         process.env.MAIL_ENGINE = "nodemailer-mock";
@@ -39,7 +39,7 @@ describe('prediction tests', () => {
 
     test('solicitation post', () => {
 
-        return db.sequelize.query("select notice_number from notice order by id desc limit 1")
+        return db.sequelize.query("select count(*), notice_number from notice group by notice_number having count(*) > 5 limit 1")
             .then( (rows) => {
                 let notice_num = rows[0][0].notice_number;
                 expect(notice_num).toBeDefined();
@@ -95,7 +95,21 @@ describe('prediction tests', () => {
                         expect(res.body.history[0].user).toBe(word1)
                         return expect(res.body.history[1].user).toBe(word2)
 
-                    });
+                    })
+                    .then( () => {
+                        // make sure that we actually updated the correct one. Should be the latest
+                        let sql = ` select a.history from notice a
+                                    left outer join notice b on (a.notice_number = b.notice_number and a.date < b.date)
+                                    where b.id is null and a.notice_number = '${notice_num}'`;
+                        return db.sequelize.query(sql)
+                            .then( (rows) => {
+                                let hist = rows[0][0].history;
+                                console.log (hist);
+                                expect(hist.length).toBeGreaterThan(2);
+                                expect(hist[2].action).toMatch(/again reviewed solicitation/)
+                                return console.log ("history is: ", rows[0][0]);
+                            })
+                    })
             })
 
     });
