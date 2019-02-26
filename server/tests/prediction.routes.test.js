@@ -174,15 +174,27 @@ describe ('prediction tests', () => {
                 numDocs: 2
             })
             .then( (res) => {
-                expect(res.statusCode).toBe(200);
-                expect(res.body.length).toBeDefined();
-                expect(res.body[0].title).toBeDefined();
+                return expect(res.statusCode).toBe(501); // we don't yet support numDocs for the filter
+            })
+            .then( () => {
+                return request(app)
+                    .post('/api/predictions/filter')
+                    .set('Authorization', `Bearer ${token}`)
+                    .send({
+                        eitLikelihood: "Yes",
+                        agency: "department of the army",
+                    })
+                    .then( (res) => {
+                        expect(res.statusCode).toBe(200);
+                        expect(res.body.length).toBeDefined();
+                        expect(res.body[0].title).toBeDefined();
 
-                for(let i=0; i < res.body.length; i++) {
-                    expect(res.body[i].eitLikelihood.value).toBe("Yes");
-                    expect(res.body[i].agency).toBe("department of the army");
-                    expect(res.body[i].parseStatus.length).toBe(2);
-                }
+                        for(let i=0; i < res.body.length; i++) {
+                            expect(res.body[i].eitLikelihood.value).toBe("Yes");
+                            expect(res.body[i].agency).toBe("department of the army");
+                        }
+                    })
+
             })
     }, 60000);
 

@@ -422,13 +422,23 @@ module.exports = {
         var reviewRec = req.body.reviewRec;
         var reviewStatus = req.body.reviewStatus;
 
-        // verify that only supported filter params are used
         let keys = Object.keys(req.body);
+
+        // verify that only supported filter params are used
+        let valid_keys = ["agency", "office", "numDocs", "solNum", "eitLikelihood", "startDate", "fromPeriod", "endDate", "toPeriod"];
         for (let i=0; i< keys.length; i++) {
-            if ( req.body[keys[i]] != "" && ! ["agency", "office", "numDocs", "solNum", "eitLikelihood", "startDate", "fromPeriod", "endDate", "toPeriod"].includes (keys[i]) ) {
+            if ( req.body[keys[i]] != "" && ! valid_keys.includes (keys[i]) ) {
                 logger.log("error", req.body, {tag: "predictionFilter - " + "Received unsupported filter parameter " + keys[i]});
                 return res.status(500).send({message: "Received unsupported filter parameter " + keys[i]});
             }
+        }
+
+        // We should support these keys, but currently don't due to the issue with duplicate notice_numbers
+        let unsupported_keys = ['numDocs'];
+        if ( keys
+              .map( k => unsupported_keys.includes(k) && ( req.body[k] != "") )
+              .reduce( ((accum, current) => accum || current) , false) ) {
+            return res.status(501).send("The server does not yet support filter by " + JSON.stringify(unsupported_keys))
         }
 
         return getPredictions(req.body)
