@@ -247,6 +247,7 @@ function makeOnePrediction(notice) {
     o.noticeType = notice.notice_type; //TODO: need to map these to values expected by the UI
     o.date = notice.date;
     o.office = (notice.notice_data != undefined) ? notice.notice_data.office : "";
+    // TODO: There should be a reason this is plural and an object and not a string but I can't see why yet.
     o.predictions = {
         value: (notice.compliant == 1) ? "GREEN" : "RED",
     };
@@ -272,7 +273,61 @@ function makeOnePrediction(notice) {
     o.parseStatus = (notice.attachment_json != undefined) ? notice.attachment_json : [];
 
     return o;
+}
 
+function deepConcat (a, b) {
+    let res = [];
+    if (a != undefined && a.length > 0) {
+        for (let e of a) {
+            res.push(Object.assign({},e));
+        }
+    }
+    if (b != undefined && b.length > 0) {
+        for (let e of b) {
+            res.push(Object.assign({},e));
+        }
+    }
+    return res;
+}
+
+function mergeOnePrediction(older, newer) {
+    let merge = Object.assign ({}, older, newer);
+
+    // history and feedbck should be merged oldest to newest
+    merge.history = deepConcat(older.history, newer.history);
+    merge.feedback = deepConcat(older.feedback, newer.feedback);
+    merge.parseStatus = deepConcat(older.parseStatus, newer.parseStatus);
+
+    merge.numDocs = older.numDocs + newer.numDocs;
+
+    if ((newer.actionDate == undefined) || (older.actionDate == undefined)) {
+        merge.actionDate = older.actionDate || newer.actionDate;
+    } else {
+        merge.actionDate = (older.actionDate > newer.actionDate) ? older.actionDate : newer.actionDate;
+    }
+
+    merge.contactInfo = Object.assign({}, older.contactInfo, newer.contactInfo)
+
+    // console.log ("merge ", merge)
+
+    return merge;
+}
+
+function mergePredictions (predictionList) {
+    let merged = {};
+
+
+    for (let p of predictionList) {
+        if ( merged[p.solNum] ) {
+            let newer = ( merged[p.solNum].date > p.date ) ? merged[p.solNum] : p;
+            let older = ( merged[p.solNum].date > p.date ) ? p : merged[p.solNum];
+            merged[p.solNum] = mergeOnePrediction(older, newer)
+        } else {
+            merged[p.solNum] = Object.assign({}, p);
+        }
+    }
+
+    return (Object.keys(merged)).map ( key => merged[key] );
 }
 
 function  makePostgresDate (origDate) {
@@ -331,26 +386,21 @@ function getPredictions(filter) {
                   group by  notice_id
                   ) a on a.notice_id = n.id
             WHERE ${where} 
-            order by id desc
-            limit 400000 `;
+            order by id desc`;
 
     console.time("sql")
     return db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
         .then(notices => {
-            console.timeEnd("sql")
             let data = [];
-            console.time("marshal")
             for (let i = 0; i < notices.length; i++) {
                 data.push(makeOnePrediction(notices[i]));
             }
-    console.timeEnd("marshal")
-            return data;
+            return mergePredictions(data);
         })
         .catch(e => {
             logger.log("error", e, {tag: "getPredictions", sql: sql});
             return null;
         });
-
 }
 
 /**
@@ -359,6 +409,7 @@ function getPredictions(filter) {
 module.exports = {
 
     getPredictions: getPredictions,
+    mergePredictions : mergePredictions,
 
     makeOnePrediction: makeOnePrediction,
 
@@ -371,13 +422,23 @@ module.exports = {
         var reviewRec = req.body.reviewRec;
         var reviewStatus = req.body.reviewStatus;
 
-        // verify that only supported filter params are used
         let keys = Object.keys(req.body);
+
+        // verify that only supported filter params are used
+        let valid_keys = ["agency", "office", "numDocs", "solNum", "eitLikelihood", "startDate", "fromPeriod", "endDate", "toPeriod"];
         for (let i=0; i< keys.length; i++) {
-            if ( req.body[keys[i]] != "" && ! ["agency", "office", "numDocs", "solNum", "eitLikelihood", "startDate", "fromPeriod", "endDate", "toPeriod"].includes (keys[i]) ) {
+            if ( req.body[keys[i]] != "" && ! valid_keys.includes (keys[i]) ) {
                 logger.log("error", req.body, {tag: "predictionFilter - " + "Received unsupported filter parameter " + keys[i]});
                 return res.status(500).send({message: "Received unsupported filter parameter " + keys[i]});
             }
+        }
+
+        // We should support these keys, but currently don't due to the issue with duplicate notice_numbers
+        let unsupported_keys = ['numDocs'];
+        if ( keys
+              .map( k => unsupported_keys.includes(k) && ( req.body[k] != "") )
+              .reduce( ((accum, current) => accum || current) , false) ) {
+            return res.status(501).send("The server does not yet support filter by " + JSON.stringify(unsupported_keys))
         }
 
         return getPredictions(req.body)
