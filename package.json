@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node_modules/.bin/sequelize db:migrate && node server/server.js",
+    "dev": "export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock && node_modules/.bin/sequelize db:migrate && node server/server.js",
     "old-test": "export NODE_ENV=test || SET NODE_ENV=test && mocha server/**/*.test.js",
     "test": "MAIL_ENGINE=nodemailer-mock  jest --detectOpenHandles --config=jest.config.js --runInBand ",
     "test-watch": "export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock &&  jest --detectOpenHandles --config=jest.config.js --watch ",
