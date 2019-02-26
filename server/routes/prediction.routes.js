@@ -421,7 +421,6 @@ module.exports = {
         var reviewRec = req.body.reviewRec;
         var reviewStatus = req.body.reviewStatus;
 
-        // verify that only supported filter params are used
         let keys = Object.keys(req.body);
 
         // verify that only supported filter params are used
