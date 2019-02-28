@@ -29,6 +29,21 @@ let up_sql = [
     '         order by agency              ' +
     '       ) dupes                        ' +
     '  group by agency )',
+
+    'delete from "Users" where id in (           ' + // delete duplicate rows in the Agencies table
+    '  select max(id) as id                      ' + // (old version of migration script had duplicates)
+    '  from (                                    ' +
+    '         select id, email                   ' +
+    '         from "Users"                       ' +
+    '         where email in                     ' +
+    '            (select email                   ' +
+    '             from "Users"                   ' +
+    '             where "lastName" = \'Crowley\' ' +
+    '             group by email                 ' +
+    '             having count(*) > 1)           ' +
+    '         order by email                     ' +
+    '       ) dupes                              ' +
+    '  group by email )',
     'ALTER TABLE "Users" ADD CONSTRAINT "unique_Users_email" UNIQUE ("email")',
     'ALTER TABLE "Agencies" ADD CONSTRAINT "unique_Agencies_agency" UNIQUE ("agency")',
     'ALTER TABLE "Users" ADD CONSTRAINT "fk_Users_Agencies_Agency_name" FOREIGN KEY ("agency") REFERENCES "Agencies" ("agency")',
