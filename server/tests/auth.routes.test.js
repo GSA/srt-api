@@ -48,11 +48,11 @@ describe ('/api/auth/', () => {
     });
 
     test ( '/api/auth/tokenCheck', async () => {
-        var user = Object.assign({}, myuser);
+        var user = Object.assign({}, myuser, {email: "another@example.com"});
         user.userRole = "Administrator"
         var token = mockToken(user);
 
-        var user = Object.assign({}, myuser);
+        var user = Object.assign({}, myuser, {email: "another2@example.com"});
         user.userRole = "Administrator";
         user.agency = "General Services Administration";
         user.firstName = "auth-beforeAllUser";
