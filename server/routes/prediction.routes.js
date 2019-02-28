@@ -309,9 +309,6 @@ function mergeOnePrediction(older, newer) {
         merge.actionDate = (older.actionDate > newer.actionDate) ? older.actionDate : newer.actionDate;
     }
 
-
-    // console.log ("merge ", merge)
-
     return merge;
 }
 
