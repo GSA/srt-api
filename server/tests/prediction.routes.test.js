@@ -112,7 +112,7 @@ describe ('prediction tests', () => {
             .then( preds => {
 
                 let expected_actions = [
-                    'Solicitation Updated on FBO.gov',
+//                    'Solicitation Updated on FBO.gov',
                     'sent email to POC',
                     'reviewed solicitation action requested summary'
                 ];
@@ -149,6 +149,7 @@ describe ('prediction tests', () => {
             .then( (res) => {
                 expect(res.statusCode).toBe(200);
                 expect(res.body.length).toBeDefined();
+                expect(res.body[0].noticeType).toBeDefined();
                 return expect(res.body[0].title).toBeDefined();
             });
     }, 60000);

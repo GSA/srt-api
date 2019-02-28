@@ -239,17 +239,17 @@ function makeOnePrediction(notice) {
     // let act = parseAction(notice.action);
 
     o.id = notice.id;
-    o.title = (notice.notice_data  != undefined) ? notice.notice_data.subject : "";
+    o.title = (notice.notice_data  !== undefined) ? notice.notice_data.subject : "";
     o.reviewRec = pickOne(reviewRecArray);
     o.agency = notice.agency;
     o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0;
     o.solNum = notice.notice_number;
     o.noticeType = notice.notice_type; //TODO: need to map these to values expected by the UI
     o.date = notice.date;
-    o.office = (notice.notice_data != undefined) ? notice.notice_data.office : "";
+    o.office = (notice.notice_data !== undefined) ? notice.notice_data.office : "";
     // TODO: There should be a reason this is plural and an object and not a string but I can't see why yet.
     o.predictions = {
-        value: (notice.compliant == 1) ? "GREEN" : "RED",
+        value: (notice.compliant === 1) ? "GREEN" : "RED",
     };
     o.eitLikelihood = {
         naics: notice.naics,
@@ -257,8 +257,8 @@ function makeOnePrediction(notice) {
     }
     o.undetermined = 0; //(getRandomInt(0, 2) == 0);
     o.action = notice.action;
-    o.actionStatus = (o.action != null && o.action.length > 0) ? o.action[0].actionStatus : "";
-    o.actionDate = (o.action != null && o.action.length > 0) ? o.action[0].actionDate : "";
+    o.actionStatus = (o.action != null) ? o.action.actionStatus : "";
+    o.actionDate = (o.action != null) ? o.action.actionDate : "";
     o.feedback = notice.feedback ? notice.feedback : [];
     o.history = notice.history ? notice.history : [];
 
@@ -270,19 +270,19 @@ function makeOnePrediction(notice) {
 
     }
 
-    o.parseStatus = (notice.attachment_json != undefined) ? notice.attachment_json : [];
+    o.parseStatus = (notice.attachment_json !== undefined) ? notice.attachment_json : [];
 
     return o;
 }
 
 function deepConcat (a, b) {
     let res = [];
-    if (a != undefined && a.length > 0) {
+    if (a !== undefined && a.length > 0) {
         for (let e of a) {
             res.push(Object.assign({},e));
         }
     }
-    if (b != undefined && b.length > 0) {
+    if (b !== undefined && b.length > 0) {
         for (let e of b) {
             res.push(Object.assign({},e));
         }
@@ -373,7 +373,7 @@ function getPredictions(filter) {
 
     let where = where_array.join(" AND ");
     let sql = `
-            select * 
+            select n.*, notice_type 
             from notice n 
             left join ( 
                   select notice_id, json_agg(src) as attachment_json, count(*) as attachment_count
@@ -384,10 +384,10 @@ function getPredictions(filter) {
                     ) src on notice.id = src.notice_id             
                   group by  notice_id
                   ) a on a.notice_id = n.id
+            left join notice_type t on n.notice_type_id = t.id
             WHERE ${where} 
             order by id desc`;
 
-    console.time("sql")
     return db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
         .then(notices => {
             let data = [];
@@ -445,8 +445,6 @@ module.exports = {
                 if (predictions == null) {
                     return res.status(500).send({});
                 }
-                console.time("test")
-                console.timeEnd("test")
 
                 return res.status(200).send(predictions);
             })
