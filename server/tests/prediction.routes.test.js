@@ -99,6 +99,40 @@ describe ('prediction tests', () => {
     });
 
 
+    test ( 'Test we do not loose history in the notice merges', () => {
+
+        return predictionRoutes.getPredictions({})
+            .then( preds => {
+
+                let expected_actions = [
+                    'Solicitation Updated on FBO.gov',
+                    'sent email to POC',
+                    'reviewed solicitation action requested summary'
+                ];
+
+                for (let target_status of expected_actions) {
+                    let found = target_status; // set to this string so that any test fail will show it
+                    for (let i = 0; i < preds.length && (found !== true); i++) {
+                        for (let j = 0; j < preds[i].history.length && (found !== true); j++) {
+                            if (preds[i].history[j].action.indexOf(target_status) > -1) {
+                                found = true;
+                            }
+                        }
+                    }
+                    expect(found).toBe(true);
+                }
+
+
+
+                return expect(
+                    preds.map( p => p.history.length )
+                        .reduce( (accum, i) => accum + i )
+                ).toBeGreaterThan(1)
+
+            })
+
+    }, 60000);
+
     test ( 'Empty predictions filter ', () => {
 
         return request(app)
@@ -106,11 +140,12 @@ describe ('prediction tests', () => {
             .set('Authorization', `Bearer ${token}`)
             .send()
             .then( (res) => {
-               expect(res.statusCode).toBe(200);
-               expect(res.body.length).toBeDefined();
-               return expect(res.body[0].title).toBeDefined();
+                expect(res.statusCode).toBe(200);
+                expect(res.body.length).toBeDefined();
+                return expect(res.body[0].title).toBeDefined();
             });
     }, 60000);
+
 
     test ( 'Test that all predictions with the same notice number are merged', () => {
 

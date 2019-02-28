@@ -13,7 +13,7 @@ function predictionFind(params) {
                             allPredictions[i][prop].value &&
                             allPredictions[i][prop].value == params[prop] )
                     ) {
-                        filteredPredictions.push( predictionRoutes.makeOnePrediction( allPredictions[i]) );
+                        filteredPredictions.push( allPredictions[i] );
                     }
                 }
             }
@@ -134,6 +134,13 @@ module.exports = {
 
                     // Start for loop
                     for (var i = 0; i < data.TotalICT; i++) {
+
+                        // if (predictions[i].solNum != undefined) {
+                        //     console.log(predictions[i].solNum);
+                        // }
+                        //
+                        //
+                        //
 
                         var latest = new Date(predictions[i].date) > scannedFromDate && new Date(predictions[i].date) < scannedToDate;
 
@@ -269,6 +276,10 @@ module.exports = {
                                         data.FilteredComplianceSolicitation++
                                     }
                                     else data.FilteredNonComplianceSolicitation++
+
+                                    if (predictions[i].history && predictions[i].history.length > 0 ) {
+                                        console.log (predictions[i].history);
+                                    }
 
                                     if (predictions[i].predictions.value == "GREEN" &&
                                         predictions[i].history.filter(function (e) {

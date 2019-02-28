@@ -298,6 +298,9 @@ function mergeOnePrediction(older, newer) {
     merge.feedback = deepConcat(older.feedback, newer.feedback);
     merge.parseStatus = deepConcat(older.parseStatus, newer.parseStatus);
 
+    merge.predictions = Object.assign({}, newer.predictions);
+    merge.contactInfo = Object.assign({}, newer.contactInfo);
+
     merge.numDocs = older.numDocs + newer.numDocs;
 
     if ((newer.actionDate == undefined) || (older.actionDate == undefined)) {
@@ -306,7 +309,6 @@ function mergeOnePrediction(older, newer) {
         merge.actionDate = (older.actionDate > newer.actionDate) ? older.actionDate : newer.actionDate;
     }
 
-    merge.contactInfo = Object.assign({}, older.contactInfo, newer.contactInfo)
 
     // console.log ("merge ", merge)
 
