@@ -218,19 +218,7 @@ module.exports = {
                             updatedAt: new Date()
                         },
                         {
-                            agency: "Bureau of International Labor Affairs",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
                             agency: "Bureau of Justice Statistics",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Bureau of Labor Statistics",
                             acronym: "",
                             createdAt: new Date(),
                             updatedAt: new Date()
@@ -249,19 +237,7 @@ module.exports = {
                         },
                         {agency: "Bureau of Prisons", acronym: "BOP", createdAt: new Date(), updatedAt: new Date()},
                         {agency: "Bureau of Reclamation", acronym: "", createdAt: new Date(), updatedAt: new Date()},
-                        {
-                            agency: "Bureau of Safety and Environmental Enforcement",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
                         {agency: "Bureau of the Census", acronym: "", createdAt: new Date(), updatedAt: new Date()},
-                        {
-                            agency: "Bureau of the Fiscal Service",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
                         {
                             agency: "Bureau of Transportation Statistics",
                             acronym: "",
@@ -271,12 +247,6 @@ module.exports = {
                         {agency: "California", acronym: "", createdAt: new Date(), updatedAt: new Date()},
                         {agency: "Capitol Police", acronym: "", createdAt: new Date(), updatedAt: new Date()},
                         {agency: "Capitol Visitor Center", acronym: "", createdAt: new Date(), updatedAt: new Date()},
-                        {
-                            agency: "Office of Career, Technical, and Adult Education",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
                         {agency: "Census Bureau", acronym: "", createdAt: new Date(), updatedAt: new Date()},
                         {
                             agency: "Center for Food Safety and Applied Nutrition",
@@ -423,7 +393,6 @@ module.exports = {
                             createdAt: new Date(),
                             updatedAt: new Date()
                         },
-                        {agency: "Office of Compliance", acronym: "", createdAt: new Date(), updatedAt: new Date()},
                         {
                             agency: "Office of Comptroller of the Currency",
                             acronym: "OCC",
@@ -457,12 +426,6 @@ module.exports = {
                         },
                         {agency: "Connecticut", acronym: "", createdAt: new Date(), updatedAt: new Date()},
                         {
-                            agency: "Bureau of Consular Affairs",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
                             agency: "Consumer Financial Protection Bureau",
                             acronym: "",
                             createdAt: new Date(),
@@ -471,12 +434,6 @@ module.exports = {
                         {
                             agency: "Consumer Product Safety Commission",
                             acronym: "CPSC",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Coordinating Council on Juvenile Justice and Delinquency Prevention",
-                            acronym: "",
                             createdAt: new Date(),
                             updatedAt: new Date()
                         },
@@ -741,12 +698,6 @@ module.exports = {
                             updatedAt: new Date()
                         },
                         {
-                            agency: "Bureau of Economic Analysis",
-                            acronym: "BEA",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
                             agency: "Economic Development Administration",
                             acronym: "EDA",
                             createdAt: new Date(),
@@ -785,12 +736,6 @@ module.exports = {
                             updatedAt: new Date()
                         },
                         {
-                            agency: "Office of Elementary and Secondary Education",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
                             agency: "Employee Benefits Security Administration",
                             acronym: "EBSA",
                             createdAt: new Date(),
@@ -818,18 +763,6 @@ module.exports = {
                         {agency: "Energy Star Program", acronym: "", createdAt: new Date(), updatedAt: new Date()},
                         {
                             agency: "English Language Acquisition Office",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Bureau of Engraving and Printing",
-                            acronym: "BEP",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Office of Environmental Management",
                             acronym: "",
                             createdAt: new Date(),
                             updatedAt: new Date()
@@ -1171,12 +1104,6 @@ module.exports = {
                             updatedAt: new Date()
                         },
                         {
-                            agency: "Office of Government Ethics",
-                            acronym: "OGE",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
                             agency: "Government National Mortgage Association",
                             acronym: "Ginnie Mae",
                             createdAt: new Date(),
@@ -1273,12 +1200,6 @@ module.exports = {
                         {
                             agency: "Industrial College of the Armed Forces",
                             acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Bureau of Industry and Security",
-                            acronym: "BIS",
                             createdAt: new Date(),
                             updatedAt: new Date()
                         },
@@ -1441,12 +1362,6 @@ module.exports = {
                             updatedAt: new Date()
                         },
                         {
-                            agency: "Bureau of Justice Statistics",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
                             agency: "Office of Juvenile Justice and Delinquency Prevention",
                             acronym: "",
                             createdAt: new Date(),
@@ -1459,12 +1374,6 @@ module.exports = {
                         {
                             agency: "Bureau of Labor Statistics",
                             acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Bureau of Land Management",
-                            acronym: "BLM",
                             createdAt: new Date(),
                             updatedAt: new Date()
                         },
@@ -1716,12 +1625,6 @@ module.exports = {
                             updatedAt: new Date()
                         },
                         {
-                            agency: "National Institute of Arthritis, Musculoskeletal and Skin Diseases",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
                             agency: "National Institute of Corrections",
                             acronym: "",
                             createdAt: new Date(),
@@ -1908,7 +1811,6 @@ module.exports = {
                             createdAt: new Date(),
                             updatedAt: new Date()
                         },
-                        {agency: "Office of Nuclear Energy", acronym: "", createdAt: new Date(), updatedAt: new Date()},
                         {
                             agency: "Nuclear Regulatory Commission",
                             acronym: "NRC",
@@ -1940,12 +1842,6 @@ module.exports = {
                             updatedAt: new Date()
                         },
                         {
-                            agency: "Bureau of Ocean Energy Management",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
                             agency: "Office for Civil Rights, Department of Education",
                             acronym: "",
                             createdAt: new Date(),
@@ -1964,12 +1860,6 @@ module.exports = {
                             updatedAt: new Date()
                         },
                         {
-                            agency: "Office of Child Support Enforcement",
-                            acronym: "OCSE",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
                             agency: "Office of Community Planning and Development",
                             acronym: "",
                             createdAt: new Date(),
@@ -1979,12 +1869,6 @@ module.exports = {
                         {
                             agency: "Office of Cuba Broadcasting",
                             acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Office of Disability Employment Policy",
-                            acronym: "ODEP",
                             createdAt: new Date(),
                             updatedAt: new Date()
                         },
@@ -2021,18 +1905,6 @@ module.exports = {
                             updatedAt: new Date()
                         },
                         {
-                            agency: "Office of Justice Programs",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Office of Juvenile Justice and Delinquency Prevention",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
                             agency: "Office of Lead Hazard Control and Healthy Homes",
                             acronym: "",
                             createdAt: new Date(),
@@ -2045,26 +1917,8 @@ module.exports = {
                             updatedAt: new Date()
                         },
                         {
-                            agency: "Office of Manufactured Housing Programs",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Office of Minority Health",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
                             agency: "Office of National Drug Control Policy",
                             acronym: "ONDCP",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Office of Natural Resources Revenue",
-                            acronym: "",
                             createdAt: new Date(),
                             updatedAt: new Date()
                         },
@@ -2077,12 +1931,6 @@ module.exports = {
                         },
                         {
                             agency: "Office of Policy Development and Research",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Office of Postsecondary Education",
                             acronym: "",
                             createdAt: new Date(),
                             updatedAt: new Date()
@@ -2106,25 +1954,7 @@ module.exports = {
                             updatedAt: new Date()
                         },
                         {
-                            agency: "Office of Servicemember Affairs",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
                             agency: "Office of Special Counsel",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Office of Special Education and Rehabilitative Services",
-                            acronym: "OSERS",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Office of Surface Mining, Reclamation and Enforcement",
                             acronym: "",
                             createdAt: new Date(),
                             updatedAt: new Date()
@@ -2300,13 +2130,6 @@ module.exports = {
                             createdAt: new Date(),
                             updatedAt: new Date()
                         },
-                        {agency: "Bureau of Reclamation", acronym: "", createdAt: new Date(), updatedAt: new Date()},
-                        {
-                            agency: "Office of Refugee Resettlement",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
                         {
                             agency: "Rehabilitation Services Administration",
                             acronym: "",
@@ -2349,19 +2172,7 @@ module.exports = {
                             createdAt: new Date(),
                             updatedAt: new Date()
                         },
-                        {
-                            agency: "Office of Science and Technology Policy",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
                         {agency: "Science Office", acronym: "", createdAt: new Date(), updatedAt: new Date()},
-                        {
-                            agency: "Office of Scientific and Technical Information",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
                         {
                             agency: "Seafood Inspection Program",
                             acronym: "",
@@ -2420,12 +2231,6 @@ module.exports = {
                         {agency: "Southern Command", acronym: "", createdAt: new Date(), updatedAt: new Date()},
                         {
                             agency: "Southwestern Power Administration",
-                            acronym: "",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Office of Special Counsel",
                             acronym: "",
                             createdAt: new Date(),
                             updatedAt: new Date()
@@ -2507,12 +2312,6 @@ module.exports = {
                         {
                             agency: "Transportation Security Administration",
                             acronym: "TSA",
-                            createdAt: new Date(),
-                            updatedAt: new Date()
-                        },
-                        {
-                            agency: "Bureau of Transportation Statistics",
-                            acronym: "",
                             createdAt: new Date(),
                             updatedAt: new Date()
                         },
