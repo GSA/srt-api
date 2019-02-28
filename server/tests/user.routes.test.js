@@ -16,7 +16,7 @@ const logger = require('../config/winston');
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.json')[env];
 
-const {user1, user_accepted, user_rejected} = require ('./test.data');
+let {user1, user_accepted, user_rejected} = require ('./test.data');
 
 
 describe ('User API Routes', () => {
@@ -33,6 +33,7 @@ describe ('User API Routes', () => {
 
     beforeAll(  ()=>{
 
+        user_accepted = Object.assign({}, user_accepted, {email: "crowley+accepted-user@tcg.com", firstName: "beforeAllUser"})
         process.env.MAIL_ENGINE = "nodemailer-mock";
         app = require('../app')(); // don't load the app till the mock is configured
         user_routes = require('../routes/user.routes'); // don't load the user_routes till the email mock is configured
@@ -50,6 +51,7 @@ describe ('User API Routes', () => {
                     return user.id;
                 })
                 .then( () => {
+                    user_accepted = Object.assign({}, user_accepted, {email: 'crowley+accepted-token2@tcg.com', firstName: "beforeAll-filter"})
                     return User.create(user_accepted)
                         .then( (user2) => {
                             // token belongs to user_accepted

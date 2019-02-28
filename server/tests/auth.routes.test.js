@@ -112,7 +112,7 @@ describe ('/api/auth/', () => {
             })
             // send a real admin token
             .then( () => {
-                var user = Object.assign({}, myuser);
+                var user = Object.assign({}, myuser, {email: 'crowley+auth-token@tcg.com'});
                 user.userRole = "Administrator";
                 user.agency = "General Services Administration";
                 user.firstName = "auth-beforeAllUser";

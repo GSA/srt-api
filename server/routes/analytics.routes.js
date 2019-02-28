@@ -277,9 +277,6 @@ module.exports = {
                                     }
                                     else data.FilteredNonComplianceSolicitation++
 
-                                    if (predictions[i].history && predictions[i].history.length > 0 ) {
-                                        console.log (predictions[i].history);
-                                    }
 
                                     if (predictions[i].predictions.value == "GREEN" &&
                                         predictions[i].history.filter(function (e) {
