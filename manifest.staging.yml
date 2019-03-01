@@ -9,6 +9,6 @@ applications:
   buildpack: https://github.com/cloudfoundry/nodejs-buildpack
   env:
     NODE_ENV: clouddev
-#  services:
-#    - srt-postgres
+  services:
+    - srt-postgres-stage
 
