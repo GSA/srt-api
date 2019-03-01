@@ -119,7 +119,7 @@ function check_cloud_gov_env() {
       log "cf env srt-server-${SPACE}"
       log ""
       while true; do
-        read -p "Would you like to enter the key now?" yn
+        read -p "Would you like to enter the Sendgrid API key now?" yn
         case $yn in
             [Yy]* )
               log "yes chosen"
