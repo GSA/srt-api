@@ -10,7 +10,8 @@
     "test": "MAIL_ENGINE=nodemailer-mock  jest --detectOpenHandles --config=jest.config.js --runInBand ",
     "test-watch": "export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock &&  jest --detectOpenHandles --config=jest.config.js --watch ",
     "backup-db": "export PGPASSWORD=***REMOVED*** && pg_dump -U utz6kah1zq8t2nyg -d cgawsbrokerprodgq3wrvn8c8a772q -h 192.168.1.126 > srt-database.sql ",
-    "restore-db": "export PGPASSWORD=***REMOVED*** && export PGUSER=utz6kah1zq8t2nyg && export PGHOST=192.168.33.101 && export PGDATABASE=cgawsbrokerprodgq3wrvn8c8a772q &&  rm -f srt-database.sql* srt-database.sql.gz && cp srt-database-export.sql.gz srt-database.sql.gz && gzip -d srt-database.sql.gz && dropdb  ${PGDATABASE} && createdb ${PGDATABASE} && psql  <srt-database.sql "
+    "restore-db": "export PGPASSWORD=***REMOVED*** && export PGUSER=utz6kah1zq8t2nyg && export PGHOST=192.168.33.101 && export PGDATABASE=cgawsbrokerprodgq3wrvn8c8a772q &&  rm -f srt-database.sql* srt-database.sql.gz && cp srt-database-export.sql.gz srt-database.sql.gz && gzip -d srt-database.sql.gz && dropdb  ${PGDATABASE} && createdb ${PGDATABASE} && psql  <srt-database.sql ",
+    "doc": "node_modules/.bin/jsdoc -t node_modules/docdash -d docs -R ./README.md -r server/routes"
   },
   "author": "TCG",
   "license": "ISC",
@@ -34,8 +35,10 @@
     "sequelize-cli": "^5.4.0"
   },
   "devDependencies": {
+    "docdash": "^1.0.3",
     "expect": "^1.20.2",
     "jest": "~23",
+    "jsdoc": "^3.5.5",
     "mocha": "^3.2.0",
     "mock-express-request": "^0.2.2",
     "mock-express-response": "^0.2.2",

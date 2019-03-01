@@ -1,3 +1,5 @@
+/** @module Auth */
+
 var express = require('express');
 var bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -12,9 +14,27 @@ const config = require(__dirname + '/../config/config.json')[env];
 
 
 /**
- * register
+ * Defines the functions used to process the various authorization and authentication related API routes.
  */
 module.exports = {
+    /**
+     * <b> POST /api/auth </b> <br><br>
+     *
+     * Creates a new (un-approved) user account. This is a public route
+     *
+     * @param {Request} req
+     * @param {Object} req.body
+     * @param {string} req.body.firstName - Registered user's first name
+     * @param {string} req.body.lastName - Registered user's last name
+     * @param {string} req.body.email - Registered user's email. Must be unique in the system
+     * @param {string} req.body.agency - Registered user's agency name. This is the full name, not ID or acronym.
+     * @param {string} req.body.password - Registered user's temporary password
+     * @param {string} req.body.position - Registered user's role
+     * @param {string} req.body.isAccepted - Ignored - all user registrations will start as isAccepted false
+     * @param {string} req.body.isRejected - Ignored - all user registrations will start as isRejected false
+     * @param res
+     * @return {Promise}
+     */
     create: function create(req, res) {
 
         var obj = {};
@@ -37,7 +57,34 @@ module.exports = {
             );
     },
 
-    login: async function (req, res, next) {
+    /**
+     * <b> POST /api/auth/login </b> <br><br>
+     *
+     * Attempts to log in a user with the given credentials. <br>
+     * On success, will send the Response an object with the following structure <br>
+     *     <pre>
+          {
+              message: 'Successfully logged in',
+              token: JWT Token,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              email: user.email,
+              agency: user.agency,
+              position: user.position,
+              userRole: user.userRole,
+              id: user.id
+          };
+
+          </pre>
+     *
+     * @param {Request} req
+     * @param {Object} req.body
+     * @param {string} req.body.email - User's email
+     * @param {string} req.body.password - User's unencrypted password or temporary password
+     * @param res
+     * @return {Promise}
+     */
+    login: async function (req, res) {
 
         User.find({where: {email: req.body.email}})
             .then(async user => {
@@ -81,7 +128,7 @@ module.exports = {
                     position: user.position,
                     userRole: user.userRole,
                     id: user.id,
-                    tempPassword: user.tempPassword
+                //    tempPassword: user.tempPassword
                 };
 
                 res.status(200).send(ret_obj);
@@ -94,11 +141,19 @@ module.exports = {
             });
     },
 
-    // this fake reset is used to handle a duplicate call the client makes
-    // when resetting passwords.
     // TODO: The proper fix is to rework the client, but that is outside scope for now.
+    /**
+     * <b> POST /api/auth/resetPassword </b> <br><br>
+     *
+     * This fake reset is used to handle a duplicate call the client
+     * makes when resetting passwords.  <br>
+     * On success, will send the Response a string "First step password reset complete.
 
-    resetPasswordFake: function (req, res, next) {
+     * @param req
+     * @param res
+     * @return Promise
+     */
+    resetPasswordFake: function (req, res) {
         return res.status(200).send({
             tempPassword: "",
             message: "First step password reset complete."
@@ -106,7 +161,28 @@ module.exports = {
     },
 
 
-    resetPassword: function (req, res, next) {
+    /**
+     * <b> POST /api/email/resetPassword </b> <br><br>
+     *
+     * Performs a password reset on the supplied user email. If the reset is successful
+     * an email will be sent to the supplied address with instructions on how to
+     * proceed with the reset. This is a public call.<br>
+     * On success, will send the Response an object with the following structure <br>
+     *     <pre>
+           {
+               tempPassword: string,
+               message: 'If this account was found in our system, an email
+                         with password reset instructions was sent to ' + req.body.email
+           }
+     </pre>
+     *
+     * @param {Request} req
+     * @param {Object} req.body
+     * @param {string} req.body.email - User's email
+     * @param {Response} res
+     * @return {Promise}
+     */
+    resetPassword: function (req, res) {
         let email = req.body.email;
         let message = 'If this account was found in our system, an email with password reset instructions was sent to ' + req.body.email;
         let temp = new Date().toLocaleDateString() + new Date().toLocaleTimeString() + 'SRTAI';
@@ -164,6 +240,24 @@ module.exports = {
             });
     },
 
+    /**
+     * <b> POST /api/auth/tokenCheck</b> <br><br>
+     *
+     * Examines the supplied JWT token to verify it was properly signed and is valid.
+     * For valid tokens the user's role information will be returned:
+     * <pre>
+          {
+              isLogin: true/false,
+              isGSAAdmin: true/false
+          }
+       </pre>
+     *
+     * @param {Request} req
+     * @param {Object} req.body
+     * @param {string} req.body.token - JWT Token to test
+     * @param {Response} res
+     * @return {Promise}
+     */
     tokenCheck: function (req, res, next) {
         var token = req.body.token;
         var isLogin = false;

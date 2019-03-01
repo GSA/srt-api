@@ -349,6 +349,7 @@ function getPredictions(filter) {
     let solNum = filter.solNum;
     let startDate = (filter.startDate) ? filter.startDate : filter.fromPeriod;
     let endDate = (filter.endDate) ? filter.endDate : filter.toPeriod;;
+    let eitLikelihood = filter.eitLikelihood;
 
     let where_array = [ "1 = 1"];
     if (office && office != "") {
@@ -363,11 +364,16 @@ function getPredictions(filter) {
     if (solNum && solNum != "") {
         where_array.push( "notice_number = " + SqlString.escape(solNum, null, "postgres"))
     }
+    if (eitLikelihood && eitLikelihood != "") {
+        // this is a no-op for now since all records added to the database should have eitLikelihood true
+    }
     if (startDate && startDate != "") {
         where_array.push( "date > " + SqlString.escape(makePostgresDate(startDate), null, "postgres"))
+        where_array.push( "date is not null")
     }
     if (endDate && endDate != "") {
         where_array.push( "date < " + SqlString.escape(makePostgresDate(endDate), null, "postgres"))
+        where_array.push( "date is not null")
     }
 
 

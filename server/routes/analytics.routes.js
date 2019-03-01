@@ -1,35 +1,69 @@
+/** @module Analytics */
+
+
 const logger = require('../config/winston');
 const predictionRoutes = require('./prediction.routes');
 
-function predictionFind(params) {
-    return predictionRoutes.getPredictions(params)
-        .then ( (allPredictions) => {
-
-            let filteredPredictions = [];
-            for (let i =0; i < allPredictions.length; i++) {
-                for (let prop in params) {
-                    if (allPredictions[i][prop] == params[prop] ||
-                        (allPredictions[i][prop] &&
-                            allPredictions[i][prop].value &&
-                            allPredictions[i][prop].value == params[prop] )
-                    ) {
-                        filteredPredictions.push( allPredictions[i] );
-                    }
-                }
-            }
-            return filteredPredictions;
-        })
-
-        .catch (e => {
-            logger.log("error", e, {tag: "predictionFind"});
-            return [];
-        })
-
-}
-
-
+/**
+ * Defines the functions used to process the various analytices related API routes.
+ */
 module.exports = {
 
+    /**
+     * <b> GET /api/analytics </b> <br><br>
+     *
+     * Calculates a number of statistics for the solicitations meeting the filter
+     * criteria provided in req.body <br>
+     *
+     * Returns an Object of the form: <br>
+     *     <pre>
+     *     {
+     *       "ScannedSolicitationChart" : {
+     *           "scannedData": { bar chart data here },
+     *           "MachineReadableChart" : {
+     *               "machineReadable" : number ,
+     *               "machineUnreadable" : number
+     *               },
+     *           "ComplianceRateChart" : {
+     *               "compliance" : number,
+     *               "determinedICT" : number
+     *               },
+     *           "ConversionRateChart" : {
+     *               "updatedCompliantICT" : number,
+     *               "uncompliance" : number
+     *               },
+     *           "TopSRTActionChart" : {
+     *               "determinedICT" : number,
+     *               "uncompliance" : number,
+     *               "review" : number,
+     *               "email" : number,
+     *               "updatedICT" : number,
+     *               "updatedCompliantICT" : number,
+     *               "updatedNonCompliantICT" : 0
+     *               },
+     *            "TopAgenciesChart" : { "topAgencies" : { agency info }}},
+     *            "PredictResultChart" : {
+     *                "compliance" : number,
+     *                "uncompliance":number
+     *                },
+     *           "UndeterminedSolicitationChart" : {
+     *               "presolicitation" : number,
+     *               "latestOtherUndetermined" : number,
+     *               "latestNonMachineReadable" : number,
+     *               "latestNoDocument" : number
+     *               }
+     *           }
+     *     </pre>
+     *
+     * @param {Request} req
+     * @param {Object} req.body
+     * @param {string} req.body.eitLikelihood - If provided, should always be "Yes"
+     * @param {string} req.body.agency - Name of agency or "Government-wide"
+     * @param {string} req.body.fromPeriod - Start date for analysis
+     * @param {string} req.body.toPeriod - End date for analysis
+     * @param res
+     * @return Promise
+     */
     analytics : (req, res) => {
         try {
             var params = {};
@@ -57,7 +91,7 @@ module.exports = {
             params.agency = agency;
 
 
-            return predictionFind(params)
+            return predictionRoutes.getPredictions(params)
                 .then( (predictions) => {
                     var timer1 = new Date().getMilliseconds();
 
