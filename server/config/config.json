@@ -71,6 +71,30 @@
       "port": 8080
     }
   },
+  "cloudstage": {
+    "username": "utz6kah1zq8t2nyg",
+    "password": "***REMOVED***",
+    "database": "cgawsbrokerprodgq3wrvn8c8a772q",
+    "host": "srt-postgres-stage",
+    "port": 5432,
+    "dialect": "postgres",
+    "logging": false,
+
+    "emailFrom": "crowley+srtstage@tcg.com",
+    "emailServer" : {
+      "host": "smtp.sendgrid.net",
+      "port": 465,
+      "secure": true,
+      "auth": {
+        "user": "apikey",
+        "pass": "ENV variable SENDGRID_API_KEY"
+      }
+    },
+    "emailLogOnly": false,
+    "srt_server": {
+      "port": 8080
+    }
+  },
   "test": {
     "username": "utz6kah1zq8t2nyg",
     "password": "***REMOVED***",
