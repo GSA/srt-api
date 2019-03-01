@@ -67,11 +67,3 @@ module.exports = {
 
 };
 
-
-// app.get('/surveys', (req, res) => {
-//     Survey.find().then((survey) => {
-//         res.send(survey);
-//     }, (e) => {
-//         res.status(400).send(e);
-//     });
-// });
