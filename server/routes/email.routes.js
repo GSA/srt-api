@@ -1,3 +1,4 @@
+/** @module email */
 const express = require('express');
 
 const nodemailer = require((process.env.MAIL_ENGINE) ? process.env.MAIL_ENGINE : 'nodemailer');
@@ -7,6 +8,23 @@ const logger = require('../config/winston');
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.json')[env];
 
+/**
+ * Email message format
+ * @typedef {Object} Message
+ * @property {string} text email body text
+ * @property {string} html email body text in HTML format. Will override text if present.
+ * @property {string} to To email address
+ * @property {string} cc CC email addresses
+ * @property {string} from From email address
+ * @property {string} subject Email subject
+ */
+
+/**
+ * Send email message function. Promise will provide some error info if it is rejected
+ *
+ * @param {Message} message (see type def)
+ * @return {Promise}
+ */
 
 function sendMessage(message) {
     if ( (message.text == undefined && message.html == undefined  )||
@@ -59,7 +77,20 @@ module.exports = {
 
     sendMessage : sendMessage,
 
-    email : async function (req, res, next) {
+    /**
+     * Will attempt to send an email message when called.
+     * The from address will be taken from the configuration file
+     *
+     * @param {Object} req
+     * @param {Object} req.body
+     * @param {string} req.body.text Message text
+     * @param {string} req.body.emailTo To address
+     * @param {string} req.body.emailCC CC addresses
+     * @param {string} req.body.subject Email subject
+     * @param {Response} res
+     * @return {Promise}
+     */
+    email : async function (req, res) {
         let mailOptions = {
             text: req.body.text,
             from: config.emailFrom,
@@ -87,6 +118,14 @@ module.exports = {
             })
     },
 
+    /**
+     * This method will send an email to the user informing them of a password change request.
+     * User info is obtained by decoding the JWT attached to the request.
+     *
+     * @param {Object} req
+     * @param res
+     * @return {Promise}
+     */
     updatePassword : async (req, res) => {
         var token = req.headers['authorization'].split(' ')[1];
         if (token != 'null') {
