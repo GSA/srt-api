@@ -1,3 +1,5 @@
+/** @module User */
+
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -8,7 +10,14 @@ const emailRoutes = require('./email.routes');
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.json')[env];
 
-
+/**
+ * 
+ * Helper function to save an updated user password
+ *
+ * @param {User} user Sequelize User record
+ * @param {string} unencrypted_password New password for the User
+ * @return {Promise}
+ */
 let performUpdatePassword = function (user, unencrypted_password) {
     logger.log ("info", "Updating password for user " + user.email, {tag : "performUpdatePassword"});
 
@@ -23,6 +32,17 @@ let performUpdatePassword = function (user, unencrypted_password) {
 
 
 module.exports = {
+
+    /**
+     * <b>POST /api/user/filter </b> <br><br>
+     *
+     * Sends an array of users records that match the supplied filter to the response.
+     *
+     * @param {Request} req.body.isAccepted [optional] Return users having an isAccepted value matching this
+     * @param {Request} req.body.isRejected [optional] Return users having an isRejected value matching this
+     * @param {Response} res
+     * @return {Promise}
+     */
     filter: function(req, res) {
         var filterParams = {};
         var isAccepted = req.body.isAccepted;
@@ -45,6 +65,30 @@ module.exports = {
             })
     },
 
+    /**
+     * <b>POST /api/user/updateUserInfo </b> <br>
+     * <b>POST /api/user/update</b> <br><br>
+     *
+     * Updates a user record with the supplied values.<br>
+     * There are no authorization checks - any authenticated user can update any record
+     *
+     * @param {Request} req.body.id User ID to update
+     * @param {Request} req.body.isRejected [optional] Return users having an isRejected value matching this
+     * @param {string} req.body.firstName [optional]
+     * @param {string} req.body.lastName [optional]
+     * @param {string} req.body.agency [optional]
+     * @param {string} req.body.NewEmail [optional]
+     * @param {string} req.body.password [optional]
+     * @param {string} req.body.position [optional]
+     * @param {string} req.body.isAccepted [optional]
+     * @param {string} req.body.isRejected [optional]
+     * @param {string} req.body.userRole [optional]
+     * @param {string} req.body.rejectionNote [optional]
+     * @param {string} req.body.creationDate [optional]
+     * @param {string} req.body.tempPassword [optional] 
+     * @param {Response} res.body.
+     * @return {Promise}
+     */
     update: function(req,res) {
         let id = (req.body.userId) ? req.body.userId :
                     (req.body.id) ? req.body.id :
@@ -73,8 +117,24 @@ module.exports = {
         })
     },
 
+    /**
+     * exported here for use in unit tests
+     *
+     */
     performUpdatePassword: performUpdatePassword,
 
+
+    /**
+     * <b>POST /api/user/updatePassword</b><br><br>
+     *
+     * Update a user's password. The user account is identified by decoding the JWT so this will
+     * only ever change the current user's password.
+     *
+     * @param {string} req.body.password New unencrypted password.
+     * @param {string} req.body.oldpassword Unencrypted current password. Must match the db.
+     * @param {Response} res
+     * @return {Promise}
+     */
     updatePassword: function (req, res) {
         var newPassword = req.body.password;
         var oldPassword = req.body.oldpassword;
@@ -116,7 +176,15 @@ module.exports = {
         })
 
     },
-
+    /**
+     * <b>POST /api/user/getUserInfo</b><br><br>
+     *
+     * Finds the User record that matches the supplied ID and sends it to the response
+     *
+     * @param {string} req.body.id User ID
+     * @param res
+     * @return {Promise}
+     */
     getUserInfo: function(req, res) {
         let id =
             (req.body.UserID) ? req.body.UserID :
@@ -140,7 +208,7 @@ module.exports = {
 
 
      /**
-     * Get the create Date.   (this was the orig. comment. No idea what is going on here!)
+     * Legacy code - Get the create Date.   (this was the orig. comment. No idea what is going on here!)
      */
      getCurrentUser: function (req, res) {
          if ( ! req.headers['authorization']) {

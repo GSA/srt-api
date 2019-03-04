@@ -1,8 +1,5 @@
 /** @module Solicitation */
 
-/**
- * API routes related to solicitations
- */
 const _ = require('lodash');
 // const db = require('../models/index');
 const logger = require('../config/winston');
@@ -10,6 +7,9 @@ const Notice = require('../models').notice;
 const predictionRoute = require('../routes/prediction.routes');
 
 
+/**
+ * API routes related to solicitations
+ */
 
 module.exports = function (db) {
 
