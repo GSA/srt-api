@@ -143,9 +143,9 @@ function deepConcat (a, b) {
  * Merges two prediction. Necessary because the underlying database has multiple notice rows for each solicitaiton.
  * This merge function lets us sequentially merge each row from the notice table into a single prediction record.
  *
- * @param {Predictio} older - Older prediction to be merged
- * @param {Prediction} - Newer prediction to be merged. Newer single values will often overwrite older single values. Lists will be concatenated.
- * @return {Prediction} - Prediction having merged data from the older and newer parameters.
+ * @param {Predictio} older Older prediction to be merged
+ * @param {Prediction} newer Newer prediction to be merged. Newer single values will often overwrite older single values. Lists will be concatenated.
+ * @return {Prediction} Prediction having merged data from the older and newer parameters.
  */
 
 function mergeOnePrediction(older, newer) {
@@ -173,7 +173,7 @@ function mergeOnePrediction(older, newer) {
 /**
  * Takes in an array of Predictions and merges all the entries that have a matching solNum (aka notice number)
  *
- * @param {Array(Prediction)} - predictionList possibly with duplicates
+ * @param {Array(Prediction)} predictionList possibly with duplicates
  * @return {Array(Prediction)} Merged prediction list
  */
 function mergePredictions (predictionList) {
@@ -215,7 +215,7 @@ function  makePostgresDate (origDate) {
 /**
  * Returns all predictions that match the given filter
  *
- * @param {PredictionFilter} Return predictions that match the given filter
+ * @param {PredictionFilter} filter Return predictions that match the given filter
  * @return {Promise<Array(Prediction)>} All predictions that match the filter
  */
 function getPredictions(filter) {

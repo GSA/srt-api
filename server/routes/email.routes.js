@@ -1,4 +1,4 @@
-/** @module email */
+/** @module Email */
 const express = require('express');
 
 const nodemailer = require((process.env.MAIL_ENGINE) ? process.env.MAIL_ENGINE : 'nodemailer');

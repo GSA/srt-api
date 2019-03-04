@@ -1,34 +1,16 @@
+/** @module Survey */
+
+/**
+ * API routes related to surveys
+ */
+
 const logger = require('../config/winston');
 const db = require('../models/index');
 const Survey  = require('../models').Survey;
 
-function getMockSurvey () {
-    return [
-        {
-            ID: "1",
-            Question : "Was the classification correct?",
-            Choices: ["Yes", "No"],
-            Section: "Section1",
-            Type: "multiple response",
-            Answer: "-Answer-",
-            Note: "Please consider only the classification and no issues with the data.",
-            ChoicesNote: ["Select this if answer is yes", "Select this if answer is no"]
-        },
-        {
-            ID: "2",
-            Question : "Was the information correct?",
-            Choices: ["Yes", "No"],
-            Section: "Section2",
-            Type: "multiple response",
-            Answer: "-Answer-",
-            Note: "Please consider only the information listed above and not the classification.",
-            ChoicesNote: ["Select this if answer is yes", "Select this if answer is no"]
-        },
-
-    ];
-}
 
 /**
+ * Takes a survey record from the database and reformats it as expected by the client UI
  *
  * @param s Survey
  * @returns {{ChoicesNote: string[], Answer: string, Type: string, Choices: string[], Note: string, Question: string, ID: *, Section: string}}
@@ -51,6 +33,16 @@ function makeOneSurvey(s) {
  */
 module.exports = {
 
+    /**
+     * <b> GET /api/surveys<b><br><br>
+     *
+     * Sends an array of Survey objects to the response.
+     * All survey rows in the database are returned. No parameters are used.
+     *
+     * @param {Request} req
+     * @param {Response} res
+     * @return {Promise}
+     */
     get : (req, res) => {
 
         // return res.status(200).send(getMockSurvey());
@@ -67,3 +59,30 @@ module.exports = {
 
 };
 
+
+
+// function getMockSurvey () {
+//     return [
+//         {
+//             ID: "1",
+//             Question : "Was the classification correct?",
+//             Choices: ["Yes", "No"],
+//             Section: "Section1",
+//             Type: "multiple response",
+//             Answer: "-Answer-",
+//             Note: "Please consider only the classification and no issues with the data.",
+//             ChoicesNote: ["Select this if answer is yes", "Select this if answer is no"]
+//         },
+//         {
+//             ID: "2",
+//             Question : "Was the information correct?",
+//             Choices: ["Yes", "No"],
+//             Section: "Section2",
+//             Type: "multiple response",
+//             Answer: "-Answer-",
+//             Note: "Please consider only the information listed above and not the classification.",
+//             ChoicesNote: ["Select this if answer is yes", "Select this if answer is no"]
+//         },
+//
+//     ];
+// }

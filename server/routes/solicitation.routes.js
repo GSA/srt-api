@@ -1,3 +1,8 @@
+/** @module Solicitation */
+
+/**
+ * API routes related to solicitations
+ */
 const _ = require('lodash');
 // const db = require('../models/index');
 const logger = require('../config/winston');
@@ -18,7 +23,18 @@ module.exports = function (db) {
 //     });
 // });
 
-        get: function (req, res) {
+        /**
+         * <b> GET /api/solicitation/:id </b> <br><br>
+         *
+         * Sends a object of type module:prediction.Prediction to the response.
+         *
+         * @param {Request} req
+         * @param {Object} req.params
+         * @param {string} req.params.id
+         * @param res
+         * @return Promise
+         */
+         get: function (req, res) {
             return Notice.findById(req.params.id)
                 .then((notice) => {
                     return res.status(200).send(predictionRoute.makeOnePrediction(notice));
@@ -31,7 +47,17 @@ module.exports = function (db) {
 
 
         /**
-         * Update a history list of selected solicitation
+         * <b> POST /api/solicitation </b><br><br>
+         *
+         * Updates the history list of selected solicitation
+         *
+         * @param {Request} req
+         * @param {Object} req.body
+         * @param {string} req.body.solNum solicitation number (also known as notice number) of the record to update.
+         * @param {Array(History)} req.body.history
+         * @param {Array(Feedback)} req.body.feedback
+         * @param res
+         * @return {Promise}
          */
         postSolicitation: function (req, res) {
 
@@ -79,7 +105,21 @@ module.exports = function (db) {
         }, // end postSolicitation
 
         /**
-         * Get soliciation feedback
+         * <b>POST /api/solicitation/feedback<b><br><br>
+         *
+         * Send a Array of Prediction Objects matching the parameters.
+         * If a solicitation number is provide, send just that one element in the array
+         *
+         * TODO: This route does not well support the new storage schema in Postrgres so may not work as expected for solicitations having more than one row in the notice table.
+         *
+         *
+         * @param {Object} req
+         * @param {Object} req.body
+         * @param {string} req.body.solNum If provided, only respond with data for the given solicitation number
+         * @param {string} req.body.$where MongoDB style selector. We only support feedback length
+         * @param {Object} res
+         * @return {Promise}
+         *
          */
         solicitationFeedback: (req, res) => {
 
