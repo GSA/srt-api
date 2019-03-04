@@ -240,7 +240,7 @@ function makeOnePrediction(notice) {
 
     o.id = notice.id;
     o.title = (notice.notice_data  !== undefined) ? notice.notice_data.subject : "";
-    o.reviewRec = pickOne(reviewRecArray);
+    o.reviewRec = (notice.compliant === 1) ? "Compliant" : "Non-compliant (Action Required)";
     o.agency = notice.agency;
     o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0;
     o.solNum = notice.notice_number;
