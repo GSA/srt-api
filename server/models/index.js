@@ -1,4 +1,76 @@
 'use strict';
+/** @module Models */
+
+/**
+ * @typedef {Model} Agency
+ * @property {string} agency Agency name
+ * @property {string} acronym Agency acronym
+ */
+
+/**
+ * @typedef {Model} Attachment
+ * @property {number} id
+ * @property {number} notice_id
+ * @property {number} notice_type_id
+ * @property {string} attachment_text
+ * @property {string} prediction
+ * @property {string} decision_boundary
+ * @property {string} validation
+ * @property {string} attachment_url
+ * @property {string} trained
+ *
+ */
+
+/**
+ * @typedef {Model} Notice
+ * @property {number} id
+ * @property {number} notice_type_id
+ * @property {string} notice_number
+ * @property {string} agency
+ * @property {date} date
+ * @property {Object} notice_data
+ * @property {string} compliant
+ * @property {Object} action
+ * @property {Object} feedback
+ * @property {Object} history
+*/
+
+/**
+ * @typedef {Model} NoticeType
+ * @property {number} id
+ * @property {string} notice_type
+ */
+
+/**
+ * @typedef {Model} Survey
+ * @property {number} id
+ * @property {string} question
+ * @property {Object} choices
+ * @property {string} section
+ * @property {string} type
+ * @property {string} answer
+ * @property {string} note
+ * @property {Object} choicesNote
+ *
+ */
+
+/**
+ *
+ * @type {Model} User
+ * @property {string} firstName: DataTypes.STRING,
+ * @property {string} lastName: DataTypes.STRING,
+ * @property {string} agency: DataTypes.STRING,
+ * @property {string} email: DataTypes.STRING,
+ * @property {string} password: DataTypes.STRING,
+ * @property {string} position: DataTypes.STRING,
+ * @property {string} isAccepted: DataTypes.BOOLEAN,
+ * @property {string} isRejected: DataTypes.BOOLEAN,
+ * @property {string} userRole: DataTypes.STRING,
+ * @property {string} rejectionNote: DataTypes.STRING,
+ * @property {string} creationDate: DataTypes.STRING,
+ * @property {string} tempPassword: DataTypes.STRING
+ *
+ */
 
 const fs = require('fs');
 const path = require('path');

@@ -1,4 +1,4 @@
-/** @module Solicitation */
+/** @module SolicitationRoutes */
 
 const _ = require('lodash');
 // const db = require('../models/index');

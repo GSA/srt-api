@@ -1,4 +1,4 @@
-/** @module User */
+/** @module UserRoutes */
 
 const express = require('express');
 const jwt = require('jsonwebtoken');

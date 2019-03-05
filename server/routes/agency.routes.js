@@ -1,8 +1,7 @@
-/** @module agency */
+/** @module AgencyRoutes */
 const logger = require('../config/winston');
 const Agency = require('../models').Agency;
 const db = require('../models/index');
-const predictionRoutes = require('./prediction.routes');
 
 
 /**
@@ -82,17 +81,6 @@ module.exports = {
                 let agencyList = [];
                 agencies.forEach( (a) => {agencyList.push(a.agency)});
                 return res.status(200).send(agencyList);
-                // let predictionFilterData = predictionRoutes.mockData();
-                //
-                // let agencyList = [];
-                // let map = new Object();
-                // for (let item of predictionFilterData) {
-                //     if (!map.hasOwnProperty(item.agency)) {
-                //         map[item.agency] = item.agency;
-                //         agencyList.push(item.agency)
-                //     }
-                // }
-                // return res.status(200).send(agencyList);
             })
             .catch( e => {
                 logger.log("error", e, {tag: "agencyList"});

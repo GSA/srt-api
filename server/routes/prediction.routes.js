@@ -1,4 +1,4 @@
-/** @module Prediction */
+/** @module PredictionRoutes */
 
 /**
  * Prediction routes

@@ -1,4 +1,4 @@
-/** @module Analytics */
+/** @module AnalyticsRoutes */
 
 
 const logger = require('../config/winston');

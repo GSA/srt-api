@@ -1,4 +1,4 @@
-/** @module Auth */
+/** @module AuthRoutes */
 
 var express = require('express');
 var bcrypt = require('bcryptjs');

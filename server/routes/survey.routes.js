@@ -1,4 +1,4 @@
-/** @module Survey */
+/** @module SurveyRoutes */
 
 /**
  * API routes related to surveys
