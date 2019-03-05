@@ -1,0 +1,2681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Module: PredictionRoutes</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Module: PredictionRoutes</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        
+            
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="module:PredictionRoutes"><span class="type-signature"></span>module:PredictionRoutes<span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    prediction routes
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_prediction.routes.js.html">routes/prediction.routes.js</a>, <a href="routes_prediction.routes.js.html#line290">line 290</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="~logger"><span class="type-signature">(inner, constant) </span>logger<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Prediction routes
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_prediction.routes.js.html">routes/prediction.routes.js</a>, <a href="routes_prediction.routes.js.html#line6">line 6</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".predictionFilter"><span class="type-signature">(static) </span>predictionFilter<span class="signature">(req, res)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Finds all the predictions that match the filter and send them out to the response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>req</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>body</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">PredictionFilter</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>res</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Response</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_prediction.routes.js.html">routes/prediction.routes.js</a>, <a href="routes_prediction.routes.js.html#line305">line 305</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~deepConcat"><span class="type-signature">(inner) </span>deepConcat<span class="signature">(a, b)</span><span class="type-signature"> &rarr; {Array}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Takes two arrays and returns an array containing a clone (not ref copy) of each element in the
+two input arrays. Values in array a will come before values from b in the return
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>a</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>b</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_prediction.routes.js.html">routes/prediction.routes.js</a>, <a href="routes_prediction.routes.js.html#line127">line 127</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - Array containing clean copies of all elements in a and b
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~getPredictions"><span class="type-signature">(inner) </span>getPredictions<span class="signature">(filter)</span><span class="type-signature"> &rarr; {Promise.&lt;Array(Prediction)>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Returns all predictions that match the given filter
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>filter</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">PredictionFilter</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Return predictions that match the given filter</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_prediction.routes.js.html">routes/prediction.routes.js</a>, <a href="routes_prediction.routes.js.html#line221">line 221</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    All predictions that match the filter
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;Array(Prediction)></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~makeOnePrediction"><span class="type-signature">(inner) </span>makeOnePrediction<span class="signature">(notice)</span><span class="type-signature"> &rarr; {Prediction}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Takes a notice row from the database and converts
+it to a prediction record
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>notice</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">notice record from the database</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_prediction.routes.js.html">routes/prediction.routes.js</a>, <a href="routes_prediction.routes.js.html#line79">line 79</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    prediction record built from the given notice row
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Prediction</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~makePostgresDate"><span class="type-signature">(inner) </span>makePostgresDate<span class="signature">(origDate)</span><span class="type-signature"> &rarr; {string}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Helper function to convert a date string to YYYY-MM-DD format
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>origDate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">date in either MM/DD/YYYY or MM-DD-YYYY format</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_prediction.routes.js.html">routes/prediction.routes.js</a>, <a href="routes_prediction.routes.js.html#line201">line 201</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    date in YYYY-MM-DD format
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~mergeOnePrediction"><span class="type-signature">(inner) </span>mergeOnePrediction<span class="signature">(older, newer)</span><span class="type-signature"> &rarr; {Prediction}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Merges two prediction. Necessary because the underlying database has multiple notice rows for each solicitaiton.
+This merge function lets us sequentially merge each row from the notice table into a single prediction record.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>older</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Predictio</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Older prediction to be merged</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>newer</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Prediction</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Newer prediction to be merged. Newer single values will often overwrite older single values. Lists will be concatenated.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_prediction.routes.js.html">routes/prediction.routes.js</a>, <a href="routes_prediction.routes.js.html#line151">line 151</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Prediction having merged data from the older and newer parameters.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Prediction</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~mergePredictions"><span class="type-signature">(inner) </span>mergePredictions<span class="signature">(predictionList)</span><span class="type-signature"> &rarr; {Array(Prediction)}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Takes in an array of Predictions and merges all the entries that have a matching solNum (aka notice number)
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>predictionList</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array(Prediction)</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">possibly with duplicates</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_prediction.routes.js.html">routes/prediction.routes.js</a>, <a href="routes_prediction.routes.js.html#line179">line 179</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Merged prediction list
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array(Prediction)</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Type Definitions</h3>
+
+        
+                
+<h4 class="name" id="~action">action</h4>
+
+
+
+
+<div class="description">
+    Action record
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>actionDate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">date</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Date the action occurred</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>actionStatus</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Text description of the action. ex. "Email sent to POC"</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_prediction.routes.js.html">routes/prediction.routes.js</a>, <a href="routes_prediction.routes.js.html#line49">line 49</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+<h4 class="name" id="~Contact">Contact</h4>
+
+
+
+
+<div class="description">
+    Contact record
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>contact</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">"contact" value - not sure what this would be. Maybe the raw data from FedBizOps?</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">contact name</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>position</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">contact position</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>email</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">contact email</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_prediction.routes.js.html">routes/prediction.routes.js</a>, <a href="routes_prediction.routes.js.html#line63">line 63</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+<h4 class="name" id="~EIT">EIT</h4>
+
+
+
+
+<div class="description">
+    IT Likellihood record
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>naics</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">NAICS number for the solicitation</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">"Yes" if this solicitation is IT related or "No" if it is not</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_prediction.routes.js.html">routes/prediction.routes.js</a>, <a href="routes_prediction.routes.js.html#line56">line 56</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+<h4 class="name" id="~Prediction">Prediction</h4>
+
+
+
+
+<div class="description">
+    A prediction object as expected by the client UI
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">integer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Database ID of the prediction. This value shouldn't be used if possible. It will refer to the id of the last notice row associated with this prediction.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>title</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Solicitation title for this prediction</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>reviewRec</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Prediction for the soicitation. One of "Compliant", "Non-compliant (Action Required)", or "Undetermined"</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>numDocs</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Number of attachments associated with the solicitation</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>solNum</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Notice number for this prediction</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>noticeType</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Notice type for the associated solicitation</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>date</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Date the solicitation was last updated in the database</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>office</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Office associated with the solicitation</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>predictions</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Has one element named value of "RED" or "GREEN" for non / compliant solicitations. Don't know why it's a plural noun.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>eitLikelihood</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">EIT</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Is the solicitation an IT solicitation?</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>undetermined</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">integer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Boolean representation showing if the solicitation has an undetermined prediction. 0 for false (determined) and 1 for true (undetermined)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>action</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">action</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Date/status of the last action. (quirk of the legacy code causes this to not be set until the second action occurs_</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>actionStatus</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>actionDate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>feedback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>history</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>contactInfo</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Contact</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_prediction.routes.js.html">routes/prediction.routes.js</a>, <a href="routes_prediction.routes.js.html#line26">line 26</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+<h4 class="name" id="~PredictionFilter">PredictionFilter</h4>
+
+
+
+
+<div class="description">
+    PredictionFilter
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>agency</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Limit results to the given agency</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>office</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Limit results to the given office</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>solNum</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Solictation number. Also known as notice number</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>startDate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Date in YYYY-MM-DD format</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>endDate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Date in YYYY-MM-DD format</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>eitLikelihood</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">"Yes" or "No" value indicating if you want to receive IT solications or non IT solicitations</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_prediction.routes.js.html">routes/prediction.routes.js</a>, <a href="routes_prediction.routes.js.html#line13">line 13</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AgencyRoutes.html">AgencyRoutes</a></li><li><a href="module-AnalyticsRoutes.html">AnalyticsRoutes</a></li><li><a href="module-AuthRoutes.html">AuthRoutes</a></li><li><a href="module-EmailRoutes.html">EmailRoutes</a></li><li><a href="module-Models.html">Models</a></li><li><a href="module-PredictionRoutes.html">PredictionRoutes</a></li><li><a href="module-SolicitationRoutes.html">SolicitationRoutes</a></li><li><a href="module-SurveyRoutes.html">SurveyRoutes</a></li><li><a href="module-UserRoutes.html">UserRoutes</a></li><li><a href="module-VersionRoutes.html">VersionRoutes</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Mar 05 2019 08:02:48 GMT-0500 (STD)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

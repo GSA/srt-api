@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: models/index.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: models/index.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+/** @module Models */
+
+/**
+ * @typedef {Model} Agency
+ * @property {string} agency Agency name
+ * @property {string} acronym Agency acronym
+ */
+
+/**
+ * @typedef {Model} Attachment
+ * @property {number} id
+ * @property {number} notice_id
+ * @property {number} notice_type_id
+ * @property {string} attachment_text
+ * @property {string} prediction
+ * @property {string} decision_boundary
+ * @property {string} validation
+ * @property {string} attachment_url
+ * @property {string} trained
+ *
+ */
+
+/**
+ * @typedef {Model} Notice
+ * @property {number} id
+ * @property {number} notice_type_id
+ * @property {string} notice_number
+ * @property {string} agency
+ * @property {date} date
+ * @property {Object} notice_data
+ * @property {string} compliant
+ * @property {Object} action
+ * @property {Object} feedback
+ * @property {Object} history
+*/
+
+/**
+ * @typedef {Model} NoticeType
+ * @property {number} id
+ * @property {string} notice_type
+ */
+
+/**
+ * @typedef {Model} Survey
+ * @property {number} id
+ * @property {string} question
+ * @property {Object} choices
+ * @property {string} section
+ * @property {string} type
+ * @property {string} answer
+ * @property {string} note
+ * @property {Object} choicesNote
+ *
+ */
+
+/**
+ *
+ * @type {Model} User
+ * @property {string} firstName: DataTypes.STRING,
+ * @property {string} lastName: DataTypes.STRING,
+ * @property {string} agency: DataTypes.STRING,
+ * @property {string} email: DataTypes.STRING,
+ * @property {string} password: DataTypes.STRING,
+ * @property {string} position: DataTypes.STRING,
+ * @property {string} isAccepted: DataTypes.BOOLEAN,
+ * @property {string} isRejected: DataTypes.BOOLEAN,
+ * @property {string} userRole: DataTypes.STRING,
+ * @property {string} rejectionNote: DataTypes.STRING,
+ * @property {string} creationDate: DataTypes.STRING,
+ * @property {string} tempPassword: DataTypes.STRING
+ *
+ */
+
+const fs = require('fs');
+const path = require('path');
+const Sequelize = require('sequelize');
+const Umzug = require('umzug');
+const logger = require('../config/winston');
+const basename = path.basename(__filename);
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.json')[env];
+const db = {};
+
+let sequelize;
+
+
+if (process.env.VCAP_SERVICES ) {
+  // looks like we have credential info from cloud.gov
+  // connect to the first entry in aws-rds
+  let db_config = JSON.parse(process.env.VCAP_SERVICES);
+  db_config['aws-rds'][0].credentials.dialect = "postgres";
+  db_config['aws-rds'][0].credentials.logging = config.logging;
+  sequelize = new Sequelize(
+      db_config['aws-rds'][0]['credentials']['db_name'],
+      db_config['aws-rds'][0]['credentials']['username'],
+      db_config['aws-rds'][0]['credentials']['password'],
+      db_config['aws-rds'][0]['credentials']
+  );
+} else {
+  sequelize = new Sequelize(config.database, config.username, config.password, config);
+}
+
+// Now run any database outstanding migrations using umzug
+const umzug     = new Umzug({
+  storage: "sequelize",
+
+  storageOptions: {
+    sequelize: sequelize
+  },
+
+  migrations: {
+    params: [
+      sequelize.getQueryInterface(),
+      Sequelize
+    ],
+    path: path.join(__dirname, "../migrations")
+  }
+});
+
+
+umzug.up()
+    .then( (result) => {
+      logger.log ("info", result, {tag: "Umzug db migration results"})
+    } );
+
+
+
+fs
+  .readdirSync(__dirname)
+  .filter(file => {
+    return (file.indexOf('.') !== 0) &amp;&amp; (file !== basename) &amp;&amp; (file.slice(-3) === '.js');
+  })
+  .forEach(file => {
+    const model = sequelize['import'](path.join(__dirname, file));
+    db[model.name] = model;
+  });
+
+Object.keys(db).forEach(modelName => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
+});
+
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
+
+module.exports = db;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AgencyRoutes.html">AgencyRoutes</a></li><li><a href="module-AnalyticsRoutes.html">AnalyticsRoutes</a></li><li><a href="module-AuthRoutes.html">AuthRoutes</a></li><li><a href="module-EmailRoutes.html">EmailRoutes</a></li><li><a href="module-Models.html">Models</a></li><li><a href="module-PredictionRoutes.html">PredictionRoutes</a></li><li><a href="module-SolicitationRoutes.html">SolicitationRoutes</a></li><li><a href="module-SurveyRoutes.html">SurveyRoutes</a></li><li><a href="module-UserRoutes.html">UserRoutes</a></li><li><a href="module-VersionRoutes.html">VersionRoutes</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Mar 05 2019 08:02:48 GMT-0500 (STD)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

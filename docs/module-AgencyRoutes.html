@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Module: AgencyRoutes</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Module: AgencyRoutes</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        
+            
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="module:AgencyRoutes"><span class="type-signature"></span>module:AgencyRoutes<span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Defines the functions used to process the various Agency related API routes.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_agency.routes.js.html">routes/agency.routes.js</a>, <a href="routes_agency.routes.js.html#line10">line 10</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".agencyList"><span class="type-signature">(static) </span>agencyList<span class="signature">(req, res)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    GET /api/agencyList<br>
+
+Sends a response containing an array of agency name strings: <br>
+    [ string, string, string, ... ]
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>req</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Request</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">unused</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>res</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Response</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Response object</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_agency.routes.js.html">routes/agency.routes.js</a>, <a href="routes_agency.routes.js.html#line78">line 78</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Promise
+</div>
+
+
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".getAgency"><span class="type-signature">(static) </span>getAgency<span class="signature">(req, res)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    GET /api/agencies
+
+Returns the list of all agencies
+(legacy code naming convention)
+<br>
+Sends an array of {Agency: string, Acronym: string} objects
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>req</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Request</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">unused</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>res</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Response</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Response object</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_agency.routes.js.html">routes/agency.routes.js</a>, <a href="routes_agency.routes.js.html#line53">line 53</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Promise
+</div>
+
+
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".putAgency"><span class="type-signature">(static) </span>putAgency<span class="signature">(req, res)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    PUT /api/agencies
+
+This function creates a new agency record.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>req</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Request</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">request
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>body</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">body of requiest
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>agency</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">agency name to be added</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>acronym</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">agency acronym to be added</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>res</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Response object</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_agency.routes.js.html">routes/agency.routes.js</a>, <a href="routes_agency.routes.js.html#line25">line 25</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AgencyRoutes.html">AgencyRoutes</a></li><li><a href="module-AnalyticsRoutes.html">AnalyticsRoutes</a></li><li><a href="module-AuthRoutes.html">AuthRoutes</a></li><li><a href="module-EmailRoutes.html">EmailRoutes</a></li><li><a href="module-Models.html">Models</a></li><li><a href="module-PredictionRoutes.html">PredictionRoutes</a></li><li><a href="module-SolicitationRoutes.html">SolicitationRoutes</a></li><li><a href="module-SurveyRoutes.html">SurveyRoutes</a></li><li><a href="module-UserRoutes.html">UserRoutes</a></li><li><a href="module-VersionRoutes.html">VersionRoutes</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Mar 05 2019 08:02:48 GMT-0500 (STD)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

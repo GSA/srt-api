@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Module: UserRoutes</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Module: UserRoutes</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id=".performUpdatePassword"><span class="type-signature">(static) </span>performUpdatePassword<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    exported here for use in unit tests
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_user.routes.js.html">routes/user.routes.js</a>, <a href="routes_user.routes.js.html#line124">line 124</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".filter"><span class="type-signature">(static) </span>filter<span class="signature">(res)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <b>POST /api/user/filter </b> <br><br>
+
+Sends an array of users records that match the supplied filter to the response.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.isAccepted</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Request</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional] Return users having an isAccepted value matching this</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.isRejected</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Request</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional] Return users having an isRejected value matching this</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>res</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Response</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_user.routes.js.html">routes/user.routes.js</a>, <a href="routes_user.routes.js.html#line46">line 46</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".getCurrentUser"><span class="type-signature">(static) </span>getCurrentUser<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Legacy code - Get the create Date.   (this was the orig. comment. No idea what is going on here!)
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_user.routes.js.html">routes/user.routes.js</a>, <a href="routes_user.routes.js.html#line213">line 213</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".getUserInfo"><span class="type-signature">(static) </span>getUserInfo<span class="signature">(res)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <b>POST /api/user/getUserInfo</b><br><br>
+
+Finds the User record that matches the supplied ID and sends it to the response
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">User ID</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>res</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_user.routes.js.html">routes/user.routes.js</a>, <a href="routes_user.routes.js.html#line188">line 188</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".update"><span class="type-signature">(static) </span>update<span class="signature">()</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <b>POST /api/user/updateUserInfo </b> <br>
+<b>POST /api/user/update</b> <br><br>
+
+Updates a user record with the supplied values.<br>
+There are no authorization checks - any authenticated user can update any record
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Request</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">User ID to update</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.isRejected</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Request</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional] Return users having an isRejected value matching this</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.firstName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional]</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.lastName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional]</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.agency</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional]</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.NewEmail</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional]</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.password</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional]</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.position</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional]</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.isAccepted</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional]</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.isRejected</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional]</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.userRole</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional]</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.rejectionNote</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional]</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.creationDate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional]</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.tempPassword</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[optional]</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>res.body.</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Response</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_user.routes.js.html">routes/user.routes.js</a>, <a href="routes_user.routes.js.html#line92">line 92</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".updatePassword"><span class="type-signature">(static) </span>updatePassword<span class="signature">(res)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <b>POST /api/user/updatePassword</b><br><br>
+
+Update a user's password. The user account is identified by decoding the JWT so this will
+only ever change the current user's password.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.password</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">New unencrypted password.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>req.body.oldpassword</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Unencrypted current password. Must match the db.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>res</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Response</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_user.routes.js.html">routes/user.routes.js</a>, <a href="routes_user.routes.js.html#line138">line 138</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~performUpdatePassword"><span class="type-signature">(inner) </span>performUpdatePassword<span class="signature">(user, unencrypted_password)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Helper function to save an updated user password
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>user</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">User</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Sequelize User record</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>unencrypted_password</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">New password for the User</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="routes_user.routes.js.html">routes/user.routes.js</a>, <a href="routes_user.routes.js.html#line21">line 21</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-AgencyRoutes.html">AgencyRoutes</a></li><li><a href="module-AnalyticsRoutes.html">AnalyticsRoutes</a></li><li><a href="module-AuthRoutes.html">AuthRoutes</a></li><li><a href="module-EmailRoutes.html">EmailRoutes</a></li><li><a href="module-Models.html">Models</a></li><li><a href="module-PredictionRoutes.html">PredictionRoutes</a></li><li><a href="module-SolicitationRoutes.html">SolicitationRoutes</a></li><li><a href="module-SurveyRoutes.html">SurveyRoutes</a></li><li><a href="module-UserRoutes.html">UserRoutes</a></li><li><a href="module-VersionRoutes.html">VersionRoutes</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Mar 05 2019 08:02:49 GMT-0500 (STD)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
