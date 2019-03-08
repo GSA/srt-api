@@ -47,6 +47,30 @@
       "port": 3000
     }
   },
+  "circle": {
+    "username": "circleci",
+    "password": "***REMOVED***",
+    "database": "srt",
+    "host": "localhost",
+    "port": 5432,
+    "dialect": "postgres",
+    "logging": false,
+
+    "emailFrom": "crowley+srt@tcg.com",
+    "emailServer" : {
+      "host": "smtp.sendgrid.net",
+      "port": 465,
+      "secure": true,
+      "auth": {
+        "user": "crowley",
+        "pass": "ENV variable SENDGRID_API_KEY"
+      }
+    },
+    "emailLogOnly": false,
+    "srt_server": {
+      "port": 3000
+    }
+  },
   "clouddev": {
     "username": "utz6kah1zq8t2nyg",
     "password": "***REMOVED***",
