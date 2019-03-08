@@ -66,7 +66,7 @@ module.exports = function (db) {
             })
 
                     return Notice.findAll({
-                        where: {notice_number: req.body.solNum.toString()},
+                        where: {solicitation_number: req.body.solNum.toString()},
                         order : [ ['date', "desc"] ]
                     })
                         .then((notices) => {
@@ -128,7 +128,7 @@ module.exports = function (db) {
             let limit = "";
             let order = "";
             if (req.body.solNum) {
-                where.push (` notice_number = '${req.body.solNum}' `);
+                where.push (` solicitation_number = '${req.body.solNum}' `);
                 limit = " limit 1 "; // notice number should be unique, but isn't in the test data. Yikes!
                 order = " order by date desc "; // take the one with the most recent date
             }
