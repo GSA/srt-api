@@ -220,29 +220,34 @@ describe ('prediction tests', () => {
 
     test ( 'Filter predictions to only return a certain office', () => {
 
-        return request(app)
-            .post('/api/predictions/filter')
-            .set('Authorization', `Bearer ${token}`)
-            .send({office: "u.s. army corps of engineers"})
-            .then( (res) => {
-                expect(res.statusCode).toBe(200);
-                expect(res.body.length).toBeDefined();
-                expect(res.body[0].title).toBeDefined();
+        return db.sequelize.query("select notice_data->>'office' as office from notice where notice_data->>'office' is not null limit 1;")
+            .then((rows) => {
+                let office = rows[0][0].office;
 
-                for(let i=0; i < res.body.length; i++) {
-                    expect(res.body[i].office).toBe("u.s. army corps of engineers");
-                }
-            })
-            .then( () => {
                 return request(app)
                     .post('/api/predictions/filter')
                     .set('Authorization', `Bearer ${token}`)
-                    .send({office: "not the u.s. army corps of engineers"})
-                    .then( (res) => {
+                    .send({office: office})
+                    .then((res) => {
                         expect(res.statusCode).toBe(200);
                         expect(res.body.length).toBeDefined();
-                        expect(res.body.length).toBe(0);
+                        expect(res.body[0].title).toBeDefined();
 
+                        for (let i = 0; i < res.body.length; i++) {
+                            expect(res.body[i].office).toBe(office);
+                        }
+                    })
+                    .then(() => {
+                        return request(app)
+                            .post('/api/predictions/filter')
+                            .set('Authorization', `Bearer ${token}`)
+                            .send({office: "not a real office"})
+                            .then((res) => {
+                                expect(res.statusCode).toBe(200);
+                                expect(res.body.length).toBeDefined();
+                                expect(res.body.length).toBe(0);
+
+                            })
                     })
             })
     });
@@ -250,44 +255,48 @@ describe ('prediction tests', () => {
 
     test ( 'Filter predictions on multiple dimensions', () => {
 
-        return request(app)
-            .post('/api/predictions/filter')
-            .set('Authorization', `Bearer ${token}`)
-            .send({
-                eitLikelihood: "Yes",
-                agency: "department of the army",
-                numDocs: 2
-            })
-            .then( (res) => {
-                return expect(res.statusCode).toBe(501); // we don't yet support numDocs for the filter
-            })
-            .then( () => {
+        return db.sequelize.query("select agency from notice where agency is not null limit 1;")
+            .then((rows) => {
+                let agency = rows[0][0].agency;
                 return request(app)
                     .post('/api/predictions/filter')
                     .set('Authorization', `Bearer ${token}`)
                     .send({
                         eitLikelihood: "Yes",
-                        agency: "department of the army",
+                        agency: agency,
+                        numDocs: 2
                     })
-                    .then( (res) => {
-                        expect(res.statusCode).toBe(200);
-                        expect(res.body.length).toBeDefined();
-                        expect(res.body[0].title).toBeDefined();
-
-                        for(let i=0; i < res.body.length; i++) {
-                            expect(res.body[i].eitLikelihood.value).toBe("Yes");
-                            expect(res.body[i].agency).toBe("department of the army");
-                        }
+                    .then((res) => {
+                        return expect(res.statusCode).toBe(501); // we don't yet support numDocs for the filter
                     })
+                    .then(() => {
+                        return request(app)
+                            .post('/api/predictions/filter')
+                            .set('Authorization', `Bearer ${token}`)
+                            .send({
+                                eitLikelihood: "Yes",
+                                agency: agency,
+                            })
+                            .then((res) => {
+                                expect(res.statusCode).toBe(200);
+                                expect(res.body.length).toBeDefined();
+                                expect(res.body[0].title).toBeDefined();
 
+                                for (let i = 0; i < res.body.length; i++) {
+                                    expect(res.body[i].eitLikelihood.value).toBe("Yes");
+                                    expect(res.body[i].agency).toBe(agency);
+                                }
+                            })
+
+                    })
             })
     }, 60000);
 
     test ( 'Filter predictions on solication number', () => {
 
-        return db.sequelize.query("select notice_number from notice order by id desc limit 1")
+        return db.sequelize.query("select solicitation_number from notice order by id desc limit 1")
             .then( (rows) => {
-                let notice_num = rows[0][0].notice_number;
+                let notice_num = rows[0][0].solicitation_number;
                 expect(notice_num).toBeDefined();
                 return request(app)
                     .post('/api/predictions/filter')
@@ -344,23 +353,37 @@ describe ('prediction tests', () => {
     });
 
     test ( 'Test prediction date filters', () => {
+        return db.sequelize.query("select date from notice order by agency desc limit 1")
+            .then( (rows) => {
+                let date = rows[0][0].date;
+                let year = date.getYear() + 1900;
+                let month = date.getMonth() + 1;
+                let day = date.getDate();
+                console.log ("the day is " , day)
+                let dayplus = day + 1;
+                let start = `${month}/${day}/${year}`;
+                let end = `${month}/${dayplus}/${year}`;
 
-        return request(app)
-            .post('/api/predictions/filter')
-            .set('Authorization', `Bearer ${token}`)
-            .send({
-                startDate: "12/20/2018",
-                endDate: "12/23/2018"
-            })
-            .then( (res) => {
-                expect(res.statusCode).toBe(200);
-                expect(res.body.length).toBeGreaterThan(1);
-                for(let i=0; i < res.body.length; i++) {
-                    expect(new Date(res.body[i].date) > new Date(2018,11,19)).toBeTruthy(); // don't forget months are 0 indexed!
-                    expect(new Date(res.body[i].date) < new Date(2018,11,25)).toBeTruthy();
+                console.log (date);
+                console.log (year, month, day, start, end)
 
-                }
+                return request(app)
+                    .post('/api/predictions/filter')
+                    .set('Authorization', `Bearer ${token}`)
+                    .send({
+                        startDate: start,
+                        endDate: end
+                    })
+                    .then((res) => {
+                        expect(res.statusCode).toBe(200);
+                        expect(res.body.length).toBeGreaterThan(1);
+                        for (let i = 0; i < res.body.length; i++) {
+                            expect(new Date(res.body[i].date) > new Date(year, month-1, day)).toBeTruthy(); // don't forget months are 0 indexed!
+                            expect(new Date(res.body[i].date) < new Date(year, month-1, dayplus)).toBeTruthy();
 
+                        }
+
+                    })
             })
     });
 

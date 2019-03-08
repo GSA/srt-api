@@ -16,7 +16,7 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
-    notice_number: {
+    solicitation_number: {
       type: DataTypes.STRING,
       allowNull: true
     },

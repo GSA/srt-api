@@ -84,7 +84,7 @@ function makeOnePrediction(notice) {
     o.reviewRec = (notice.compliant === 1) ? "Compliant" : "Non-compliant (Action Required)";
     o.agency = notice.agency;
     o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0;
-    o.solNum = notice.notice_number;
+    o.solNum = notice.solicitation_number;
     o.noticeType = notice.notice_type; //TODO: need to map these to values expected by the UI
     o.date = notice.date;
     o.office = (notice.notice_data !== undefined) ? notice.notice_data.office : "";
@@ -238,7 +238,7 @@ function getPredictions(filter) {
         where_array.push( "attachment_count = " + SqlString.escape(numDocs, null, "postgres"))
     }
     if (solNum && solNum != "") {
-        where_array.push( "notice_number = " + SqlString.escape(solNum, null, "postgres"))
+        where_array.push( "solicitation_number = " + SqlString.escape(solNum, null, "postgres"))
     }
     if (eitLikelihood && eitLikelihood != "") {
         // this is a no-op for now since all records added to the database should have eitLikelihood true
