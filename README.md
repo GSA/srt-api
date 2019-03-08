@@ -1,7 +1,6 @@
 # srt-server
 
-[![pipeline status](https://gitlab.tcg.com/acrowley/srt-server/badges/master/pipeline.svg)](https://gitlab.tcg.com/acrowley/srt-server/commits/master) 
-[![coverage report](https://gitlab.tcg.com/acrowley/srt-server/badges/master/coverage.svg)](https://gitlab.tcg.com/acrowley/srt-server/commits/master)
+[![CircleCI](https://circleci.com/gh/albertcrowley/srt-api.svg?style=svg)](https://circleci.com/gh/albertcrowley/srt-api)
 
 The srt-server application is an expressjs Node application that provides a 
 REST API for the srt-client. Together the client/server provide a web portal
