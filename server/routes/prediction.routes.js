@@ -6,6 +6,8 @@
 const logger = require('../config/winston');
 const db = require('../models/index');
 var SqlString = require('sequelize/lib/sql-string')
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.json')[env];
 
 
 require('../tests/test.lists');
@@ -103,11 +105,19 @@ function makeOnePrediction(notice) {
     o.feedback = notice.feedback ? notice.feedback : [];
     o.history = notice.history ? notice.history : [];
 
+    let email = "";
+    if (notice.notice_data && notice.notice_data.emails && notice.notice_data.emails.length) {
+        if (config.spamProtect) {
+            notice.notice_data.emails = notice.notice_data.emails.map( e=> e+".nospam");
+        }
+        email = notice.notice_data.emails.join(", ");
+    }
+
     o.contactInfo = {
-        contact: "Contact",
+        contact: (notice.notice_data) ? notice.notice_data.contact : "",
         name: "Contact Name",
         position: "Position",
-        email: "crowley+contact@tcg.com"
+        email: email
 
     }
 

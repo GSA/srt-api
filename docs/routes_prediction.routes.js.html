@@ -247,7 +247,6 @@ function  makePostgresDate (origDate) {
  * @return {Promise&lt;Array(Prediction)>} All predictions that match the filter
  */
 function getPredictions(filter) {
-    console.log ("filter: ", filter)
     let agency = (filter.agency) ? filter.agency.split(' (')[0] : undefined;
     let office = filter.office;
     let numDocs = filter.numDocs;

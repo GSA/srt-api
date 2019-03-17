@@ -105,10 +105,9 @@ describe('solicitation tests', () => {
                         return db.sequelize.query(sql)
                             .then( (rows) => {
                                 let hist = rows[0][0].history;
-                                console.log (hist);
                                 expect(hist.length).toBeGreaterThan(2);
-                                expect(hist[2].action).toMatch(/again reviewed solicitation/)
-                                return console.log ("history is: ", rows[0][0]);
+                                return expect(hist[2].action).toMatch(/again reviewed solicitation/)
+//                                return console.log ("history is: ", rows[0][0]);
                             })
                     })
             })

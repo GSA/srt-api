@@ -359,13 +359,9 @@ describe ('prediction tests', () => {
                 let year = date.getYear() + 1900;
                 let month = date.getMonth() + 1;
                 let day = date.getDate();
-                console.log ("the day is " , day)
                 let dayplus = day + 1;
                 let start = `${month}/${day}/${year}`;
                 let end = `${month}/${dayplus}/${year}`;
-
-                console.log (date);
-                console.log (year, month, day, start, end)
 
                 return request(app)
                     .post('/api/predictions/filter')
