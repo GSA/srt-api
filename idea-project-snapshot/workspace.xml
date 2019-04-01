@@ -373,7 +373,7 @@
       <envs>
         <env name="NODE_ENV" value="development" />
         <env name="VCAP_SERVICES" value="{&quot;aws-rds&quot;:[{   &quot;label&quot;: &quot;aws-rds&quot;,   &quot;provider&quot;: null,   &quot;plan&quot;: &quot;shared-psql&quot;,   &quot;name&quot;: &quot;srt-postgres&quot;,   &quot;tags&quot;: [     &quot;database&quot;,     &quot;RDS&quot;   ],   &quot;instance_name&quot;: &quot;srt-postgres&quot;,   &quot;binding_name&quot;: null,   &quot;credentials&quot;: {     &quot;db_name&quot;: &quot;cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;host&quot;: &quot;192.168.1.126&quot;,     &quot;password&quot;: &quot;***REMOVED***&quot;,     &quot;port&quot;: &quot;5432&quot;,     &quot;uri&quot;: &quot;postgres://utz6kah1zq8t2nyg:***REMOVED***@192.168.1.126:5432/cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;username&quot;: &quot;utz6kah1zq8t2nyg&quot;   },   &quot;syslog_drain_url&quot;: null,   &quot;volume_mounts&quot;: [   ] }]}" />
-        <env name="SENDGRID_API_KEY" value="***REMOVED***" />
+        <env name="SENDGRID_API_KEY" value="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" />
         <env name="MAIL_ENGINE" value="nodemailer-mock" />
       </envs>
       <scope-kind value="ALL" />
@@ -398,7 +398,7 @@
       <envs>
         <env name="NODE_ENV" value="development" />
         <env name="VCAP_SERVICES" value="{&quot;aws-rds&quot;:[{   &quot;label&quot;: &quot;aws-rds&quot;,   &quot;provider&quot;: null,   &quot;plan&quot;: &quot;shared-psql&quot;,   &quot;name&quot;: &quot;srt-postgres&quot;,   &quot;tags&quot;: [     &quot;database&quot;,     &quot;RDS&quot;   ],   &quot;instance_name&quot;: &quot;srt-postgres&quot;,   &quot;binding_name&quot;: null,   &quot;credentials&quot;: {     &quot;db_name&quot;: &quot;cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;host&quot;: &quot;192.168.1.126&quot;,     &quot;password&quot;: &quot;***REMOVED***&quot;,     &quot;port&quot;: &quot;5432&quot;,     &quot;uri&quot;: &quot;postgres://utz6kah1zq8t2nyg:***REMOVED***@192.168.1.126:5432/cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;username&quot;: &quot;utz6kah1zq8t2nyg&quot;   },   &quot;syslog_drain_url&quot;: null,   &quot;volume_mounts&quot;: [   ] }]}" />
-        <env name="SENDGRID_API_KEY" value="***REMOVED***" />
+        <env name="SENDGRID_API_KEY" value="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" />
         <env name="MAIL_ENGINE" value="nodemailer-mock" />
       </envs>
       <scope-kind value="ALL" />
@@ -413,7 +413,7 @@
       <envs>
         <env name="NODE_ENV" value="development" />
         <env name="VCAP_SERVICES" value="{&quot;aws-rds&quot;:[{   &quot;label&quot;: &quot;aws-rds&quot;,   &quot;provider&quot;: null,   &quot;plan&quot;: &quot;shared-psql&quot;,   &quot;name&quot;: &quot;srt-postgres&quot;,   &quot;tags&quot;: [     &quot;database&quot;,     &quot;RDS&quot;   ],   &quot;instance_name&quot;: &quot;srt-postgres&quot;,   &quot;binding_name&quot;: null,   &quot;credentials&quot;: {     &quot;db_name&quot;: &quot;cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;host&quot;: &quot;192.168.1.126&quot;,     &quot;password&quot;: &quot;***REMOVED***&quot;,     &quot;port&quot;: &quot;5432&quot;,     &quot;uri&quot;: &quot;postgres://utz6kah1zq8t2nyg:***REMOVED***@192.168.1.126:5432/cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;username&quot;: &quot;utz6kah1zq8t2nyg&quot;   },   &quot;syslog_drain_url&quot;: null,   &quot;volume_mounts&quot;: [   ] }]}" />
-        <env name="SENDGRID_API_KEY" value="***REMOVED***" />
+        <env name="SENDGRID_API_KEY" value="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" />
         <env name="MAIL_ENGINE" value="nodemailer-mock" />
       </envs>
       <scope-kind value="ALL" />
@@ -428,7 +428,7 @@
       <envs>
         <env name="NODE_ENV" value="development" />
         <env name="VCAP_SERVICES" value="{&quot;aws-rds&quot;:[{   &quot;label&quot;: &quot;aws-rds&quot;,   &quot;provider&quot;: null,   &quot;plan&quot;: &quot;shared-psql&quot;,   &quot;name&quot;: &quot;srt-postgres&quot;,   &quot;tags&quot;: [     &quot;database&quot;,     &quot;RDS&quot;   ],   &quot;instance_name&quot;: &quot;srt-postgres&quot;,   &quot;binding_name&quot;: null,   &quot;credentials&quot;: {     &quot;db_name&quot;: &quot;cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;host&quot;: &quot;192.168.1.126&quot;,     &quot;password&quot;: &quot;***REMOVED***&quot;,     &quot;port&quot;: &quot;5432&quot;,     &quot;uri&quot;: &quot;postgres://utz6kah1zq8t2nyg:***REMOVED***@192.168.1.126:5432/cgawsbrokerprodgq3wrvn8c8a772q&quot;,     &quot;username&quot;: &quot;utz6kah1zq8t2nyg&quot;   },   &quot;syslog_drain_url&quot;: null,   &quot;volume_mounts&quot;: [   ] }]}" />
-        <env name="SENDGRID_API_KEY" value="***REMOVED***" />
+        <env name="SENDGRID_API_KEY" value="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" />
         <env name="MAIL_ENGINE" value="nodemailer-mock" />
       </envs>
       <scope-kind value="ALL" />
