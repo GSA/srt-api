@@ -56,8 +56,13 @@ function sendMessage(message) {
 
         return transporter.sendMail(message)
             .then( info => {
+
+                logger.log ("info", info)
+                if (info.response.toLowerCase().indexOf('ok') == -1 && info.response.toLowerCase().indexOf('success') == -1) {
+                    throw info.response;
+                }
+
                 return new Promise ( (resolve, reject) => {
-                    logger.log ("info", message, {tag: "sendMessage success"});
                     resolve({success: true, params_correct: true, message: "Email has been sent"})
                 });
             })

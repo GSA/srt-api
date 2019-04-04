@@ -19,7 +19,7 @@ describe ('/api/analytics', () => {
             .send({})
             .then( res => {
                 expect(res.statusCode).toBe(200);
-                expect(["development", "gitlab", "test"]).toContain(res.body.env);
+                expect(["development", "gitlab", "test", "circle"]).toContain(res.body.env);
                 expect(res.body.version).toBeDefined();
                 return expect (res.body.version).toMatch(/^v[0-9]+\.[0-9]+\.[0-9]+$/);
             })

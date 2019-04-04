@@ -237,13 +237,11 @@ describe ('User API Routes', () => {
         return User.findAll()
             .then( users => {
                 let id = users[0].id;
-                console.log ("searching for user ID ", id);
                 return request(app)
                     .post('/api/user/getUserInfo')
                     .set('Authorization', `Bearer ${token}`)
                     .send({UserID : id})
                     .then( (response) => {
-                        console.log (response.body)
                         expect(response.statusCode).toBe(200);
                         return expect(response.body.email).toMatch(/[a-zA-Z]+@[a-zA-Z]+\.[a-zA-Z]+/)
                     });
