@@ -10,5 +10,5 @@ applications:
   env:
     NODE_ENV: clouddev
   services:
-    - srt-postgres
+    - srt-postgres-dev
 

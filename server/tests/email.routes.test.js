@@ -104,7 +104,6 @@ describe ('/api/email', () => {
                 expect(sentMail.length).toBe(1);
                 expect(sentMail[0].to).toBe("crowley@tcg.com");
                 expect(sentMail[0].from).toBe(config.emailFrom);
-                console.log(sentMail[0].html);
                 expect(sentMail[0].html).toMatch('myclass');
             });
     });

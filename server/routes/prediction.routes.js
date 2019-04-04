@@ -6,6 +6,8 @@
 const logger = require('../config/winston');
 const db = require('../models/index');
 var SqlString = require('sequelize/lib/sql-string')
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.json')[env];
 
 
 require('../tests/test.lists');
@@ -84,7 +86,7 @@ function makeOnePrediction(notice) {
     o.reviewRec = (notice.compliant === 1) ? "Compliant" : "Non-compliant (Action Required)";
     o.agency = notice.agency;
     o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0;
-    o.solNum = notice.notice_number;
+    o.solNum = notice.solicitation_number;
     o.noticeType = notice.notice_type; //TODO: need to map these to values expected by the UI
     o.date = notice.date;
     o.office = (notice.notice_data !== undefined) ? notice.notice_data.office : "";
@@ -103,11 +105,19 @@ function makeOnePrediction(notice) {
     o.feedback = notice.feedback ? notice.feedback : [];
     o.history = notice.history ? notice.history : [];
 
+    let email = "";
+    if (notice.notice_data && notice.notice_data.emails && notice.notice_data.emails.length) {
+        if (config.spamProtect) {
+            notice.notice_data.emails = notice.notice_data.emails.map( e=> e+".nospam");
+        }
+        email = notice.notice_data.emails.join(", ");
+    }
+
     o.contactInfo = {
-        contact: "Contact",
+        contact: (notice.notice_data) ? notice.notice_data.contact : "",
         name: "Contact Name",
         position: "Position",
-        email: "crowley+contact@tcg.com"
+        email: email
 
     }
 
@@ -238,7 +248,7 @@ function getPredictions(filter) {
         where_array.push( "attachment_count = " + SqlString.escape(numDocs, null, "postgres"))
     }
     if (solNum && solNum != "") {
-        where_array.push( "notice_number = " + SqlString.escape(solNum, null, "postgres"))
+        where_array.push( "solicitation_number = " + SqlString.escape(solNum, null, "postgres"))
     }
     if (eitLikelihood && eitLikelihood != "") {
         // this is a no-op for now since all records added to the database should have eitLikelihood true

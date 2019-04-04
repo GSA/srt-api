@@ -25,7 +25,7 @@
  * @typedef {Model} Notice
  * @property {number} id
  * @property {number} notice_type_id
- * @property {string} notice_number
+ * @property {string} solicitation_number
  * @property {string} agency
  * @property {date} date
  * @property {Object} notice_data

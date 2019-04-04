@@ -1,8 +1,8 @@
 {
   "development": {
-    "username": "utz6kah1zq8t2nyg",
-    "password": "***REMOVED***",
-    "database": "cgawsbrokerprodgq3wrvn8c8a772q",
+    "username": "circleci",
+    "password": "srtpass",
+    "database": "srt",
     "host": "192.168.33.101",
     "port": 5432,
     "dialect": "postgres",
@@ -19,6 +19,7 @@
       }
     },
     "emailLogOnly": false,
+    "spamProtect" : true,
     "srt_server": {
       "port": 3000
     }
@@ -43,6 +44,32 @@
       }
     },
     "emailLogOnly": false,
+    "spamProtect" : true,
+    "srt_server": {
+      "port": 3000
+    }
+  },
+  "circle": {
+    "username": "circleci",
+    "password": "***REMOVED***",
+    "database": "srt",
+    "host": "localhost",
+    "port": 5432,
+    "dialect": "postgres",
+    "logging": false,
+
+    "emailFrom": "crowley+srt@tcg.com",
+    "emailServer" : {
+      "host": "smtp.sendgrid.net",
+      "port": 465,
+      "secure": true,
+      "auth": {
+        "user": "crowley",
+        "pass": "ENV variable SENDGRID_API_KEY"
+      }
+    },
+    "emailLogOnly": false,
+    "spamProtect" : true,
     "srt_server": {
       "port": 3000
     }
@@ -67,6 +94,7 @@
       }
     },
     "emailLogOnly": false,
+    "spamProtect" : true,
     "srt_server": {
       "port": 8080
     }
@@ -91,6 +119,7 @@
       }
     },
     "emailLogOnly": false,
+    "spamProtect" : true,
     "srt_server": {
       "port": 8080
     }
@@ -114,6 +143,7 @@
         "pass": "ENV variable SENDGRID_API_KEY"
       }
     },
+    "spamProtect" : true,
     "srt_server": {
       "port": 8080
     }
@@ -138,6 +168,7 @@
       }
     },
     "emailLogOnly": false,
+    "spamProtect" : false,
     "srt_server": {
       "port": 8080
     }
