@@ -43,12 +43,15 @@ jobs:
             # fallback to using the latest cache if no match
             - v1-dependencies-
 
-      - run: cp srt-database-export.sql.gz srt-database.sql.gz
+      - run: npm install
+
+      - run: cp srt-db.crypt srt-database.sql.gz
+      - run: ./node_modules/.bin/cryptify -p ${CRYPTIFY} -d srt-database.sql.gz
       - run: rm srt-database.sql || true
       - run: gzip -d srt-database.sql.gz
       - run: export PGPASSWORD=srtpass && psql -h "localhost"  srt circleci < srt-database.sql
+      - run: ./node_modules/.bin/sequelize --url 'postgresql://circleci:srtpass@localhost/srt' db:migrate
 
-      - run: npm install
       - run:
           name: Run Tests
           environment:

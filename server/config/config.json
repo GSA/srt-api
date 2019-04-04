@@ -1,8 +1,8 @@
 {
   "development": {
-    "username": "utz6kah1zq8t2nyg",
-    "password": "***REMOVED***",
-    "database": "cgawsbrokerprodgq3wrvn8c8a772q",
+    "username": "circleci",
+    "password": "srtpass",
+    "database": "srt",
     "host": "192.168.33.101",
     "port": 5432,
     "dialect": "postgres",

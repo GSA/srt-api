@@ -9,8 +9,8 @@
     "old-test": "export NODE_ENV=test || SET NODE_ENV=test && mocha server/**/*.test.js",
     "test": "MAIL_ENGINE=nodemailer-mock  jest --detectOpenHandles --config=jest.config.js --runInBand ",
     "test-watch": "export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock &&  jest --detectOpenHandles --config=jest.config.js --watch ",
-    "backup-db": "export PGPASSWORD=***REMOVED*** && pg_dump -U utz6kah1zq8t2nyg -d cgawsbrokerprodgq3wrvn8c8a772q -h 192.168.1.126 > srt-database.sql ",
-    "restore-db": "export PGPASSWORD=***REMOVED*** && export PGUSER=utz6kah1zq8t2nyg && export PGHOST=192.168.33.101 && export PGDATABASE=cgawsbrokerprodgq3wrvn8c8a772q &&  rm -f srt-database.sql* srt-database.sql.gz && cp srt-database-export.sql.gz srt-database.sql.gz && gzip -d srt-database.sql.gz && dropdb  ${PGDATABASE} && createdb ${PGDATABASE} && psql  <srt-database.sql ",
+    "backup-db": "export PGPASSWORD=srtpass && pg_dump -U circleci -d srt -h 192.168.1.126 > srt-database.sql ",
+    "restore-db": "cp srt-db.crypt srt-database-export.sql.gz && ./node_modules/.bin/cryptify -p ${CRYPTIFY} -d srt-database-export.sql.gz && export PGPASSWORD=srtpass && export PGUSER=circleci && export PGHOST=192.168.33.101 && export PGDATABASE=srt &&  rm -f srt-database.sql* srt-database.sql.gz && cp srt-database-export.sql.gz srt-database.sql.gz && gzip -d srt-database.sql.gz && dropdb  ${PGDATABASE} && createdb ${PGDATABASE} && psql  <srt-database.sql ",
     "doc": "node_modules/.bin/jsdoc  -d docs -R ./README.md -r server/routes server/models"
   },
   "author": "TCG",
@@ -26,15 +26,16 @@
     "multer": "^1.3.0",
     "nodemailer": "^5.1.1",
     "pg": "^7.8.0",
-    "sequelize": "^4.42.0",
-    "umzug": "^2.2.0",
-    "winston": "^3.2.0",
     "random-words": "^1.1.0",
     "randomstring": "*",
+    "sequelize": "^4.42.0",
     "sequelize-auto": "^0.4.29",
-    "sequelize-cli": "^5.4.0"
+    "sequelize-cli": "^5.4.0",
+    "umzug": "^2.2.0",
+    "winston": "^3.2.0"
   },
   "devDependencies": {
+    "cryptify": "^3.0.3",
     "docdash": "^1.0.3",
     "expect": "^1.20.2",
     "jest": "~23",
