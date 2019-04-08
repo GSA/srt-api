@@ -2,6 +2,8 @@ const request = require('supertest');
 let app = null; // require('../app')();;
 const mockToken = require("./mocktoken");
 const User = require('../models').User;
+const Notice = require('../models').notice;
+const Attachment = require('../models').attachment;
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.json')[env];
 const db = require('../models/index');
@@ -381,7 +383,7 @@ describe ('prediction tests', () => {
 
                     })
             })
-    });
+    })
 
     test ( 'Test merge prediction function', () => {
 
@@ -523,4 +525,15 @@ describe ('prediction tests', () => {
 
     });
 
+    test ( 'Test attachment association', () => {
+        return db.sequelize.query("select notice_id from attachment limit 1")
+            .then((rows) => {
+                let notice_id = rows[0][0].notice_id;
+                return Notice.findAll( {include:[{model:Attachment}], where: {'id': notice_id}} )
+                    .then( n => {
+                        let attachment = n[0].attachments[0]
+                        expect(attachment.attachment_url.length).toBeGreaterThan(4)
+                    })
+            })
+    })
 });
