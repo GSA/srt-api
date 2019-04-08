@@ -37,7 +37,10 @@ module.exports = function (db) {
          get: function (req, res) {
             return Notice.findById(req.params.id)
                 .then((notice) => {
-                    return res.status(200).send(predictionRoute.makeOnePrediction(notice));
+                    return predictionRoute.getPredictions({solNum: notice.solicitation_number})
+                        .then( predictions => {
+                            return res.status(200).send(predictions[0]); // we should only have one since they will all merge by solicitation number
+                        } )
                 })
                 .catch((e) => {
                     logger.log("error", e, {tag: "solicitation get"})

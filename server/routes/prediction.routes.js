@@ -121,7 +121,7 @@ function makeOnePrediction(notice) {
 
     }
 
-    o.parseStatus = (notice.attachment_json !== undefined) ? notice.attachment_json : [];
+    o.parseStatus = (notice.attachment_json !== undefined && notice.attachment_json != null) ? notice.attachment_json : [];
 
     return o;
 }
@@ -136,12 +136,12 @@ function makeOnePrediction(notice) {
  */
 function deepConcat (a, b) {
     let res = [];
-    if (a !== undefined && a.length > 0) {
+    if (a !== null && a !== undefined && a.length !== undefined && a.length > 0) {
         for (let e of a) {
             res.push(Object.assign({},e));
         }
     }
-    if (b !== undefined && b.length > 0) {
+    if (b !== null && b !== undefined && b.length !== undefined && b.length > 0) {
         for (let e of b) {
             res.push(Object.assign({},e));
         }
@@ -190,13 +190,13 @@ function mergePredictions (predictionList) {
     let merged = {};
 
 
-    for (let p of predictionList) {
-        if ( merged[p.solNum] ) {
-            let newer = ( merged[p.solNum].date > p.date ) ? merged[p.solNum] : p;
-            let older = ( merged[p.solNum].date > p.date ) ? p : merged[p.solNum];
-            merged[p.solNum] = mergeOnePrediction(older, newer)
-        } else {
-            merged[p.solNum] = Object.assign({}, p);
+        for (let p of predictionList) {
+            if (merged[p.solNum]) {
+                let newer = (merged[p.solNum].date > p.date) ? merged[p.solNum] : p;
+                let older = (merged[p.solNum].date > p.date) ? p : merged[p.solNum];
+                merged[p.solNum] = mergeOnePrediction(older, newer)
+            } else {
+                merged[p.solNum] = Object.assign({}, p);
         }
     }
 
@@ -265,13 +265,13 @@ function getPredictions(filter) {
 
     let where = where_array.join(" AND ");
     let sql = `
-            select n.*, notice_type 
+            select n.*, notice_type, attachment_json 
             from notice n 
             left join ( 
                   select notice_id, json_agg(src) as attachment_json, count(*) as attachment_count
                   from notice 
                   left join ( 
-                    select id as name, case validation when 1 then 'successfully parsed' else 'unsuccessfuly parsed' end as status, notice_id 
+                    select id as name, attachment_url, case validation when 1 then 'successfully parsed' else 'unsuccessfuly parsed' end as status, notice_id 
                     from attachment
                     ) src on notice.id = src.notice_id             
                   group by  notice_id
