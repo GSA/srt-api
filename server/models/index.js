@@ -145,4 +145,6 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
+db['notice'].hasMany(db['attachment'], {foreignKey:'notice_id', sourceKey:'id'});
+
 module.exports = db;
