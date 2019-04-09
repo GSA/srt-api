@@ -217,4 +217,35 @@ describe('solicitation tests', () => {
             })
     });
 
+
+    test ( 'Test attachment filenames', () => {
+        return db.sequelize.query("select solicitation_number , count(*) as c from attachment join notice n on attachment.notice_id = n.id group by solicitation_number order by count(*) desc;")
+            .then((rows) => {
+                let solNum = rows[0][0].solicitation_number;
+                let count = rows[0][0].c
+                return db.sequelize.query(`select filename from attachment join notice n on attachment.notice_id = n.id where solicitation_number = '${solNum}'`)
+                    .then ( files => {
+                        return db.sequelize.query(`select id from notice where solicitation_number = '${solNum}' limit 1`)
+                            .then( rows => {
+                                let notice_id = rows[0][0].id;
+                                return request(app)
+                                    .get("/api/solicitation/" + notice_id)
+                                    .set('Authorization', `Bearer ${token}`)
+                                    .send({})
+                                    .then((res) => {
+                                        expect(res.statusCode).toBe(200);
+                                        let found = false
+                                        for (let frow of files[0]){
+                                            if (res.body.parseStatus[0].name == frow.filename) {
+                                                found = true
+                                                break
+                                            }
+                                        }
+                                        return expect(found).toBeTruthy()
+                                    })
+                            })
+                    })
+            })
+    })
+
 }); // end describe
