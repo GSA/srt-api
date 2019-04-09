@@ -271,7 +271,7 @@ function getPredictions(filter) {
                   select notice_id, json_agg(src) as attachment_json, count(*) as attachment_count
                   from notice 
                   left join ( 
-                    select id as name, attachment_url, case validation when 1 then 'successfully parsed' else 'unsuccessfuly parsed' end as status, notice_id 
+                    select id, attachment_url, filename as name, case machine_readable when true then 'successfully parsed' else 'processing error' end as status, notice_id 
                     from attachment
                     ) src on notice.id = src.notice_id             
                   group by  notice_id
