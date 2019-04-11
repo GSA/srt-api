@@ -4,28 +4,27 @@
  * API routes related to surveys
  */
 
-const logger = require('../config/winston');
-const db = require('../models/index');
-const Survey  = require('../models').Survey;
-
+const logger = require('../config/winston')
+// noinspection JSUnresolvedVariable
+const Survey = require('../models').Survey
 
 /**
- * Takes a survey record from the database and reformats it as expected by the client UI
+ * Takes a survey record from the database and reformat it as expected by the client UI
  *
  * @param s Survey
  * @returns {{ChoicesNote: string[], Answer: string, Type: string, Choices: string[], Note: string, Question: string, ID: *, Section: string}}
  */
-function makeOneSurvey(s) {
-    return {
-        ID: s.id,
-        Question : s.question,
-        Choices: s.choices,
-        Section: s.section,
-        Type: s.type,
-        Answer: s.answer,
-        Note: s.note,
-        ChoicesNote: s.choicesNote
-    }
+function makeOneSurvey (s) {
+  return {
+    ID: s.id,
+    Question: s.question,
+    Choices: s.choices,
+    Section: s.section,
+    Type: s.type,
+    Answer: s.answer,
+    Note: s.note,
+    ChoicesNote: s.choicesNote
+  }
 }
 
 /**
@@ -33,7 +32,7 @@ function makeOneSurvey(s) {
  */
 module.exports = {
 
-    /**
+  /**
      * <b> GET /api/surveys<b><br><br>
      *
      * Sends an array of Survey objects to the response.
@@ -43,23 +42,20 @@ module.exports = {
      * @param {Response} res
      * @return {Promise}
      */
-    get : (req, res) => {
+  get: (req, res) => {
+    // return res.status(200).send(getMockSurvey());
 
-        // return res.status(200).send(getMockSurvey());
+    return Survey.findAll()
+      .then((surveys) => {
+        return res.status(200).send(surveys.map(s => makeOneSurvey(s)))
+      })
+      .catch((e) => {
+        logger.log('error', e, { tag: 'survey get' })
+        res.status(400).send(e)
+      })
+  }
 
-        return Survey.findAll()
-            .then((surveys) => {
-                return res.status(200).send(surveys.map( s => makeOneSurvey(s)));
-            })
-            .catch((e) => {
-                logger.log ("error", e, {tag: "survey get"});
-                res.status(400).send(e);
-            })
-    }
-
-};
-
-
+}
 
 // function getMockSurvey () {
 //     return [

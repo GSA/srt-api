@@ -1,356 +1,325 @@
-const supertest = require('supertest');
-const request = require('supertest');
-const app = require('../app')();
-var MockExpressRequest = require('mock-express-request');
-const mockToken = require("./mocktoken");
-const User = require('../models').User;
-const logger = require('../config/winston');
+const supertest = require('supertest')
+const request = require('supertest')
+const app = require('../app')()
+const mockToken = require('./mocktoken')
+// noinspection JSUnresolvedVariable
+const User = require('../models').User
+const logger = require('../config/winston')
 
-const {user1, user_accepted, user3} = require ('./test.data');
+const { userAccepted } = require('./test.data')
 
 const userRoutes = require('../routes/user.routes')
-var myuser = Object.assign({},user_accepted);
-myuser.firstName = "auth-beforeAllUser";
-myuser.email = "crowley+auth@tcg.com";
-var myuser_pass = "this is the new password";
-var token = {};
+let myUser = Object.assign({}, userAccepted)
+myUser.firstName = 'auth-beforeAllUser'
+myUser.email = 'crowley+auth@tcg.com'
+let myUserPass = 'this is the new password'
+let token = {}
 
-describe ('/api/auth/', () => {
-    beforeAll( async ()=>{
+describe('/api/auth/', () => {
+  beforeAll(async () => {
+    let tempPass = myUser.password
 
-        var tempPass =myuser.password;
+    await request(app)
+      .post('/api/auth')
+      .send(myUser)
 
-        await request(app)
-            .post("/api/auth")
-            .send(myuser);
-
-        return User.find({where:{email:myuser.email}})
-            .then( async user => {
-                myuser.id = user.id;
-                token = mockToken(myuser);
-
-                return request(app)
-                    .post("/api/user/updatePassword")
-                    .set('Authorization', `Bearer ${token}`)
-                    .send({oldpassword:tempPass, password: myuser_pass})
-                    .then ( (res) => {
-                       expect(res.statusCode).toBe(200);
-
-                    });
-            });
-
-
-
-    });
-
-    afterAll( ()=>{
-        return User.destroy({where:{firstName: "auth-beforeAllUser"}});
-    });
-
-    test ( '/api/auth/tokenCheck', async () => {
-        var user = Object.assign({}, myuser, {email: "another@example.com"});
-        user.userRole = "Administrator"
-        var token = mockToken(user);
-
-        var user = Object.assign({}, myuser, {email: "another2@example.com"});
-        user.userRole = "Administrator";
-        user.agency = "General Services Administration";
-        user.firstName = "auth-beforeAllUser";
-        delete user.id;
-        var token = mockToken(user);
-        return User.create(user)
-            .then ( (user) => {
-                return request(app)
-                    .post('/api/auth/tokenCheck')
-                    .send( {token : token})
-                    .then ( (res) => {
-                        expect(res.statusCode).toBe(200);
-                        expect(res.body.isLogin).toBe(true);
-                        expect(res.body.isGSAAdmin).toBe(true);
-                    })
-
-            })
-            // Make a real token for a non-existing user. It should fail
-            .then( () => {
-                var user = Object.assign({}, myuser);
-                user.userRole = "Public";
-                user.email = "notreal@example.com";
-                var token = mockToken(user);
-                return request(app)
-                    .post('/api/auth/tokenCheck')
-                    .send( {token : token})
-                    .then ( (res) => {
-                        expect(res.statusCode).toBe(200);
-                        expect(res.body.isLogin).toBe(false);
-                        expect(res.body.isGSAAdmin).toBe(false);
-                    })
-            })
-            // send a real admin token , but not GSA
-            .then( () => {
-                var user = Object.assign({}, myuser);
-                user.userRole = "Public";
-                user.agency = "National Institutes of Health";
-                user.email = "notreal2@example.com";
-                user.firstName = "auth-beforeAllUser";
-                delete user.id;
-                var token = mockToken(user);
-                return User.create(user)
-                    .then ( (u) => {
-                        return request(app)
-                            .post('/api/auth/tokenCheck')
-                            .send( {token : token})
-                            .then ( (res) => {
-                                expect(res.statusCode).toBe(200);
-                                expect(res.body.isLogin).toBe(true);
-                                expect(res.body.isGSAAdmin).toBe(false); // can't be an admin if you aren't GSA!
-                            })
-
-                    })
-            })
-            .catch ( (e) => {
-                logger.log ("error", e, {tag: "token check test}"});
-            })
-            // send a real admin token
-            .then( () => {
-                var user = Object.assign({}, myuser, {email: 'crowley+auth-token@tcg.com'});
-                user.userRole = "Administrator";
-                user.agency = "General Services Administration";
-                user.firstName = "auth-beforeAllUser";
-                delete user.id;
-                var token = mockToken(user);
-                return User.create(user)
-                    .then ( (user) => {
-                        return request(app)
-                            .post('/api/auth/tokenCheck')
-                            .send( {token : token})
-                            .then ( (res) => {
-                                expect(res.statusCode).toBe(200);
-                                expect(res.body.isLogin).toBe(true);
-                                expect(res.body.isGSAAdmin).toBe(true);
-                            })
-
-                    })
-            })
-            // send a fake token
-            .then ( (res) => {
-                return request(app)
-                    .post('/api/auth/tokenCheck')
-                    .send( {token : "token fake"})
-                    .then ( (res) => {
-                        expect(res.statusCode).toBe(200);
-                        expect(res.body.isLogin).toBe(false);
-                        expect(res.body.isGSAAdmin).toBe(false);
-                    })
-            })
-            // send NO token
-            .then ( () => {
-                return request(app)
-                    .post('/api/auth/tokenCheck')
-                    .send( {no_token : "token fake"})
-                    .then ( (res) => {
-                        // legacy app expects a 200 response here!
-                        //expect(res.statusCode).toBe(400);
-                        expect(res.statusCode).toBe(200);
-                        expect(res.body.isLogin).toBe(false);
-                        expect(res.body.isGSAAdmin).toBe(false);
-                    })
-            })
-
-
-    });
-
-    test ('/api/auth/resetPassword', async () => {
-        var user = Object.assign({}, user_accepted)
-        user.firstName = "auth-beforeAllUser";
-        user.email = "crowley+auth3@tcg.com";
-        delete user.id;
-        var user_pass = "this is the new password";
-        return User.create(user)
-            .then( () => {
-                return request(app)
-                    .post('/api/auth/resetPassword')
-                    .send({email: user.email})
-                    .then((res) => {
-                        expect(res.statusCode).toBe(200);
-                        expect(res.body.tempPassword).toBeDefined();
-                        expect(res.body.message).toContain('password request');
-
-                        return User.findOne({where : {email:user.email}})
-                            .then( (u) => {
-                                var success = res.body.tempPassword == u.tempPassword;
-                                expect(success).toBe(true);
-                            })
-                    })
-
-                })
-            // make sure we don't fail on bad email
-            .then( () => {
-                return request(app)
-                    .post('/api/auth/resetPassword')
-                    .send({email: "fake@example.com"})
-                    .then((res) => {
-                        expect(res.statusCode).toBe(200);
-                        expect(res.body.message).toContain('password request');
-                    })
-            })
-            // make sure we don't fail with no email
-            .then( () => {
-                return request(app)
-                    .post('/api/auth/resetPassword')
-                    .send({})
-                    .then((res) => {
-                        expect(res.statusCode).toBe(200);
-                        expect(res.body.message).toContain('password request');
-                    })
-            })
-            .catch( e => {
-                logger.error(e);
-            })
-
-
-
-    })
-
-
-    test('/api/auth/login', async () => {
-
-        let login_user = Object.assign({}, myuser);
-        login_user.email = "crowley+login_user@tcg.com";
-        let login_user_pass = "abcdefghijklmnop";
-        login_user.password = login_user_pass;
-
-        delete login_user.id;
-        return User.create(login_user)
-            .then ( async () => {
-                // test no password
-                await request(app)
-                    .post("/api/auth/login")
-                    .send({email : login_user.email})
-                    .then((res) => {
-                        return expect(res.statusCode).toBe(401);
-                    });
-
-                // test no email or password
-                await request(app)
-                    .post("/api/auth/login")
-                    .send({other: "thing"})
-                    .then((res) => {
-                        return expect(res.statusCode).toBe(401);
-                    });
-
-                // test wrong password
-                await request(app)
-                    .post("/api/auth/login")
-                    .send({email : login_user.email, password: "wrong password"})
-                    .then((res) => {
-                        return expect(res.statusCode).toBe(401);
-                    });
-
-                // test correct password
-                return User.findOne({where: {email: login_user.email}})
-                    .then((u) => {
-                        return userRoutes.performUpdatePassword(u, login_user_pass)
-                            .then((u) => {
-                                u.isAccepted = true;
-                                u.isRejected = false;
-                                u.tempPassword = "will-not-be-used";
-                                return u.save()
-                                    .then((u) => {
-                                        return request(app)
-                                            .post("/api/auth/login")
-                                            .send({email: login_user.email, password: login_user_pass})
-                                            .then((res) => {
-                                                expect(res.statusCode).toBe(200);
-                                                expect(res.body.token).toBeDefined();
-                                                expect(res.body.id).toBeDefined();
-                                                expect(res.body.id).toBeGreaterThan(0);
-                                                return expect(res.body.firstName).toBe(login_user.firstName);
-                                            });
-                                    });
-                            });
-                    })
-
-            })
-
-
-
-
-
-    })
-
-    test('Test temp password', async () => {
-
-        let login_user = Object.assign({}, myuser);
-        login_user.email = "crowley+temp@tcg.com";
-        login_user.firstName = "auth-beforeAllUser";
-        let login_user_temppass = "tttttt";
-        login_user.tempPassword = login_user_temppass;
-        login_user.password = "jdslfjsdalfjasdlkjfsaldk";
-        delete login_user.id;
-        return User.create(login_user)
-            .then ( async () => {
-                return request(app)
-                    .post("/api/auth/login")
-                    .send({email: login_user.email, password: login_user_temppass})
-                    .then((res) => {
-                        expect(res.statusCode).toBe(200);
-                        expect(res.body.token).toBeDefined();
-                        expect(res.body.id).toBeDefined();
-                        expect(res.body.id).toBeGreaterThan(0);
-                        expect(res.body.email).toBe(login_user.email);
-                        return expect(res.body.firstName).toBe(login_user.firstName);
-                    });
-            })
-    })
-
-
-
-
-    test('test register', async () => {
-
-        var request = new MockExpressRequest({
-            method: 'PUT',
-            body: user1
-        });
-
-        var response = {
-            send: function(s) { this.body = s; return this;},
-            status: function(stat) {this.statusCode = stat; return this;}
-        };
-
-
-        let u = Object.assign({}, user_accepted);
-        u.firstName  = "auth-beforeAllUser";
-        u.email = "notreal3@example.com";
-
-        // now try the actual api router
-        await supertest(app)
-            .post('/api/auth')
-            .send(u)
-            .then( (response) => {
-                return expect(response.statusCode).toBe(201);
-            })
-            .then( () => {
-               return User.findOne({ where : {email: u.email}})
-                   .then( (u) => {
-                       expect(u.agency).toBe(u.agency);
-                   })
-            });
-    });
-
-
-
-    // Test what happens when we send an invalid or null JWT
-    test ( 'bad token', () => {
+    return User.find({ where: { email: myUser.email } })
+      .then(async user => {
+        myUser.id = user.id
+        token = mockToken(myUser)
 
         return request(app)
-            .post('/api/predictions/filter')
-            .set('Authorization', `Bearer null`)
-            .send()
-            .then( (res) => {
-                return expect(res.statusCode).toBe(401);
-            });
-    });
+          .post('/api/user/updatePassword')
+          .set('Authorization', `Bearer ${token}`)
+          .send({ oldpassword: tempPass, password: myUserPass })
+          .then((res) => {
+            // noinspection JSUnresolvedVariable
+            expect(res.statusCode).toBe(200)
+          })
+      })
+  })
 
-});
+  afterAll(() => {
+    return User.destroy({ where: { firstName: 'auth-beforeAllUser' } })
+  })
 
+  test('/api/auth/tokenCheck', async () => {
+    let user = Object.assign({}, myUser, { email: 'another2@example.com' })
+    user.userRole = 'Administrator'
+    user.agency = 'General Services Administration'
+    user.firstName = 'auth-beforeAllUser'
+    delete user.id
+    let token = mockToken(user)
+    return User.create(user)
+      .then(() => {
+        return request(app)
+          .post('/api/auth/tokenCheck')
+          .send({ token: token })
+          .then((res) => {
+            // noinspection JSUnresolvedVariable
+            expect(res.statusCode).toBe(200)
+            expect(res.body.isLogin).toBe(true)
+            expect(res.body.isGSAAdmin).toBe(true)
+          })
+      })
+    // Make a real token for a non-existing user. It should fail
+      .then(() => {
+        let user = Object.assign({}, myUser)
+        user.userRole = 'Public'
+        user.email = 'notreal@example.com'
+        let token = mockToken(user)
+        return request(app)
+          .post('/api/auth/tokenCheck')
+          .send({ token: token })
+          .then((res) => {
+            // noinspection JSUnresolvedVariable
+            expect(res.statusCode).toBe(200)
+            expect(res.body.isLogin).toBe(false)
+            expect(res.body.isGSAAdmin).toBe(false)
+          })
+      })
+    // send a real admin token , but not GSA
+      .then(() => {
+        let user = Object.assign({}, myUser)
+        user.userRole = 'Public'
+        user.agency = 'National Institutes of Health'
+        user.email = 'notreal2@example.com'
+        user.firstName = 'auth-beforeAllUser'
+        delete user.id
+        let token = mockToken(user)
+        return User.create(user)
+          .then(() => {
+            return request(app)
+              .post('/api/auth/tokenCheck')
+              .send({ token: token })
+              .then((res) => {
+                // noinspection JSUnresolvedVariable
+                expect(res.statusCode).toBe(200)
+                expect(res.body.isLogin).toBe(true)
+                expect(res.body.isGSAAdmin).toBe(false) // can't be an admin if you aren't GSA!
+              })
+          })
+      })
+      .catch((e) => {
+        logger.log('error', e, { tag: 'token check test}' })
+      })
+    // send a real admin token
+      .then(() => {
+        let user = Object.assign({}, myUser, { email: 'crowley+auth-token@tcg.com' })
+        user.userRole = 'Administrator'
+        user.agency = 'General Services Administration'
+        user.firstName = 'auth-beforeAllUser'
+        delete user.id
+        let token = mockToken(user)
+        return User.create(user)
+          .then(() => {
+            return request(app)
+              .post('/api/auth/tokenCheck')
+              .send({ token: token })
+              .then((res) => {
+                // noinspection JSUnresolvedVariable
+                expect(res.statusCode).toBe(200)
+                expect(res.body.isLogin).toBe(true)
+                expect(res.body.isGSAAdmin).toBe(true)
+              })
+          })
+      })
+    // send a fake token
+      .then(() => {
+        return request(app)
+          .post('/api/auth/tokenCheck')
+          .send({ token: 'token fake' })
+          .then((res) => {
+            // noinspection JSUnresolvedVariable
+            expect(res.statusCode).toBe(200)
+            expect(res.body.isLogin).toBe(false)
+            expect(res.body.isGSAAdmin).toBe(false)
+          })
+      })
+    // send NO token
+      .then(() => {
+        return request(app)
+          .post('/api/auth/tokenCheck')
+          .send({ no_token: 'token fake' })
+          .then((res) => {
+            // legacy app expects a 200 response here!
+            // expect(res.statusCode).toBe(400);
+            // noinspection JSUnresolvedVariable
+            expect(res.statusCode).toBe(200)
+            expect(res.body.isLogin).toBe(false)
+            expect(res.body.isGSAAdmin).toBe(false)
+          })
+      })
+  })
+
+  test('/api/auth/resetPassword', async () => {
+    let user = Object.assign({}, userAccepted)
+    user.firstName = 'auth-beforeAllUser'
+    user.email = 'crowley+auth3@tcg.com'
+    delete user.id
+    return User.create(user)
+      .then(() => {
+        return request(app)
+          .post('/api/auth/resetPassword')
+          .send({ email: user.email })
+          .then((res) => {
+            // noinspection JSUnresolvedVariable
+            expect(res.statusCode).toBe(200)
+            expect(res.body.tempPassword).toBeDefined()
+            expect(res.body.message).toContain('password request')
+
+            return User.findOne({ where: { email: user.email } })
+              .then((u) => {
+                let success = res.body.tempPassword === u.tempPassword
+                expect(success).toBe(true)
+              })
+          })
+      })
+    // make sure we don't fail on bad email
+      .then(() => {
+        return request(app)
+          .post('/api/auth/resetPassword')
+          .send({ email: 'fake@example.com' })
+          .then((res) => {
+            // noinspection JSUnresolvedVariable
+            expect(res.statusCode).toBe(200)
+            expect(res.body.message).toContain('password request')
+          })
+      })
+    // make sure we don't fail with no email
+      .then(() => {
+        return request(app)
+          .post('/api/auth/resetPassword')
+          .send({})
+          .then((res) => {
+            // noinspection JSUnresolvedVariable
+            expect(res.statusCode).toBe(200)
+            expect(res.body.message).toContain('password request')
+          })
+      })
+      .catch(e => {
+        logger.error(e)
+      })
+  })
+
+  test('/api/auth/login', async () => {
+    let loginUser = Object.assign({}, myUser)
+    loginUser.email = 'crowley+login_user@tcg.com'
+    let loginUserPass = 'abcdefghijklmnop'
+    loginUser.password = loginUserPass
+
+    delete loginUser.id
+    return User.create(loginUser)
+      .then(async () => {
+        // test no password
+        await request(app)
+          .post('/api/auth/login')
+          .send({ email: loginUser.email })
+          .then((res) => {
+            // noinspection JSUnresolvedVariable
+            return expect(res.statusCode).toBe(401)
+          })
+
+        // test no email or password
+        await request(app)
+          .post('/api/auth/login')
+          .send({ other: 'thing' })
+          .then((res) => {
+            // noinspection JSUnresolvedVariable
+            return expect(res.statusCode).toBe(401)
+          })
+
+        // test wrong password
+        await request(app)
+          .post('/api/auth/login')
+          .send({ email: loginUser.email, password: 'wrong password' })
+          .then((res) => {
+            // noinspection JSUnresolvedVariable
+            return expect(res.statusCode).toBe(401)
+          })
+
+        // test correct password
+        return User.findOne({ where: { email: loginUser.email } })
+          .then((u) => {
+            return userRoutes.performUpdatePassword(u, loginUserPass)
+              .then((u) => {
+                u.isAccepted = true
+                u.isRejected = false
+                u.tempPassword = 'will-not-be-used'
+                return u.save()
+                  .then(() => {
+                    return request(app)
+                      .post('/api/auth/login')
+                      .send({ email: loginUser.email, password: loginUserPass })
+                      .then((res) => {
+                        // noinspection JSUnresolvedVariable
+                        expect(res.statusCode).toBe(200)
+                        expect(res.body.token).toBeDefined()
+                        expect(res.body.id).toBeDefined()
+                        expect(res.body.id).toBeGreaterThan(0)
+                        return expect(res.body.firstName).toBe(loginUser.firstName)
+                      })
+                  })
+              })
+          })
+      })
+  })
+
+  test('Test temp password', async () => {
+    let loginUser = Object.assign({}, myUser)
+    loginUser.email = 'crowley+temp@tcg.com'
+    loginUser.firstName = 'auth-beforeAllUser'
+    let loginUserTempPass = 'tttttt'
+    loginUser.tempPassword = loginUserTempPass
+    loginUser.password = 'jdslfjsdalfjasdlkjfsaldk'
+    delete loginUser.id
+    return User.create(loginUser)
+      .then(async () => {
+        return request(app)
+          .post('/api/auth/login')
+          .send({ email: loginUser.email, password: loginUserTempPass })
+          .then((res) => {
+            // noinspection JSUnresolvedVariable
+            expect(res.statusCode).toBe(200)
+            expect(res.body.token).toBeDefined()
+            expect(res.body.id).toBeDefined()
+            expect(res.body.id).toBeGreaterThan(0)
+            expect(res.body.email).toBe(loginUser.email)
+            return expect(res.body.firstName).toBe(loginUser.firstName)
+          })
+      })
+  })
+
+  test('test register', async () => {
+    let u = Object.assign({}, userAccepted)
+    u.firstName = 'auth-beforeAllUser'
+    u.email = 'notreal3@example.com'
+
+    // now try the actual api router
+    await supertest(app)
+      .post('/api/auth')
+      .send(u)
+      .then((response) => {
+        // noinspection JSUnresolvedVariable
+        return expect(response.statusCode).toBe(201)
+      })
+      .then(() => {
+        return User.findOne({ where: { email: u.email } })
+          .then((u) => {
+            expect(u.agency).toBe(u.agency)
+          })
+      })
+  })
+
+  // Test what happens when we send an invalid or null JWT
+  test('bad token', () => {
+    return request(app)
+      .post('/api/predictions/filter')
+      .set('Authorization', `Bearer null`)
+      .send()
+      .then((res) => {
+        // noinspection JSUnresolvedVariable
+        return expect(res.statusCode).toBe(401)
+      })
+  })
+})

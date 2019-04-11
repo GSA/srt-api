@@ -22,7 +22,8 @@
     "spamProtect" : true,
     "srt_server": {
       "port": 3000
-    }
+    },
+    "logStdOut" : false
   },
   "gitlab": {
     "username": "utz6kah1zq8t2nyg",
@@ -47,7 +48,8 @@
     "spamProtect" : true,
     "srt_server": {
       "port": 3000
-    }
+    },
+    "logStdOut" : true
   },
   "circle": {
     "username": "circleci",
@@ -72,7 +74,8 @@
     "spamProtect" : true,
     "srt_server": {
       "port": 3000
-    }
+    },
+    "logStdOut" : true
   },
   "clouddev": {
     "username": "utz6kah1zq8t2nyg",
@@ -97,7 +100,8 @@
     "spamProtect" : true,
     "srt_server": {
       "port": 8080
-    }
+    },
+    "logStdOut" : true
   },
   "cloudstage": {
     "username": "utz6kah1zq8t2nyg",
@@ -122,7 +126,8 @@
     "spamProtect" : true,
     "srt_server": {
       "port": 8080
-    }
+    },
+    "logStdOut" : true
   },
   "test": {
     "username": "utz6kah1zq8t2nyg",
@@ -146,7 +151,8 @@
     "spamProtect" : true,
     "srt_server": {
       "port": 8080
-    }
+    },
+    "logStdOut" : true
   },
   "production": {
     "username": "utz6kah1zq8t2nyg",
@@ -171,7 +177,8 @@
     "spamProtect" : false,
     "srt_server": {
       "port": 8080
-    }
+    },
+    "logStdOut" : true
   },
   "sqlite" : {
     "env_name" : "sqlite",
@@ -193,6 +200,7 @@
     "emailLogOnly": false,
     "srt_server": {
       "port": 3000
-    }
+    },
+    "logStdOut" : true
   }
 }
