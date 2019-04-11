@@ -1,62 +1,58 @@
-const request = require('supertest');
-const app = require('../app')();
-const mockToken = require("./mocktoken");
-const logger = require('../config/winston');
-const Agency = require('../models').Agency;
+const request = require('supertest')
+const app = require('../app')()
+const mockToken = require('./mocktoken')
+// noinspection JSUnresolvedVariable
+const Agency = require('../models').Agency
 
-const {user1, user_accepted, user3} = require ('./test.data');
-let token = mockToken(user_accepted);
+const { userAccepted } = require('./test.data')
+let token = mockToken(userAccepted)
 
-describe ('/api/agencies', () => {
-    let agency = "abc";
-    let acronym = "def";
+/** @namespace res.statusCode */
 
-    beforeAll( ()=>{});
-    afterAll ( () => {
-        return Agency.destroy( {where: {agency: agency}});
-    });
+describe('/api/agencies', () => {
+  let agency = 'abc'
+  let acronym = 'def'
 
-    test( '/api/agencies (get)', async () => {
-        return request(app)
-            .get('/api/agencies')
-            .then( (res) => {
-                expect(res.statusCode).toBe(200);
-                expect(res.body.length).toBeGreaterThan(2);
-                expect(res.body).toContainEqual({"Acronym": "GSA", "Agency": "General Services Administration"});
+  afterAll(() => {
+    return Agency.destroy({ where: { agency: agency } })
+  })
 
-            });
-    });
+  test('/api/agencies (get)', async () => {
+    return request(app)
+      .get('/api/agencies')
+      .then((res) => {
+        // noinspection JSUnresolvedVariable
+        expect(res.statusCode).toBe(200)
+        expect(res.body.length).toBeGreaterThan(2)
+        expect(res.body).toContainEqual({ 'Acronym': 'GSA', 'Agency': 'General Services Administration' })
+      })
+  })
 
+  test('/api/agencies (put)', async () => {
+    return request(app)
+      .put('/api/agencies')
+      .send({ agency: agency, acronym: acronym })
+      .then((res) => {
+        // noinspection JSUnresolvedVariable
+        expect(res.statusCode).toBe(200)
+        return Agency.findOne({ where: { acronym: 'def' } })
+          .then((a) => {
+            return expect(a.agency).toBe(agency)
+          })
+      })
+  })
 
-    test( '/api/agencies (put)', async () => {
-
-        return request(app)
-            .put('/api/agencies')
-            .send({agency:agency, acronym: acronym})
-            .then( (res) => {
-
-                expect(res.statusCode).toBe(200);
-                return Agency.findOne({where : {acronym: "def"}})
-                    .then ( (a) => {
-                        return expect(a.agency).toBe(agency);
-                    })
-
-
-            });
-    });
-
-    test( '/api/AgencyList', async () => {
-
-        return request(app)
-            .get('/api/AgencyList')
-            .set('Authorization', `Bearer ${token}`)
-            .send({agency:agency, acronym: acronym})
-            .then( (res) => {
-                expect(res.statusCode).toBe(200);
-                expect(res.body).toBeDefined();
-                expect(res.body.length).toBeGreaterThan(1);
-                return expect(typeof (res.body[0])).toBe("string");
-            });
-    }, 10000);
-
-});
+  test('/api/AgencyList', async () => {
+    return request(app)
+      .get('/api/AgencyList')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ agency: agency, acronym: acronym })
+      .then((res) => {
+        // noinspection JSUnresolvedVariable
+        expect(res.statusCode).toBe(200)
+        expect(res.body).toBeDefined()
+        expect(res.body.length).toBeGreaterThan(1)
+        return expect(typeof (res.body[0])).toBe('string')
+      })
+  }, 10000)
+})

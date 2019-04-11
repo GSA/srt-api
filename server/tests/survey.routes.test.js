@@ -1,46 +1,40 @@
-const logger = require('../config/winston');
-const request = require('supertest');
-let app = require('../app')();
-const mockToken = require("./mocktoken");
-const User = require('../models').User;
-const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
+const request = require('supertest')
+let app = require('../app')()
+const mockToken = require('./mocktoken')
+// noinspection JSUnresolvedVariable
+const User = require('../models').User
+const { userAccepted } = require('./test.data')
 
-const {user1, user_accepted, user3} = require ('./test.data');
+let myUser = {}
+let token = {}
 
-var myuser = {};
-var token = {};
+describe('/api/analytics', () => {
+  beforeAll(() => {
+    myUser = Object.assign({}, userAccepted)
+    myUser.firstName = 'survey-beforeAllUser'
+    myUser.email = 'crowley+survey@tcg.com'
+    delete myUser.id
+    return User.create(myUser)
+      .then((user) => {
+        myUser.id = user.id
+        token = mockToken(myUser)
+      })
+  })
 
-describe ('/api/analytics', () => {
-    beforeAll(() => {
+  afterAll(() => {
+    return User.destroy({ where: { firstName: 'survey-beforeAllUser' } })
+  })
 
-        myuser = Object.assign({}, user_accepted);
-        myuser.firstName = "survey-beforeAllUser";
-        myuser.email = "crowley+survey@tcg.com";
-        delete myuser.id;
-        return User.create({myuser})
-            .then((user) => {
-                myuser.id = user.id;
-                token = mockToken(myuser);
-            });
-    });
-
-    afterAll(() => {
-        return User.destroy({where: {firstName: "survey-beforeAllUser"}});
-    });
-
-
-    test('Get surveys', () => {
-        return request(app)
-            .get("/api/surveys")
-            .set('Authorization', `Bearer ${token}`)
-            .send({})
-            .then( res => {
-                expect(res.statusCode).toBe(200);
-                expect(res.body[0].Choices.length).toBeDefined();
-                return expect(res.body[0].ID).toBeDefined();
-            })
-
-    });
-});
-
+  test('Get surveys', () => {
+    return request(app)
+      .get('/api/surveys')
+      .set('Authorization', `Bearer ${token}`)
+      .send({})
+      .then(res => {
+        // noinspection JSUnresolvedVariable
+        expect(res.statusCode).toBe(200)
+        expect(res.body[0].Choices.length).toBeDefined()
+        return expect(res.body[0].ID).toBeDefined()
+      })
+  })
+})
