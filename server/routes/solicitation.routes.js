@@ -32,7 +32,7 @@ module.exports = function (db) {
          * @return Promise
          */
     get: function (req, res) {
-      return Notice.findById(req.params.id)
+      return Notice.findByPk(req.params.id)
         .then((notice) => {
           return predictionRoute.getPredictions({ solNum: notice.solicitation_number })
             .then(predictions => {

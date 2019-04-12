@@ -82,7 +82,7 @@ module.exports = {
      * @return {Promise}
      */
   login: async function (req, res) {
-    User.find({ where: { email: req.body.email } })
+    User.findOne({ where: { email: req.body.email } })
       .then(async user => {
         let temp = req.body.password === user.tempPassword
         // noinspection JSUnresolvedFunction
