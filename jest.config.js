@@ -3,7 +3,7 @@
 
 module.exports = {
 
-    forceExit: true,
+  forceExit: true,
 
   // All imported modules in your tests should be mocked automatically
   // automock: false,
@@ -24,27 +24,28 @@ module.exports = {
   collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
-  collectCoverageFrom: ["server/**/*.js"],
+  collectCoverageFrom: ['server/**/*.js'],
 
   // The directory where Jest should output its coverage files
-  coverageDirectory: "coverage",
+  coverageDirectory: 'coverage',
 
   // An array of regexp pattern strings used to skip coverage collection
-   coveragePathIgnorePatterns: [
-     "\\\\node_modules\\\\",
-       "\\\\schemas\\\\",
-       "\\\\tests\\\\",
-       "\\\\server/server.js\\\\",
-       "\\\\server/migrations\\\\"
-   ],
+  coveragePathIgnorePatterns: [
+    '.*node_modules.*',
+    '.*schemas.*',
+    '.*server\\/tests\\/.*',
+    '.*server\\/server.js',
+    '.*server\\/config\\/.*',
+    '.*server\\/migrations'
+  ],
 
   // A list of reporter names that Jest uses when writing coverage reports
-   coverageReporters: [
-     "json",
-     "text",
+  coverageReporters: [
+    'json',
+    'text'
   //    "lcov",
   //    "clover"
-   ],
+  ],
 
   // An object that configures minimum threshold enforcement for coverage results
   // coverageThreshold: null,
@@ -131,7 +132,7 @@ module.exports = {
   // snapshotSerializers: [],
 
   // The test environment that will be used for testing
-  testEnvironment: "node",
+  testEnvironment: 'node'
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
@@ -184,4 +185,4 @@ module.exports = {
 
   // Whether to use watchman for file crawling
   // watchman: true,
-};
+}
