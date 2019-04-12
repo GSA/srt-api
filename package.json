@@ -9,7 +9,7 @@
     "old-test": "export NODE_ENV=test || SET NODE_ENV=test && mocha server/**/*.test.js",
     "analysis": "snyk test",
     "test": "NODE_END=development && MAIL_ENGINE=nodemailer-mock &&  ./node_modules/.bin/jest  --detectOpenHandles --config=jest.config.js ",
-    "circleci": "MAIL_ENGINE=nodemailer-mock && circleci tests glob server/tests/**/* | circleci tests split --split-by=timings | xargs ./node_modules/.bin/jest  --detectOpenHandles --config=jest.config.js ",
+    "circleci": "MAIL_ENGINE=nodemailer-mock && ./node_modules/.bin/snyk test &&  circleci tests glob server/tests/**/* | circleci tests split --split-by=timings | xargs ./node_modules/.bin/jest  --detectOpenHandles --config=jest.config.js ",
     "test-watch": "export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock &&  jest --detectOpenHandles --config=jest.config.js --watch ",
     "backup-db": "export PGPASSWORD=srtpass && pg_dump -U circleci -d srt -h 192.168.1.126 > srt-database.sql ",
     "restore-db": "cp srt-db.crypt srt-database-export.sql.gz && ./node_modules/.bin/cryptify -p ${CRYPTIFY} -d srt-database-export.sql.gz && export PGPASSWORD=srtpass && export PGUSER=circleci && export PGHOST=192.168.33.101 && export PGDATABASE=srt &&  rm -f srt-database.sql* srt-database.sql.gz && cp srt-database-export.sql.gz srt-database.sql.gz && gzip -d srt-database.sql.gz && dropdb  ${PGDATABASE} && createdb ${PGDATABASE} && psql  <srt-database.sql ",
@@ -31,7 +31,7 @@
     "pg": "^7.8.0",
     "random-words": "^1.1.0",
     "randomstring": "*",
-    "sequelize": "^4",
+    "sequelize": "^5.3",
     "sequelize-cli": "^5.4.0",
     "umzug": "^2.2.0",
     "winston": "^3.2.0"

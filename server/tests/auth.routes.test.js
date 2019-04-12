@@ -23,7 +23,7 @@ describe('/api/auth/', () => {
       .post('/api/auth')
       .send(myUser)
 
-    return User.find({ where: { email: myUser.email } })
+    return User.findOne({ where: { email: myUser.email } })
       .then(async user => {
         myUser.id = user.id
         token = mockToken(myUser)
