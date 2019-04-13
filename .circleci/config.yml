@@ -10,6 +10,7 @@ jobs:
       - image: circleci/node:8.15
         environment:
           NODE_ENV: circleci
+          CC_TEST_REPORTER_ID: b0a733c16dd63abc6cb21bf9956550d57e05724bc92e58892b306af99963a261
 
       - image: circleci/postgres:9.6.8
         environment:
@@ -17,7 +18,7 @@ jobs:
           POSTGRES_DB: srt
           POSTGRES_PASSWORD: srtpass
 
-    parallelism: 3
+#    parallelism: 3
 
     working_directory: ~/repo
 
@@ -55,10 +56,21 @@ jobs:
       - run: ./node_modules/.bin/sequelize --url 'postgresql://circleci:srtpass@localhost/srt' db:migrate
 
       - run:
-          name: Run Tests
-          environment:
-            NODE_ENV: circle
-          command: npm run circleci
+          name: Setup Code Climate test-reporter
+          command: |
+               curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+               chmod +x ./cc-test-reporter
+
+      - run:
+         name: Run Tests
+         environment:
+           NODE_ENV: circle
+#          command: npm run circleci
+         command: |
+              ./cc-test-reporter before-build
+              npm run test
+              ./cc-test-reporter after-build --coverage-input-type lcov --exit-code $?
+
 
       - save_cache:
           paths:
