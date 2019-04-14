@@ -145,6 +145,7 @@ describe('prediction tests', () => {
 
         expect(res.body.length).toBeDefined()
         expect(res.body[0].noticeType).toBeDefined()
+        expect(res.body[0].url).toContain('http')
         return expect(res.body[0].title).toBeDefined()
       })
   }, 60000)
