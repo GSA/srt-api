@@ -360,169 +360,169 @@ module.exports = {
   }
 }
 
-// *********************************************************
-//  below code is used if you want to mock solicitation data
-// *********************************************************
-//
-// Math.seed = 52;
-//
-// function getRandomInt(min, max) {
-//     max = (max === undefined) ? 1 : max;
-//     min = (min === undefined) ? 1 : min;
-//
-//     Math.seed = (Math.seed * 9301 + 49297) % 233280;
-//     let rnd = Math.seed / 233280;
-//
-//     return Math.floor(min + rnd * (max - min));
-// }
-// function pickOne(a) {
-//     return a[getRandomInt(0, a.length)]
-// }
-//
-// let template =
-//
-//     {
-//         solNum: "1234",
-//         title: "sample title",
-//         url: "http://www.tcg.com/",
-//         predictions: {
-//             value: "GREEN"
-//         },
-//         reviewRec: "Non-compliant", // one of "Compliant", "Non-compliant (Action Required)", or "Undetermined"
-//         date: "01/01/2019",
-//         numDocs: 3,
-//         eitLikelihood: {
-//             naics: "naics here",  // initial version uses NAICS code to determine
-//             value: "45"
-//         },
-//         agency: "National Institutes of Health",
-//         office: "Office of the Director",
-//
-//         contactInfo: {
-//             contact: "contact str",
-//             name: "Joe Smith",
-//             position: "Manager",
-//             email: "joe@example.com"
-//         },
-//         position: "pos string",
-//         reviewStatus: "on time",
-//         noticeType: "N type",
-//         actionStatus: "ready",
-//         actionDate: "02/02/2019",
-//         parseStatus: [{
-//             name: "attachment name",
-//             status: "??? enumeration, one of 'successfully parsed', 'processing error'  maybe derived f"
-//         }],
-//         history: [{
-//             date: "03/03/2018",
-//             action: "sending",
-//             user: "crowley",
-//             status: "submitted"
-//         }],
-//         feedback: [{
-//             questionID: "1",
-//             question: "Is this a good solicitation?",
-//             answer: "Yes",
-//         }],
-//         undetermined: true
-//
-//     };
-//
-// // let reviewRecArray = ["Compliant", "Non-compliant (Action Required)", "Undetermined"];
-// let noticeTypeArray = ["Presolicitation", "Combined Synopsis/Solicitation", "Sources Sought", "Special Notice", "Other"];
-// let actionStatusArray = ["Email Sent to POC", "reviewed solicitation action requested summary", "provided feedback on the solicitation prediction result"];
-//
-// function mockData() {
-//     if (myCache.get("sample_data") != undefined) {
-//         return myCache.get("sample_data");
-//     }
-//
-//         let reviewRecArray = ["Compliant", "Non-compliant (Action Required)", "Undetermined"];
-//         let noticeTypeArray = ["Presolicitation", "Combined Synopsis/Solicitation", "Sources Sought", "Special Notice", "Other"];
-//         let actionStatusArray = ["Email Sent to POC", "reviewed solicitation action requested summary", "provided feedback on the solicitation prediction result"];
-//         let template =
-//
-//             {
-//                 solNum: "1234",
-//                 title: "sample title",
-//                 url: "http://www.tcg.com/",
-//                 predictions: {
-//                     value: "GREEN"
-//                 },
-//                 reviewRec: "Compliant", // one of "Compliant", "Non-compliant (Action Required)", or "Undetermined"
-//                 date: "01/01/2019",
-//                 numDocs: 3,
-//                 eitLikelihood: {
-//                     naics: "naics here",  // initial version uses NAICS code to determine
-//                     value: "45"
-//                 },
-//                 agency: "National Institutes of Health",
-//                 office: "Office of the Director",
-//
-//                 contactInfo: {
-//                     contact: "contact str",
-//                     name: "Joe Smith",
-//                     position: "Manager",
-//                     email: "joe@example.com"
-//                 },
-//                 position: "pos string",
-//                 reviewStatus: "on time",
-//                 noticeType: "N type",
-//                 actionStatus: "ready",
-//                 actionDate: "02/02/2019",
-//                 parseStatus: [{
-//                     name: "doc 1",
-//                     status: "parsed"
-//                 }],
-//                 history: [{
-//                     date: "03/03/2018",
-//                     action: "sending",
-//                     user: "crowley",
-//                     status: "submitted"
-//                 }],
-//                 feedback: [{
-//                     questionID: "1",
-//                     question: "Is this a good solicitation?",
-//                     answer: "Yes",
-//                 }],
-//                 undetermined: true
-//
-//             };
-//
-//         let sample_data = new Array();
-//
-//         for (let i = 0; i < 6000; i++) {
-//             let o = Object.assign({}, template);
-//
-//             o.title = randomWords({exactly: 1, wordsPerString: getRandomInt(2, 7)})[0];
-//             o.reviewRec = pickOne(reviewRecArray);
-//             o.agency = pickOne(['Navy Department', 'Education Department',   'National Institutes of Health', 'National Library of Medicine']);
-//             o.numDocs = getRandomInt(0,3);
-//             o.solNum = getRandomInt(999, 99999999);
-//             o.noticeType = pickOne(noticeTypeArray);
-//             o.actionStatus = pickOne(actionStatusArray);
-//             o.actionDate = new Date( getRandomInt(2018, 2020),  getRandomInt(0, 12),getRandomInt(1,27));;;
-//             o.date = new Date( getRandomInt(2018, 2020),  getRandomInt(0, 12),getRandomInt(1,27));;
-//             o.office = randomWords({exactly: 1, wordsPerString: getRandomInt(2, 4)})[0];
-//             o.predictions = Object.assign({}, template.predictions);
-//             o.predictions.value = pickOne(["RED", "GREEN"]);
-//             o.eitLikelihood = Object.assign({}, template.eitLikelihood);
-//             o.eitLikelihood.naics = getRandomInt(10, 99999);
-//             o.eitLikelihood.value = pickOne(['Yes', 'No']);
-//             o.undetermined = (getRandomInt(0,2) == 0);
-//
-//             o.parseStatus = [];
-//             let count = getRandomInt(0,3);
-//             for (let x=0; x < count; x++) {
-//                 let stat = {};
-//                 stat.name = "doc 1";
-//                 stat.status = pickOne( ["successfully parsed", "processing error"] )
-//                 o.parseStatus.push ( stat )
-//             }
-//
-//             sample_data.push(o);
-//         }
-//
-//         myCache.set("sample_data", sample_data);
-//         return sample_data;
-// }
+*********************************************************
+ below code is used if you want to mock solicitation data
+*********************************************************
+
+Math.seed = 52;
+
+function getRandomInt(min, max) {
+    max = (max === undefined) ? 1 : max;
+    min = (min === undefined) ? 1 : min;
+
+    Math.seed = (Math.seed * 9301 + 49297) % 233280;
+    let rnd = Math.seed / 233280;
+
+    return Math.floor(min + rnd * (max - min));
+}
+function pickOne(a) {
+    return a[getRandomInt(0, a.length)]
+}
+
+let template =
+
+    {
+        solNum: "1234",
+        title: "sample title",
+        url: "http://www.tcg.com/",
+        predictions: {
+            value: "GREEN"
+        },
+        reviewRec: "Non-compliant", // one of "Compliant", "Non-compliant (Action Required)", or "Undetermined"
+        date: "01/01/2019",
+        numDocs: 3,
+        eitLikelihood: {
+            naics: "naics here",  // initial version uses NAICS code to determine
+            value: "45"
+        },
+        agency: "National Institutes of Health",
+        office: "Office of the Director",
+
+        contactInfo: {
+            contact: "contact str",
+            name: "Joe Smith",
+            position: "Manager",
+            email: "joe@example.com"
+        },
+        position: "pos string",
+        reviewStatus: "on time",
+        noticeType: "N type",
+        actionStatus: "ready",
+        actionDate: "02/02/2019",
+        parseStatus: [{
+            name: "attachment name",
+            status: "??? enumeration, one of 'successfully parsed', 'processing error'  maybe derived f"
+        }],
+        history: [{
+            date: "03/03/2018",
+            action: "sending",
+            user: "crowley",
+            status: "submitted"
+        }],
+        feedback: [{
+            questionID: "1",
+            question: "Is this a good solicitation?",
+            answer: "Yes",
+        }],
+        undetermined: true
+
+    };
+
+// let reviewRecArray = ["Compliant", "Non-compliant (Action Required)", "Undetermined"];
+let noticeTypeArray = ["Presolicitation", "Combined Synopsis/Solicitation", "Sources Sought", "Special Notice", "Other"];
+let actionStatusArray = ["Email Sent to POC", "reviewed solicitation action requested summary", "provided feedback on the solicitation prediction result"];
+
+function mockData() {
+    if (myCache.get("sample_data") != undefined) {
+        return myCache.get("sample_data");
+    }
+
+        let reviewRecArray = ["Compliant", "Non-compliant (Action Required)", "Undetermined"];
+        let noticeTypeArray = ["Presolicitation", "Combined Synopsis/Solicitation", "Sources Sought", "Special Notice", "Other"];
+        let actionStatusArray = ["Email Sent to POC", "reviewed solicitation action requested summary", "provided feedback on the solicitation prediction result"];
+        let template =
+
+            {
+                solNum: "1234",
+                title: "sample title",
+                url: "http://www.tcg.com/",
+                predictions: {
+                    value: "GREEN"
+                },
+                reviewRec: "Compliant", // one of "Compliant", "Non-compliant (Action Required)", or "Undetermined"
+                date: "01/01/2019",
+                numDocs: 3,
+                eitLikelihood: {
+                    naics: "naics here",  // initial version uses NAICS code to determine
+                    value: "45"
+                },
+                agency: "National Institutes of Health",
+                office: "Office of the Director",
+
+                contactInfo: {
+                    contact: "contact str",
+                    name: "Joe Smith",
+                    position: "Manager",
+                    email: "joe@example.com"
+                },
+                position: "pos string",
+                reviewStatus: "on time",
+                noticeType: "N type",
+                actionStatus: "ready",
+                actionDate: "02/02/2019",
+                parseStatus: [{
+                    name: "doc 1",
+                    status: "parsed"
+                }],
+                history: [{
+                    date: "03/03/2018",
+                    action: "sending",
+                    user: "crowley",
+                    status: "submitted"
+                }],
+                feedback: [{
+                    questionID: "1",
+                    question: "Is this a good solicitation?",
+                    answer: "Yes",
+                }],
+                undetermined: true
+
+            };
+
+        let sample_data = new Array();
+
+        for (let i = 0; i < 6000; i++) {
+            let o = Object.assign({}, template);
+
+            o.title = randomWords({exactly: 1, wordsPerString: getRandomInt(2, 7)})[0];
+            o.reviewRec = pickOne(reviewRecArray);
+            o.agency = pickOne(['Navy Department', 'Education Department',   'National Institutes of Health', 'National Library of Medicine']);
+            o.numDocs = getRandomInt(0,3);
+            o.solNum = getRandomInt(999, 99999999);
+            o.noticeType = pickOne(noticeTypeArray);
+            o.actionStatus = pickOne(actionStatusArray);
+            o.actionDate = new Date( getRandomInt(2018, 2020),  getRandomInt(0, 12),getRandomInt(1,27));;;
+            o.date = new Date( getRandomInt(2018, 2020),  getRandomInt(0, 12),getRandomInt(1,27));;
+            o.office = randomWords({exactly: 1, wordsPerString: getRandomInt(2, 4)})[0];
+            o.predictions = Object.assign({}, template.predictions);
+            o.predictions.value = pickOne(["RED", "GREEN"]);
+            o.eitLikelihood = Object.assign({}, template.eitLikelihood);
+            o.eitLikelihood.naics = getRandomInt(10, 99999);
+            o.eitLikelihood.value = pickOne(['Yes', 'No']);
+            o.undetermined = (getRandomInt(0,2) == 0);
+
+            o.parseStatus = [];
+            let count = getRandomInt(0,3);
+            for (let x=0; x < count; x++) {
+                let stat = {};
+                stat.name = "doc 1";
+                stat.status = pickOne( ["successfully parsed", "processing error"] )
+                o.parseStatus.push ( stat )
+            }
+
+            sample_data.push(o);
+        }
+
+        myCache.set("sample_data", sample_data);
+        return sample_data;
+}
