@@ -26,8 +26,9 @@ const config = require(path.join(__dirname, '/../config/config.json'))[env]
 /**
  * A prediction object as expected by the client UI
  * @typedef {Object} Prediction
- * @property {integer} id - Database ID of the prediction. This value shouldn't be used if possible. It will refer to the id of the last notice row associated with this prediction.
+ * @property {Number} id - Database ID of the prediction. This value shouldn't be used if possible. It will refer to the id of the last notice row associated with this prediction.
  * @property {string} title - Solicitation title for this prediction
+ * @property {string} url - Solicitation title for this prediction
  * @property {string} reviewRec - Prediction for the solicitation. One of "Compliant", "Non-compliant (Action Required)", or "Undetermined"
  * @property {string} numDocs - Number of attachments associated with the solicitation
  * @property {string} solNum - Notice number for this prediction
@@ -36,7 +37,7 @@ const config = require(path.join(__dirname, '/../config/config.json'))[env]
  * @property {string} office - Office associated with the solicitation
  * @property {Object} predictions - Has one element named value of "RED" or "GREEN" for non / compliant solicitations. Don't know why it's a plural noun.
  * @property {EIT} eitLikelihood - Is the solicitation an IT solicitation?
- * @property {integer} undetermined - Boolean representation showing if the solicitation has an undetermined prediction. 0 for false (determined) and 1 for true (undetermined)
+ * @property {Number} undetermined - Boolean representation showing if the solicitation has an undetermined prediction. 0 for false (determined) and 1 for true (undetermined)
  * @property {action} action - Date/status of the last action. (quirk of the legacy code causes this to not be set until the second action occurs_
  * @property {string} actionStatus
  * @property {string} actionDate
@@ -88,6 +89,7 @@ function makeOnePrediction (notice) {
 
   o.id = notice.id
   o.title = (notice.notice_data !== undefined) ? notice.notice_data.subject : ''
+  o.url = (notice.notice_data !== undefined) ? notice.notice_data.url : ''
   o.reviewRec = (notice.compliant === 1) ? 'Compliant' : 'Non-compliant (Action Required)'
   o.agency = notice.agency
   o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0
