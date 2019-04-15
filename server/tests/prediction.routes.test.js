@@ -526,4 +526,10 @@ describe('prediction tests', () => {
           })
       })
   })
+
+  test('default attachment title', () => {
+    let notice = {}
+    let prediction = predictionRoutes.makeOnePrediction(notice)
+    expect(prediction.title).toBe('filename not available')
+  })
 })
