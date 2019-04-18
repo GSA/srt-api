@@ -1,6 +1,6 @@
 {
   "name": "section508dash",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Web services to see 508 compliance predictions for solicitations posted to FBO",
   "main": "index.js",
   "scripts": {
