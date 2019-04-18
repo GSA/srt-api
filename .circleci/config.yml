@@ -41,12 +41,21 @@ jobs:
 
       # Download and cache dependencies
       - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "package.json" }}
-            # fallback to using the latest cache if no match
-            - v1-dependencies-
+          key: v1-dependencies-{{ checksum "package.json" }}
 
-      - run: npm install
+      - run: test ! -d node_modules && npm install || echo "node modules were cached"
+
+      - save_cache:
+          paths:
+            - node_modules
+            - cc-test-reporter
+          key: v1-dependencies-{{ checksum "package.json" }}
+
+      - run:
+          name: Setup Code Climate test-reporter
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
 
       - run: cp srt-db.crypt srt-database.sql.gz
       - run: ./node_modules/.bin/cryptify -p ${CRYPTIFY} -d srt-database.sql.gz
@@ -56,13 +65,7 @@ jobs:
       - run: ./node_modules/.bin/sequelize --url 'postgresql://circleci:srtpass@localhost/srt' db:migrate
 
       - run:
-          name: Setup Code Climate test-reporter
-          command: |
-               curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-               chmod +x ./cc-test-reporter
-
-      - run:
-         name: Run Tests
+         name: Run the Tests
          environment:
            NODE_ENV: circle
 #          command: npm run circleci
@@ -72,7 +75,3 @@ jobs:
               ./cc-test-reporter after-build --coverage-input-type lcov --exit-code $?
 
 
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
