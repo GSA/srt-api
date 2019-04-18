@@ -1,11 +1,8 @@
-'use strict';
-
+'use strict'
+const migrationUtils = require('../migrationUtil')
 
 /* Make this a no-op for now. */
-module.exports = {
-    up: async (queryInterface, Sequelize) => { },
-    down: async (queryInterface, Sequelize) => { }
-};
+module.exports = migrationUtils.migrateUpDown([], [])
 
 // const env = process.env.NODE_ENV || 'development';
 // const config = require(__dirname + '/../config/config.json')[env];
