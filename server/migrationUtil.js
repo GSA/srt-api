@@ -1,8 +1,8 @@
 'use strict'
 const env = process.env.NODE_ENV || 'development'
 const path = require('path')
-const config = require(path.join(__dirname, 'config', 'config.json'))[env]
-let connectionString = 'postgres://' + config.username + ':' + config.password + '@' + config.host + ':' + config.port + '/' + config.database
+const dbConfig = require(path.join(__dirname, 'config', 'dbConfig.js'))[env]
+let connectionString = 'postgres://' + dbConfig.username + ':' + dbConfig.password + '@' + dbConfig.host + ':' + dbConfig.port + '/' + dbConfig.database
 
 /**
  * Runs a single sql statement and prints results
