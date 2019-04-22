@@ -1,10 +1,5 @@
 {
   "development": {
-    "username": "circleci",
-    "password": "srtpass",
-    "database": "srt",
-    "host": "192.168.33.101",
-    "port": 5432,
     "dialect": "postgres",
     "logging": false,
 
@@ -25,38 +20,7 @@
     },
     "logStdOut" : false
   },
-  "gitlab": {
-    "username": "utz6kah1zq8t2nyg",
-    "password": "***REMOVED***",
-    "database": "cgawsbrokerprodgq3wrvn8c8a772q",
-    "host": "postgres",
-    "port": 5432,
-    "dialect": "postgres",
-    "logging": false,
-
-    "emailFrom": "crowley+srt@tcg.com",
-    "emailServer" : {
-      "host": "smtp.sendgrid.net",
-      "port": 465,
-      "secure": true,
-      "auth": {
-        "user": "crowley",
-        "pass": "ENV variable SENDGRID_API_KEY"
-      }
-    },
-    "emailLogOnly": false,
-    "spamProtect" : true,
-    "srt_server": {
-      "port": 3000
-    },
-    "logStdOut" : true
-  },
   "circle": {
-    "username": "circleci",
-    "password": "***REMOVED***",
-    "database": "srt",
-    "host": "localhost",
-    "port": 5432,
     "dialect": "postgres",
     "logging": false,
 
@@ -78,11 +42,6 @@
     "logStdOut" : true
   },
   "clouddev": {
-    "username": "utz6kah1zq8t2nyg",
-    "password": "***REMOVED***",
-    "database": "cgawsbrokerprodgq3wrvn8c8a772q",
-    "host": "srt-postgres",
-    "port": 5432,
     "dialect": "postgres",
     "logging": false,
 
@@ -104,11 +63,6 @@
     "logStdOut" : true
   },
   "cloudstage": {
-    "username": "utz6kah1zq8t2nyg",
-    "password": "***REMOVED***",
-    "database": "cgawsbrokerprodgq3wrvn8c8a772q",
-    "host": "srt-postgres-stage",
-    "port": 5432,
     "dialect": "postgres",
     "logging": false,
 
@@ -130,11 +84,6 @@
     "logStdOut" : true
   },
   "test": {
-    "username": "utz6kah1zq8t2nyg",
-    "password": "***REMOVED***",
-    "database": "cgawsbrokerprodgq3wrvn8c8a772q",
-    "host": "192.168.1.126",
-    "port": 5432,
     "dialect": "postgres",
     "logging": false,
 
@@ -155,11 +104,6 @@
     "logStdOut" : true
   },
   "production": {
-    "username": "utz6kah1zq8t2nyg",
-    "password": "***REMOVED***",
-    "database": "cgawsbrokerprodgq3wrvn8c8a772q",
-    "host": "192.168.1.126",
-    "port": 5432,
     "dialect": "postgres",
     "logging": false,
 
@@ -177,29 +121,6 @@
     "spamProtect" : false,
     "srt_server": {
       "port": 8080
-    },
-    "logStdOut" : true
-  },
-  "sqlite" : {
-    "env_name" : "sqlite",
-    "dialect": "sqlite",
-    "host" : "localhost",
-    "storage" : "database.sqlite",
-    "logging": false,
-
-    "emailFrom": "crowley+srt@tcg.com",
-    "emailServer" : {
-      "host": "smtp.sendgrid.net",
-      "port": 465,
-      "secure": true,
-      "auth": {
-        "user": "crowley",
-        "pass": "ENV variable SENDGRID_API_KEY"
-      }
-    },
-    "emailLogOnly": false,
-    "srt_server": {
-      "port": 3000
     },
     "logStdOut" : true
   }

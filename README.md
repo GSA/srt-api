@@ -37,12 +37,12 @@ directory of this repository. The documentaiton can be rebuilt from
 source when updats are necessary using `npm run doc`
 
 ## Running / Configuration
-The `npm run start` command will start the server. Configuration options are
-read from the server/config/config.json file. config.json holds the configuration 
+The `npm run start` command will start the server. Database configuration options are
+read from server/dbConfig/dbConfigig.js and general configuration from server/dbConfig/dbConfig.json file. dbConfig.json holds the configuration 
 for every environment the app amy be run in and the specific configuration for
 this run is chosen based on the NODE_ENV environment variable.
 
-Database connection information is stored in the config.json file but will be
+Database connection information is stored in the dbConfig.jsjs file but will be
 overridden by any settings in the VCAP_SERVICES environment variable. This feature
 allows cloud.gov to inject the proper database connection information upon
 startup.

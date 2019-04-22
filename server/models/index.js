@@ -79,26 +79,10 @@ const Umzug = require('umzug')
 const logger = require('../config/winston')
 const basename = path.basename(__filename)
 const env = process.env.NODE_ENV || 'development'
-const config = require(path.join(__dirname, '/../config/config.json'))[env]
+const config = require(path.join(__dirname, '/../config/dbConfig.js'))[env]
 const db = {}
 
-let sequelize
-
-if (process.env.VCAP_SERVICES) {
-  // looks like we have credential info from cloud.gov
-  // connect to the first entry in aws-rds
-  let dbConfig = JSON.parse(process.env.VCAP_SERVICES)
-  dbConfig['aws-rds'][0].credentials.dialect = 'postgres'
-  dbConfig['aws-rds'][0].credentials.logging = config.logging
-  sequelize = new Sequelize(
-    dbConfig['aws-rds'][0]['credentials']['db_name'],
-    dbConfig['aws-rds'][0]['credentials']['username'],
-    dbConfig['aws-rds'][0]['credentials']['password'],
-    dbConfig['aws-rds'][0]['credentials']
-  )
-} else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config)
-}
+let sequelize = new Sequelize(config.database, config.username, config.password, config)
 
 // Now run any database outstanding migrations using umzug
 const umzug = new Umzug({

@@ -62,7 +62,7 @@ jobs:
       - run: rm srt-database.sql || true
       - run: gzip -d srt-database.sql.gz
       - run: export PGPASSWORD=srtpass && psql -h "localhost"  srt circleci < srt-database.sql
-      - run: ./node_modules/.bin/sequelize --url 'postgresql://circleci:srtpass@localhost/srt' db:migrate
+      - run: ./node_modules/.bin/sequelize --config ./server/config/dbConfig.js db:migrate
 
       - run:
          name: Run the Tests
