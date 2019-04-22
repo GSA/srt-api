@@ -1,7 +1,28 @@
 // export DB connection for sequelize command line
 // you can run it with:
-// node ./node_modules/.bin/sequelize -c server/config/config.js
-let config = require('./config.json')
+// node ./node_modules/.bin/sequelize -c server/config/dbConfigig.js
+let dbConfig = {
+  "development": {
+    "username": "circleci",
+    "password": "srtpass",
+    "database": "srt",
+    "host": "192.168.33.101",
+    "port": 5432,
+    "dialect": "postgres",
+    "logging": false,
+  },
+  "circle": {
+    "username": "circleci",
+    "password": "srtpass",
+    "database": "srt",
+    "host": "localhost",
+    "port": 5432,
+    "dialect": "postgres",
+    "logging": false,
+  }
+}
+
+const env = process.env.NODE_ENV || 'development'
 
 if (process.env.VCAP_SERVICES) {
   // noinspection SpellCheckingInspection
@@ -17,14 +38,15 @@ if (process.env.VCAP_SERVICES) {
     logging: false
   }
 
-  config= {
+  dbConfig= {
     development: dbSettings
   }
 
   if (process.env.NODE_ENV) {
-    config[process.env.NODE_ENV] = dbSettings
+    dbConfig[env] = dbSettings
   }
 }
 
 
-module.exports = config
+module.exports = dbConfig
+

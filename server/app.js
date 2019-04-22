@@ -1,4 +1,3 @@
-require('./config/config.js')
 let winston = require('winston')
 let expressWinston = require('express-winston')
 const express = require('express')

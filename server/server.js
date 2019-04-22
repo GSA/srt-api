@@ -1,4 +1,3 @@
-require('./config/config')
 const env = process.env.NODE_ENV || 'development'
 const config = require('./config/config.json')[env]
 const app = require('./app')()
