@@ -88,7 +88,7 @@ function makeOnePrediction (notice) {
   let o = {} // Object.assign({}, template);
 
   o.id = notice.id
-  o.title = (notice.notice_data !== undefined && notice.notice_data.subject !== undefined ) ? notice.notice_data.subject : 'filename not available'
+  o.title = (notice.notice_data && notice.notice_data.subject) ? notice.notice_data.subject : 'title not available'
   o.url = (notice.notice_data !== undefined) ? notice.notice_data.url : ''
   o.reviewRec = (notice.compliant === 1) ? 'Compliant' : 'Non-compliant (Action Required)'
   o.agency = notice.agency
