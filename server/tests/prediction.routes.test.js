@@ -527,9 +527,17 @@ describe('prediction tests', () => {
       })
   })
 
-  test('default attachment title', () => {
+  test('default solicitation title', () => {
     let notice = {}
     let prediction = predictionRoutes.makeOnePrediction(notice)
-    expect(prediction.title).toBe('filename not available')
+    expect(prediction.title).toBe('title not available')
+
+    notice = {notice_data : {} }
+    prediction = predictionRoutes.makeOnePrediction(notice)
+    expect(prediction.title).toBe('title not available')
+
+    notice = {notice_data : {subject: 'title here'} }
+    prediction = predictionRoutes.makeOnePrediction(notice)
+    expect(prediction.title).toBe('title here')
   })
 })
