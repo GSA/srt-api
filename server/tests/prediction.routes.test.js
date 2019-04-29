@@ -531,5 +531,9 @@ describe('prediction tests', () => {
     let notice = {}
     let prediction = predictionRoutes.makeOnePrediction(notice)
     expect(prediction.title).toBe('filename not available')
+
+    notice = {notice_data : {} }
+    prediction = predictionRoutes.makeOnePrediction(notice)
+    expect(prediction.title).toBe('filename not available')
   })
 })
