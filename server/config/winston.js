@@ -1,6 +1,5 @@
-const path = require('path')
 const env = process.env.NODE_ENV || 'development'
-const config = require(path.join(__dirname, '/../config/config.json'))[env]
+const config = require('../config/config.js')[env]
 
 let winston = require('winston')
 let options = {
@@ -10,7 +9,7 @@ let options = {
   ],
   format: winston.format.combine(
     winston.format.timestamp(),
-    winston.format.prettyPrint()
+    winston.format.json()
   ),
   meta: true,
   exitOnError: false,
