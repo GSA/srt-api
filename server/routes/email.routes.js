@@ -1,13 +1,9 @@
 /** @module EmailRoutes */
 const nodemailer = require((process.env.MAIL_ENGINE) ? process.env.MAIL_ENGINE : 'nodemailer')
-const jwt = require('jsonwebtoken')
 const logger = require('../config/winston')
-const path = require('path')
 
 const env = process.env.NODE_ENV || 'development'
-/** @namespace config.emailServer */
-/** @namespace config.emailLogOnly */
-const config = require(path.join(__dirname, '/../config/config.json'))[env]
+const config = require('../config/config.js')[env]
 
 /**
  * Email message format
@@ -130,34 +126,9 @@ module.exports = {
      * @return {Promise}
      */
   updatePassword: async (req, res) => {
-    let token = req.headers['authorization'].split(' ')[1]
-    if (token && token !== 'null') {
-      // noinspection JSUnresolvedVariable
-      let user = jwt.decode(token).user
+    logger.log("warn", "Call to deprecated email.routes.resetPassword", {tag: 'resetPassword'})
+    return res.status(200).send('')
 
-      let bodyText = 'You have requested to change your password! If you did not take this action please contact ' + config.emailFrom
-      let message = {
-        text: bodyText,
-        from: config.emailFrom,
-        to: user.email, // req.body.email,
-        cc: '',
-        subject: 'Change password'
-      }
-
-      return sendMessage(message, res)
-        .then(() => {
-          return res.status(200).send('dEmail has been sent.')
-        })
-        .catch((status) => {
-          if (!status.params_correct) {
-            // params were not correct....so this is client error
-            return res.status(400).send('Subject, to, and from are all required fields.')
-          } else {
-            // client sent good data, we messed up somewhere
-            return res.status(500).send('Error sending email.')
-          }
-        })
-    }
   }
 
 }

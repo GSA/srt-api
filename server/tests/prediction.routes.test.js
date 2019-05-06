@@ -11,12 +11,15 @@ const env = process.env.NODE_ENV || 'development'
 const db = require('../models/index')
 let predictionRoutes = require('../routes/prediction.routes')
 let randomWords = require('random-words')
+const {common} = require('../config/config.js')
 
-const { userAccepted } = require('./test.data')
+
+const { userAcceptedCASData } = require('./test.data')
 
 let myUser = {}
 myUser.firstName = 'pred-beforeAllUser'
 myUser.email = 'crowley+pred@tcg.com'
+myUser.maxId = 'PRT001'
 delete myUser.id
 let token = {}
 
@@ -86,12 +89,13 @@ describe('prediction tests', () => {
     process.env.MAIL_ENGINE = 'nodemailer-mock'
     app = require('../app')() // don't load the app till the mock is configured
 
-    myUser = Object.assign({}, userAccepted)
+    myUser = Object.assign({}, userAcceptedCASData)
     delete myUser.id
     return User.create(myUser)
-      .then((user) => {
+      .then(async (user) => {
         myUser.id = user.id
-        token = mockToken(myUser)
+        token = await mockToken(myUser, common['jwt_secret'])
+        console.log (token)
       })
   })
 

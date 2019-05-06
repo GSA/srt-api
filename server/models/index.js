@@ -69,6 +69,7 @@
  * @property {string} rejectionNote: DataTypes.STRING,
  * @property {string} creationDate: DataTypes.STRING,
  * @property {string} tempPassword: DataTypes.STRING
+ * @property {string} maxId: DataTypes.STRING
  *
  */
 
@@ -103,7 +104,11 @@ const umzug = new Umzug({
 
 umzug.up()
   .then((result) => {
-    logger.log('info', result, { tag: 'Umzug db migration results' })
+    let msg = {
+      msg: "Umzug db migration results",
+      result: result
+    }
+    logger.log('info', msg, { tag: 'Umzug db migration results' })
   })
 
 fs

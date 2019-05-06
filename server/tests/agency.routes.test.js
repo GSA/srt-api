@@ -3,15 +3,20 @@ const app = require('../app')()
 const mockToken = require('./mocktoken')
 // noinspection JSUnresolvedVariable
 const Agency = require('../models').Agency
+const {common} = require('../config/config.js')
 
-const { userAccepted } = require('./test.data')
-let token = mockToken(userAccepted)
+const { userAcceptedCASData } = require('./test.data')
+let token = null
 
 /** @namespace res.statusCode */
 
 describe('/api/agencies', () => {
   let agency = 'abc'
   let acronym = 'def'
+
+  beforeAll( async () => {
+    token = await mockToken(userAcceptedCASData, common['jwt_secret'])
+  })
 
   afterAll(() => {
     return Agency.destroy({ where: { agency: agency } })

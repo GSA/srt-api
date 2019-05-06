@@ -38,7 +38,8 @@ source when updats are necessary using `npm run doc`
 
 ## Running / Configuration
 The `npm run start` command will start the server. Database configuration options are
-read from server/dbConfig/dbConfigig.js and general configuration from server/dbConfig/dbConfig.json file. dbConfig.json holds the configuration 
+read from server/dbConfig/dbConfig.js and general configuration from 
+server/config/config.js file. dbConfig.json holds the configuration 
 for every environment the app amy be run in and the specific configuration for
 this run is chosen based on the NODE_ENV environment variable.
 
