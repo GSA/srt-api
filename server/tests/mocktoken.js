@@ -1,6 +1,13 @@
 // token pass
-const jwt = require('jsonwebtoken')
+const authRoutes = require('../routes/auth.routes')
+const {common} = require('../config/config')
 
-module.exports = function (user) {
-  return jwt.sign({ user: user }, 'innovation', { expiresIn: 7200 }) // token is good for 2 hours
+module.exports = async function (user, secret) {
+  if ( ! secret ) {
+    secret = common.jwt_secret
+  }
+  user.position = "mock"
+  let token = await authRoutes.tokenJsonFromCasInfo(user, secret)
+  let tokenString =  token.valueOf()
+  return JSON.parse(tokenString).token
 }

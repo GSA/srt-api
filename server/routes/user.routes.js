@@ -5,10 +5,7 @@ const bcrypt = require('bcryptjs')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
 const logger = require('../config/winston')
-const emailRoutes = require('./email.routes')
-const path = require('path')
-const env = process.env.NODE_ENV || 'development'
-const config = require(path.join(__dirname, '/../config/config.json'))[env]
+
 
 /**
  *
@@ -33,9 +30,35 @@ let performUpdatePassword = function (user, unencryptedPassword) {
     })
 }
 
+/**
+ * Returns the email associated with the current request, or anonymous if user not logged in
+ *
+ * @param req
+ * @return {string|*} email
+ */
+function whoAmI (req) {
+  try {
+    if (req.session && req.session.email) {
+      return req.session.email
+    }
+    if (req.headers && req.headers['authorization']) {
+      let token = req.headers['authorization'].split(' ')[1]
+      // noinspection JSUnresolvedVariable
+      let userInfo = jwt.decode(token).user
+      return userInfo.email
+    }
+  } catch (e) {
+    logger.log('error', e, {tag: 'whoAmI'})
+  }
+  return 'anonymous'
+
+}
+
 module.exports = {
 
-  /**
+  whoAmI : whoAmI,
+
+/**
      * <b>POST /api/user/filter </b> <br><br>
      *
      * Sends an array of users records that match the supplied filter to the response.
@@ -94,31 +117,8 @@ module.exports = {
      * @return {Promise}
      */
   update: function (req, res) {
-    let id = (req.body.userId) ? req.body.userId
-      : (req.body.id) ? req.body.id
-        : (req.body.UserID) ? req.body.UserID : -1
-    return User.findByPk(id).then((user) => {
-      if (user == null) {
-        logger.log('info', req.params, { tag: 'could not find user, userID ' + id })
-        return res.status(404).send('Unable to find user ' + id)
-      }
-      Object.keys(req.body).forEach(k => {
-        if (user.dataValues.hasOwnProperty(k)) {
-          user[k] = req.body[k]
-        }
-      })
-      // take care of odd legacy UI expectations
-      if (req.body.NewEmail) {
-        user.email = req.body.NewEmail
-      }
-
-      return user.save().then(() => {
-        return res.status(200).send(user)
-      })
-    }).catch(e => {
-      logger.log('error', e, { tag: 'user.routes.update', id: id })
-      return res.status(500).send(e)
-    })
+    logger.log ("warn", 'user update attempted', {tag:'update', request: req})
+    return res.status(200).send({})
   },
 
   /**
@@ -141,43 +141,10 @@ module.exports = {
      * @return {Promise}
      */
   updatePassword: function (req, res) {
-    let newPassword = req.body.password
-    let oldPassword = req.body.oldpassword
-    let token = req.headers['authorization'].split(' ')[1]
-    // noinspection JSUnresolvedVariable
-    let me = jwt.decode(token).user
-
-    logger.log('info', 'Updating password for user ' + me.email, { tag: 'updatePassword' })
-
-    return User.findByPk(me.id).then((user) => {
-      if (oldPassword === user.tempPassword || bcrypt.compareSync(oldPassword, user.password)) {
-        return performUpdatePassword(user, newPassword).then(() => {
-          let message = {
-            text: 'Your password for the Solicitation Review Tool has been changed. If you did not request a password change, please contact ' + config.emailFrom,
-            from: config.emailFrom,
-            to: user.email,
-            cc: '',
-            subject: 'Change password'
-          }
-
-          return emailRoutes.sendMessage(message)
-            .then(() => {
-              return res.status(200).send({ message: 'Password changed.' })
-            })
-            .catch((err) => {
-              logger.log('error', err, { tag: 'updatePassword - error sending email' })
-              logger.log('error', message, { tag: 'updatePassword - error sending email with this contents' })
-              return res.status(500).send({ message: 'error updating password' })
-            })
-        })
-      } else {
-        logger.log('info', 'Failed attempt to change password by ' + me.email)
-        return res.status(401).send({ message: 'current password is not correct!' })
-      }
-    }).catch(e => {
-      logger.error(e)
-      res.status(500).send({ message: 'Update failed - ' + e.stack })
-    })
+    let email = whoAmI(req)
+    logger.log('info', 'Updating password call for user ' + email , { tag: 'updatePassword' })
+    logger.log('info', 'Deprecated call user.routes.updatePassword ' , { tag: 'CAS-dep' })
+    return res.status(200).send({ message: 'Password changed.' })
   },
   /**
      * <b>POST /api/user/getUserInfo</b><br><br>
@@ -194,6 +161,8 @@ module.exports = {
             (req.body.UserID) ? req.body.UserID
               : (req.body.UserId) ? req.body.UserId
                 : (req.body.id) ? req.body.id : -1
+
+    console.log ("decided to look for " + id)
     return User.findOne({ where: { id: id } })
       .then(user => {
         if (user) {
@@ -223,7 +192,14 @@ module.exports = {
     let current = jwt.decode(token).user
     return User.findByPk(current.id)
       .then(user => {
-        return res.status(200).send({ creationDate: user.creationDate })
+        let date = user.creationDate
+        if ( date.match(/^[0-9]+$/)) { // if it's a numeric timestamp
+          console.log(user.creationDate)
+          let d = new Date(parseInt(date))
+          console.log (d)
+          date = (d.getMonth()+1) + "-" + d.getDate() + "-" + d.getFullYear()
+        }
+        return res.status(200).send({ creationDate: date })
       })
       .catch(e => {
         logger.error(e)

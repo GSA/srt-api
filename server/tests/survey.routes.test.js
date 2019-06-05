@@ -3,21 +3,22 @@ let app = require('../app')()
 const mockToken = require('./mocktoken')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
-const { userAccepted } = require('./test.data')
+const { userAcceptedCASData } = require('./test.data')
+const {common} = require('../config/config.js')
 
 let myUser = {}
 let token = {}
 
 describe('/api/analytics', () => {
   beforeAll(() => {
-    myUser = Object.assign({}, userAccepted)
+    myUser = Object.assign({}, userAcceptedCASData)
     myUser.firstName = 'survey-beforeAllUser'
     myUser.email = 'crowley+survey@tcg.com'
     delete myUser.id
     return User.create(myUser)
-      .then((user) => {
+      .then(async (user) => {
         myUser.id = user.id
-        token = mockToken(myUser)
+        token = await mockToken(myUser, common['jwt_secret'])
       })
   })
 
