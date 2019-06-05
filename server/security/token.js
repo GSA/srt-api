@@ -10,11 +10,9 @@ module.exports = function () {
     try {
       if (req.headers.hasOwnProperty('authorization')) {
         token = req.headers['authorization'].split(' ')[1]
-        // logger.log ("debug", token);
         if (token && token !== 'null') {
           jwt.verify(token, 'innovation') // will thrown an error on an invalid token
           failed = false
-          // logger.log("debug", {tag: "token check passed"})
           next()
         }
       } else {
@@ -22,11 +20,11 @@ module.exports = function () {
       }
     } catch (err) {
       // this will be logged in the if (failed) block
-      logger.log('error', err, { tag: 'token check error 2' })
+      logger.log('error', "error in: token check error 2", { error: err, tag: 'token check error 2' })
     }
 
     if (failed) {
-      logger.log('info', 'failed token check for token ' + token)
+      logger.log('info', 'failed token check for token ' + token, {tag:'token'})
       return res.status(401).send({
         success: false,
         message: 'Unauthorized'

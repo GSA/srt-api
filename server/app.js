@@ -51,8 +51,8 @@ module.exports = function (db, cas) {
   app.use(expressWinston.logger({
     transports: transports,
     format: winston.format.combine(
-      winston.format.json(),
-      winston.format.timestamp()
+      winston.format.timestamp(),
+      winston.format.json()
     ),
     meta: true,
     // msg: "HTTP {{req.method}} {{req.url}} ",
@@ -70,8 +70,7 @@ module.exports = function (db, cas) {
           user.id = 'Caught error decoding JWT'
         }
       }
-      let dt = new Date().toLocaleString()
-      return `${dt} ${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`
+      return `${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`
     },
     expressFormat: false,
     colorize: false,
@@ -143,8 +142,8 @@ module.exports = function (db, cas) {
   app.use(expressWinston.errorLogger({
     transports: transports,
     format: winston.format.combine(
-      winston.format.json(),
-      winston.format.timestamp()
+      winston.format.timestamp(),
+      winston.format.json()
     ),
     meta: true,
     // msg: "HTTP {{req.method}} {{req.url}} ",
@@ -158,8 +157,7 @@ module.exports = function (db, cas) {
         let decoded = jwt.verify(token, 'innovation')
         user = decoded.user
       }
-      let dt = new Date().toLocaleString()
-      return `ERROR - ${dt} ${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`
+      return `ERROR - ${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`
     },
     expressFormat: false,
     colorize: false,

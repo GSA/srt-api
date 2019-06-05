@@ -50,7 +50,7 @@ module.exports = {
         return res.status(200).send(surveys.map(s => makeOneSurvey(s)))
       })
       .catch((e) => {
-        logger.log('error', e, { tag: 'survey get' })
+        logger.log('error', 'error in: survey get', { error:e, tag: 'survey get' })
         res.status(400).send(e)
       })
   }

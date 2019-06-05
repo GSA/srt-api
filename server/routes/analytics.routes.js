@@ -391,11 +391,11 @@ module.exports = {
           return res.status(200).send(analytics)
         })
         .catch((e) => {
-          logger.log('error', e, { tag: 'analytics' })
+          logger.log('error', 'error in: analytics', { error:e, tag: 'analytics' })
           return res.status(500).send({})
         })
     } catch (e) {
-      logger.log('error', e, { tag: 'analytics' })
+      logger.log('error', 'error in: analytics', { error:e, tag: 'analytics' })
       return res.status(500).send({})
     }
   }

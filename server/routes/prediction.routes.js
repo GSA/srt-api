@@ -5,6 +5,10 @@
  */
 const logger = require('../config/winston')
 const db = require('../models/index')
+/**
+ * @typedef {Object} SqlString
+ * @property {function} escape
+ */
 const SqlString = require('sequelize/lib/sql-string')
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
@@ -293,7 +297,7 @@ function getPredictions (filter) {
       return mergePredictions(data)
     })
     .catch(e => {
-      logger.log('error', e, { tag: 'getPredictions', sql: sql })
+      logger.log('error', 'error in: getPredictions', { error:e, tag: 'getPredictions', sql: sql })
       return null
     })
 }
@@ -331,7 +335,7 @@ module.exports = {
     let validKeys = ['agency', 'office', 'numDocs', 'solNum', 'eitLikelihood', 'startDate', 'fromPeriod', 'endDate', 'toPeriod']
     for (let i = 0; i < keys.length; i++) {
       if (req.body[keys[i]] !== '' && !validKeys.includes(keys[i])) {
-        logger.log('error', req.body, { tag: 'predictionFilter - ' + 'Received unsupported filter parameter ' + keys[i] })
+        logger.log('error', 'Received unsupported filter parameter '+ keys[i], { body: req.body, tag: 'predictionFilter'})
         return res.status(500).send({ message: 'Received unsupported filter parameter ' + keys[i] })
       }
     }
@@ -353,7 +357,7 @@ module.exports = {
         return res.status(200).send(predictions)
       })
       .catch(e => {
-        logger.log('error', e, { tag: 'predictionFilter' })
+        logger.log('error', 'error in: predictionFilter', { error:e, tag: 'predictionFilter' })
         return res.status(500).send(data)
       })
   }
