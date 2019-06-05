@@ -5,14 +5,25 @@ const bodyParser = require('body-parser')
 let cors = require('cors')
 let token = require('./security/token')
 const env = process.env.NODE_ENV || 'development'
+const config = require('./config/config.js')[env]
+const {common} = require('./config/config.js')
+const session = require('express-session');
+const CASAuthentication = require('cas-authentication');
 
 //
 // Setup ORM
 //
-module.exports = function (db) {
+module.exports = function (db, cas) {
   let app = express()
+
   if (db === undefined) {
     db = require('./models/index')
+  }
+
+  if ( ! cas ) {
+    let casConfig = config['maxCas']
+    casConfig.dev_mode_info = common['casDevModeData']
+    cas = new CASAuthentication(casConfig)
   }
 
   let authRoutes = require('./routes/auth.routes')
@@ -32,10 +43,17 @@ module.exports = function (db) {
     expressWinston.requestWhitelist.push('body')
   }
 
+  let transports = [ new winston.transports.File({ filename: 'winston.log.json', level: 'debug' }) ]
+  if (config['logStdOut']) {
+    transports.push(new winston.transports.Console({ level: 'debug', json: true }))
+  }
+
   app.use(expressWinston.logger({
-    transports: [new winston.transports.File({ filename: 'winston.log.json', level: 'debug' })],
-    // format: winston.format.combine(winston.format.colorize(), winston.format.json()),
-    format: winston.format.prettyPrint(),
+    transports: transports,
+    format: winston.format.combine(
+      winston.format.json(),
+      winston.format.timestamp()
+    ),
     meta: true,
     // msg: "HTTP {{req.method}} {{req.url}} ",
     msg: function (req, res) {
@@ -47,7 +65,7 @@ module.exports = function (db) {
         try {
           token = req.headers['authorization'].split(' ')[1]
           let decoded = jwt.verify(token, 'innovation')
-          user = decoded.user
+          user = (decoded.user) ? decoded.user : user; // make sure we got something to prevent crash below
         } catch (e) {
           user.id = 'Caught error decoding JWT'
         }
@@ -68,6 +86,12 @@ module.exports = function (db) {
       }
     }
   }))
+
+  app.use( session({
+    secret            : 'super secret key',
+    resave            : false,
+    saveUninitialized : true
+  }));
 
   // This will prevent express from sending 304 responses.
   app.use(function (req, res, next) {
@@ -110,10 +134,18 @@ module.exports = function (db) {
 
   app.get('/api/version', versionRoutes.version)
 
+  app.get('/api/casLogin', cas.bounce, authRoutes.casStage2)
+
+
+
+
+
   app.use(expressWinston.errorLogger({
-    transports: [new winston.transports.File({ filename: 'winston.log.json', level: 'debug' })],
-    // format: winston.format.combine(winston.format.colorize(), winston.format.json()),
-    format: winston.format.prettyPrint(),
+    transports: transports,
+    format: winston.format.combine(
+      winston.format.json(),
+      winston.format.timestamp()
+    ),
     meta: true,
     // msg: "HTTP {{req.method}} {{req.url}} ",
     msg: function (req, res) {
@@ -145,3 +177,5 @@ module.exports = function (db) {
 
   return app
 }
+
+
