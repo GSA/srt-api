@@ -4,10 +4,11 @@ const mockToken = require('./mocktoken')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
 const db = require('../models/index')
+const {common} = require('../config/config.js')
 
 const randomWords = require('random-words')
 
-const { userAccepted } = require('./test.data')
+const { userAcceptedCASData } = require('./test.data')
 
 let myUser = {}
 myUser.firstName = 'sol-beforeAllUser'
@@ -20,12 +21,12 @@ describe('solicitation tests', () => {
     process.env.MAIL_ENGINE = 'nodemailer-mock'
     app = require('../app')() // don't load the app till the mock is configured
 
-    myUser = Object.assign({}, userAccepted)
+    myUser = Object.assign({}, userAcceptedCASData)
     delete myUser.id
     return User.create({ myUser: myUser })
-      .then((user) => {
+      .then(async (user) => {
         myUser.id = user.id
-        token = mockToken(myUser)
+        token = await mockToken(myUser, common['jwt_secret'])
       })
   })
 

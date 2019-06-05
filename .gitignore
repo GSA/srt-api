@@ -43,3 +43,5 @@ Thumbs.db
 
 srt*.sql.gz
 srt*.sql
+deploy-log*
+
