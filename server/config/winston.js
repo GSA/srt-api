@@ -5,7 +5,7 @@ let winston = require('winston')
 let options = {
 
   transports: [
-    new winston.transports.File({ filename: 'winston.log.json', level: 'debug' })
+    new winston.transports.File({ filename: 'winston.log.json', level: 'debug', colorize: false })
   ],
   format: winston.format.combine(
     winston.format.timestamp(),
@@ -13,6 +13,7 @@ let options = {
   ),
   meta: true,
   exitOnError: false,
+  colorize: false,
   requestFilter: function (req, propName) {
     if (propName === 'password') {
       return '********'
@@ -23,11 +24,9 @@ let options = {
 }
 
 if (config['logStdOut']) {
-  options.transports.push(new winston.transports.Console({ level: 'debug', json: true }))
+  options.transports.push(new winston.transports.Console({ level: 'debug', json: true, colorize: false }))
 }
 
 let logger = winston.createLogger(options)
-
-// logger.info("starting winston");
 
 module.exports = logger

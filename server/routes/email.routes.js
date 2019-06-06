@@ -53,7 +53,7 @@ function sendMessage (message) {
   } else {
     return transporter.sendMail(message)
       .then(info => {
-        logger.log('info', info)
+        logger.log('info', 'email sent', {tag:'sendMessage', info:info})
         if (info.response.toLowerCase().indexOf('ok') === -1 && info.response.toLowerCase().indexOf('success') === -1) {
           throw info.response
         }
@@ -63,7 +63,7 @@ function sendMessage (message) {
         })
       })
       .catch(err => {
-        logger.log('error', err, { tag: 'sendMessage' })
+        logger.log('error', 'error in: sendMessage', { error: err, tag: 'sendMessage' })
         return new Promise((resolve, reject) => {
           // eslint-disable-next-line prefer-promise-reject-errors
           reject({ success: false, params_correct: true, message: err })
@@ -103,15 +103,14 @@ module.exports = {
         return res.status(200).send({ message: 'Email has been sent.' })
       })
       .catch((status) => {
-        logger.log('info', status, { tag: 'email - catch' })
         if (!status.params_correct) {
           // params were not correct....so this is client error
-          logger.log('info', mailOptions, { tag: 'sendMessage - missing some params' })
+          logger.log('info', 'sendMessage - missing some params', { mailOptions: mailOptions, tag: 'sendMessage' })
           // return res.status(400).send("Subject, to, and from are all required fields.");
           return res.status(400).send({ message: 'Email has sent' })
         } else {
           // client sent good data, we messed up somewhere
-          logger.log('info', mailOptions, { tag: 'sendMessage - missing some params' })
+          logger.log('error', 'sendMessage - unexpected error', { mailOptions: mailOptions, tag: 'sendMessage - unexpected error' })
           return res.status(500).send('Error sending email.')
         }
       })

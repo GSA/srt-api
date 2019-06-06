@@ -25,7 +25,7 @@ let performUpdatePassword = function (user, unencryptedPassword) {
   user.tempPassword = ''
   return user.save()
     .catch(e => {
-      logger.log('error', e, { tag: 'performUpdatePassword' })
+      logger.log('error', 'error in: performUpdatePassword', { error:e, tag: 'performUpdatePassword' })
       throw e
     })
 }
@@ -48,7 +48,7 @@ function whoAmI (req) {
       return userInfo.email
     }
   } catch (e) {
-    logger.log('error', e, {tag: 'whoAmI'})
+    logger.log('error', 'error in: e', {error: e, tag: 'whoAmI'})
   }
   return 'anonymous'
 
@@ -85,7 +85,7 @@ module.exports = {
         res.status(200).send(users)
       })
       .catch(e => {
-        logger.error(e)
+        logger.log('error', 'error in filter', {error:e, tag:'filter'})
         res.status(400).send(e)
       })
   },
@@ -117,7 +117,7 @@ module.exports = {
      * @return {Promise}
      */
   update: function (req, res) {
-    logger.log ("warn", 'user update attempted', {tag:'update', request: req})
+    logger.log ('warn', 'user update attempted', {tag:'update', request_body: req.body})
     return res.status(200).send({})
   },
 
@@ -202,7 +202,7 @@ module.exports = {
         return res.status(200).send({ creationDate: date })
       })
       .catch(e => {
-        logger.error(e)
+        logger.log('error', 'error in: getCurrentUser', {error: e, tag: 'getCurrentUser'})
         return res.status(500).send(e)
       })
   }

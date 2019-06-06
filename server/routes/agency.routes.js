@@ -33,7 +33,7 @@ module.exports = {
         return res.status(200).send(agency)
       })
       .catch((e) => {
-        logger.error(e)
+        logger.log('error', 'Error creating agency', {error:e, tag:'putAgency'})
         return res.status(400).send(e)
       })
   },
@@ -60,7 +60,7 @@ module.exports = {
       return res.status(200).send(a)
     })
       .catch((e) => {
-        logger.error(e)
+        logger.log('error', 'error getting agency', {error:e, tag:'getAgency'})
         res.status(400).send(e)
       })
   },
@@ -83,7 +83,7 @@ module.exports = {
         return res.status(200).send(agencyList)
       })
       .catch(e => {
-        logger.log('error', e, { tag: 'agencyList' })
+        logger.log('error', 'error in: agencyList', { error:e, tag: 'agencyList' })
         return res.status(500)
       })
   }
