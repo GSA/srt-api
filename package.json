@@ -34,7 +34,7 @@
     "random-words": "^1.1.0",
     "randomstring": "*",
     "sequelize": "^5.3",
-    "sequelize-cli": "^5.4.0",
+    "sequelize-cli": "^5.5.0",
     "umzug": "^2.2.0",
     "winston": "^3.2.0"
   },
@@ -49,7 +49,7 @@
     "eslint-plugin-standard": "^4.0.0",
     "expect": "^1.20.2",
     "jest": "~23",
-    "jsdoc": "^3.5.5",
+    "jsdoc": "^3.6.2",
     "mocha": "^3.2.0",
     "mock-express-request": "^0.2.2",
     "mock-express-response": "^0.2.2",
