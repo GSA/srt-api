@@ -58,10 +58,10 @@ function updateMAXUser(cas_data, user) {
         return user['id']
       })
       .catch(e => {
-        logger.log("error", e, { tag: "updateMAXUser" })
+        logger.log('error', 'error in: updateMAXUser', { error:e, tag: 'updateMAXUser' })
       })
   } catch (e) {
-    logger.log ("error", e)
+    logger.log ("error", "caught error in auth.routes.js", {error:e, tag: 'updateMAXUser'})
   }
 }
 
@@ -93,7 +93,7 @@ function createMAXUser(cas_data) {
       return u.id
     })
     .catch ( e => {
-      logger.log("error", e, {tag:"createMAXUser"})
+      logger.log("error", 'error in: createMAXUser', {error: e, tag:"createMAXUser"})
     })
 
 }
@@ -109,8 +109,7 @@ function createOrUpdateMAXUser (cas_data) {
   cas_data.maxId = cas_data['max-id'] || cas_data.maxId
 
   if (!cas_data.maxId) {
-    logger.log('error', "Trying to make a token without a MAX ID")
-    logger.log('error', cas_data, { tag: 'createOrUpdateMAXUser' })
+    logger.log('error', "Trying to make a token without a MAX ID", { cas_data: cas_data, tag: 'createOrUpdateMAXUser' })
     return false
   }
 
@@ -124,7 +123,7 @@ function createOrUpdateMAXUser (cas_data) {
       }
     })
     .catch( e => {
-      logger.log("error", e, {tag: "create/update MAX User"})
+      logger.log("error", "Error caught in create/update MAX User", {error: e, tag: "create/update MAX User"})
     })
 }
 
@@ -306,7 +305,7 @@ module.exports = {
         }
 
         if (!user.isAccepted) {
-          logger.info('User ' + user.email + ' is not marked as accepted.')
+          logger.log('info', 'User ' + user.email + ' is not marked as accepted.', {tag:'login'})
           return res.status(401).send({
             title: 'Login failed',
             error: { message: 'Your account has not been approved, please wait for Administrator Approval.' }
@@ -321,7 +320,7 @@ module.exports = {
         }
 
         if (temp) {
-          logger.info(user.email + ' authenticated with temporary password.')
+          logger.log('info', user.email + ' authenticated with temporary password.', {tag: 'login'})
         }
 
         let token = jwt.sign({ user: user }, 'innovation', { expiresIn: '2h' }) // token is good for 2 hours
@@ -342,7 +341,7 @@ module.exports = {
         res.status(200).send(retObj)
       })
       .catch(err => {
-        logger.log('info', err, { tag: 'auth.routes login' })
+        logger.log('info', 'error in: auth.routes login', { error: err, tag: 'auth.routes login' })
         return res.status(401).send({
           title: 'Unauthorized'
         })
@@ -391,7 +390,7 @@ module.exports = {
      */
   resetPassword: function (req, res) {
     let email = req.body.email
-    logger.log("warn", "Call to deprecated auth.routes.resetPassword by " + email, {tag: 'resetPassword'})
+    logger.log("warn", "Call to deprecated auth.routes.resetPassword by " + email, {body: req.body, tag: 'resetPassword'})
     res.status(200).send({})
   },
 
@@ -429,8 +428,7 @@ module.exports = {
         }
       }
     } catch (e) {
-      logger.log('error', 'caught error in JWT verification, failing safe and returning that the token is not valid')
-      logger.log('error', e)
+      logger.log('error', 'caught error in JWT verification, failing safe and returning that the token is not valid', {error:e, tag:'tokenCheck'})
     }
     return res.status(200).send({ isLogin: false, isGSAAdmin: false })
   },
@@ -453,7 +451,7 @@ module.exports = {
         .set('Location', config['srtClientUrl'] + 'auth') // send them back with no token
         .send(`<html lang="en"><body>Login Failed</body></html>`)
     }
-    logger.log('info', req.session.cas_userinfo['email-address'] + ' authenticated with MAX CAS ID ' + req.session.cas_userinfo['max-id'])
+    logger.log('info', req.session.cas_userinfo['email-address'] + ' authenticated with MAX CAS ID ' + req.session.cas_userinfo['max-id'], {cas_userinfo: req.session.cas_userinfo, tag: 'casStage2'})
 
     let responseJson = await tokenJsonFromCasInfo(req.session.cas_userinfo, 'innovation')
     let location = `${config['srtClientUrl']}/auth?token=${responseJson}`

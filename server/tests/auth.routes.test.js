@@ -97,7 +97,7 @@ describe('/api/auth/', () => {
           })
       })
       .catch((e) => {
-        logger.log('error', e, { tag: 'token check test}' })
+        logger.log('error', 'error in: token check test}', { error:e, tag: 'token check test}' })
       })
     // send a real admin token
       .then(async () => {
@@ -192,7 +192,7 @@ describe('/api/auth/', () => {
           })
       })
       .catch(e => {
-        logger.error(e)
+        console.log(e)
       })
   })
 

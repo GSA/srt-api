@@ -40,7 +40,7 @@ module.exports = function (db) {
             })
         })
         .catch((e) => {
-          logger.log('error', e, { tag: 'solicitation get' })
+          logger.log('error', 'error in: solicitation get', { error:e, tag: 'solicitation get' })
           return res.status(400).send('Error finding solicitation')
         })
     },
@@ -91,12 +91,12 @@ module.exports = function (db) {
               return res.status(200).send(predictionRoute.makeOnePrediction(doc))
             })
             .catch((e) => {
-              logger.log('error', e, { tag: 'postSolicitation - error on save' })
+              logger.log('error', 'error in: postSolicitation - error on save', { error:e, tag: 'postSolicitation - error on save' })
               res.status(400).send({ msg: 'error updating solicitation' })
             })
         })
         .catch((e) => {
-          logger.log('error', e, { tag: 'postSolicitation - error during find' })
+          logger.log('error', 'error in: postSolicitation - error during find', { error:e, tag: 'postSolicitation - error during find' })
           res.status(400).send({ msg: 'error updating solicitation' })
         })
     }, // end postSolicitation
@@ -138,7 +138,7 @@ module.exports = function (db) {
           res.status(200).send(notice.map(predictionRoute.makeOnePrediction))
         })
         .catch(e => {
-          logger.log('error', e, { tag: 'solicitationFeedback' })
+          logger.log('error', 'error in: solicitationFeedback', { error:e, tag: 'solicitationFeedback' })
           res.status(400).send(e)
         })
     }

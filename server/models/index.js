@@ -104,11 +104,7 @@ const umzug = new Umzug({
 
 umzug.up()
   .then((result) => {
-    let msg = {
-      msg: "Umzug db migration results",
-      result: result
-    }
-    logger.log('info', msg, { tag: 'Umzug db migration results' })
+    logger.log('info', 'Umzug db migration results', { result: result, tag: 'Umzug db migration results' })
   })
 
 fs
