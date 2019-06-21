@@ -8,7 +8,7 @@
     "dev": "export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock && node_modules/.bin/sequelize db:migrate && node server/server.js",
     "old-test": "export NODE_ENV=test || SET NODE_ENV=test && mocha server/**/*.test.js",
     "analysis": "snyk test",
-    "test": "NODE_END=development && MAIL_ENGINE=nodemailer-mock &&  ./node_modules/.bin/jest  --detectOpenHandles --config=jest.config.js ",
+    "test": "export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock &&  ./node_modules/.bin/jest  --detectOpenHandles --config=jest.config.js ",
     "circleci": "MAIL_ENGINE=nodemailer-mock && ./node_modules/.bin/snyk test &&  circleci tests glob server/tests/**/* | circleci tests split --split-by=timings | xargs ./node_modules/.bin/jest  --detectOpenHandles --config=jest.config.js ",
     "test-watch": "export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock &&  jest --detectOpenHandles --config=jest.config.js --watch ",
     "backup-db": "export PGPASSWORD=srtpass && pg_dump -U circleci -d srt -h 192.168.1.126 > srt-database.sql ",
