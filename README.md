@@ -1,6 +1,8 @@
 # srt-server
 
 [![CircleCI](https://circleci.com/gh/albertcrowley/srt-api.svg?style=svg)](https://circleci.com/gh/albertcrowley/srt-api)
+[![Maintainability](https://api.codeclimate.com/v1/badges/69b675319203911584f6/maintainability)](https://codeclimate.com/github/albertcrowley/srt-api/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/69b675319203911584f6/test_coverage)](https://codeclimate.com/github/albertcrowley/srt-api/test_coverage)
 
 The srt-server application is an expressjs Node application that provides a 
 REST API for the srt-client. Together the client/server provide a web portal
