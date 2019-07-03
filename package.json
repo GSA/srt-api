@@ -8,7 +8,7 @@
     "dev": "export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock && node_modules/.bin/sequelize db:migrate && node server/server.js",
     "old-test": "export NODE_ENV=test || SET NODE_ENV=test && mocha server/**/*.test.js",
     "analysis": "snyk test",
-    "test": "NODE_END=development && MAIL_ENGINE=nodemailer-mock &&  ./node_modules/.bin/jest  --detectOpenHandles --config=jest.config.js ",
+    "test": "export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock &&  ./node_modules/.bin/jest  --detectOpenHandles --config=jest.config.js ",
     "circleci": "MAIL_ENGINE=nodemailer-mock && ./node_modules/.bin/snyk test &&  circleci tests glob server/tests/**/* | circleci tests split --split-by=timings | xargs ./node_modules/.bin/jest  --detectOpenHandles --config=jest.config.js ",
     "test-watch": "export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock &&  jest --detectOpenHandles --config=jest.config.js --watch ",
     "backup-db": "export PGPASSWORD=srtpass && pg_dump -U circleci -d srt -h 192.168.1.126 > srt-database.sql ",
@@ -33,8 +33,8 @@
     "pg": "^7.8.0",
     "random-words": "^1.1.0",
     "randomstring": "*",
-    "sequelize": "^5.3",
-    "sequelize-cli": "^5.4.0",
+    "sequelize": "^5.8.11",
+    "sequelize-cli": "^5.5.0",
     "umzug": "^2.2.0",
     "winston": "^3.2.0"
   },
@@ -56,7 +56,7 @@
     "nodemailer-mock": "^1.3.15",
     "sequelize-auto": "^0.4.29",
     "sinon": "^7.3.2",
-    "snyk": "^1.147.3",
+    "snyk": "^1.189.0",
     "sqlite3": "^4.0.6",
     "supertest": "^2.0.1"
   },
