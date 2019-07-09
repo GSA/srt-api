@@ -72,6 +72,7 @@ module.exports = function (db, cas) {
       }
       return `${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`
     },
+    responseWhitelist: ['_headers', 'statusCode'],
     expressFormat: false,
     colorize: false,
     ignoreRoute: function () {
