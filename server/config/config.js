@@ -194,14 +194,14 @@ module.exports = {
       }
     },
     "emailLogOnly": false,
-    "spamProtect" : false,
+    "spamProtect" : true,
     "srt_server": {
       "port": 8080
     },
-    "srtClientUrl": "https://srt-client.app.cloud.gov",
+    "srtClientUrl": "https://srt.app.cloud.gov",
     "logStdOut" : true,
     "maxCas" : {
-      "cas_url" : "https://login.max.gov/cas/",
+      "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "http://srt-server.app.cloud.gov",
       "session_name" : "cas_user",
       "session_info" : "cas_userinfo",

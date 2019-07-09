@@ -28,14 +28,7 @@ The full list of options available during deployment are:
         -y --yes : delete existing git repo in temp directory
         -n --no : do not delete any existing git repo in temp directory
         -b --create-tag-from-branch : Create TAG at head of this branch
-        
-        
-## Documentation
-Documentation for the srt-server is created from JSDoc tags embeded in the
-source code. You can find a pre-build copy in the the [/docs](docs/index.html) 
-directory of this repository. The documentaiton can be rebuilt from 
-source when updats are necessary using `npm run doc`
-
+                
 ## Running / Configuration
 The `npm run start` command will start the server. Database configuration options are
 read from server/dbConfig/dbConfig.js and general configuration from 
@@ -47,6 +40,36 @@ Database connection information is stored in the dbConfig.jsjs file but will be
 overridden by any settings in the VCAP_SERVICES environment variable. This feature
 allows cloud.gov to inject the proper database connection information upon
 startup.
+
+There are a few environment variables that control the configuration or set security
+sensitive keys. The deployment script may will prompt you for some of these if they
+are not already configured in the target cloud.gov environment. On cloud.gov any
+variables you would like to configure manually can be changed using the cloud.gov control 
+panel or CLI.
+
+**Environment Variables**  
+* **SENDGRID_API_KEY** - If using Sendgrid as an email server, set this variable to an appropriate API key. 
+If this is not set in a cloud.gov environment, the deployment script will give the option to set it.
+* **NODE_ENV** - This should be set based on the environment. It is used to choose between the 
+available configuration settings. Examples include production, cloudstage, clouddev, circle, development.
+The definitive list can be found by reading config.js.
+* **VCAP_SERVICES** - cloud.gov will automatically set this environment variable. It contains connection information 
+for the configured postgres database for that environment - and also any other cloud.gov services or connections 
+that may be configured int the future. 
+* **VCAP_APPLICAION** - While not currently used, this environment variable is automatically set by cloud.gov
+and contains information about the running application such as memory/disk limits, space and instance IDs,
+and DNS info.
+* **MAIL_ENGINE** - Used in development. If this is set it will over-ride the usual 'nodemailer' mail engine. It is 
+used for testing when sending actual email is not desirable.
+* **JWT_SECRET** - _Not currently implemented_ - will be used to set the encryption secret used to sign JSON Web Tokens.   
+  
+
+## Documentation
+Documentation for the srt-server is created from JSDoc tags embeded in the
+source code. You can find a pre-build copy in the the [/docs](docs/index.html) 
+directory of this repository. The documentaiton can be rebuilt from 
+source when updats are necessary using `npm run doc`
+
 
 ## Testing and Continuous Integration
 The srt-server application has a set of unit test in the server/tests directory.

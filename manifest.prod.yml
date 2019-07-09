@@ -2,13 +2,13 @@
 applications:
 - name: srt-server-prod
   command: node server/server.js
-  memory: 512M
+  memory: 256M
   disk_quota: 1024M
 #  health-check-type: process # don't re-enable....move to port 8080 if you have problems
   instances: 1
   buildpack: https://github.com/cloudfoundry/nodejs-buildpack
   env:
-    NODE_ENV: clouddev
-#  services:
-#    - srt-postgres
+    NODE_ENV: production
+  services:
+    - srt-postgres-prod
 
