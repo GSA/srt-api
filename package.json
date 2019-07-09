@@ -58,7 +58,8 @@
     "sinon": "^7.3.2",
     "snyk": "^1.189.0",
     "sqlite3": "^4.0.6",
-    "supertest": "^2.0.1"
+    "supertest": "^2.0.1",
+    "supertest-session": "^4.0.0"
   },
   "engines": {
     "node": "8.16",

@@ -30,12 +30,13 @@ module.exports = {
       "usercerts": "Piv-Client-Cert",
       "middle-name": "T",
       "credentialtype": "UsernamePasswordCredential",
-      "samlauthenticationstatementauthmethod": "urn:oasis:names:tc:SAML:1.0:am:password",
+      "samlauthenticationstatementauthmethod": "urn:max:fips-201-pivcard",
       "org-bureau-name": "General Services Administration",
       "bureau-code": "00",
-      "authenticationmethod": "urn:oasis:names:tc:SAML:1.0:am:password",
+      "authenticationmethod": "urn:max:fips-201-pivcard",
       "email-address": "albert.crowley@gsa.gov"
-    }
+    },
+    "PIVLoginCheckRegex": "pivcard"
   },
   development: {
     "emailFrom": "crowley+srt@tcg.com",
@@ -62,7 +63,8 @@ module.exports = {
       "session_info" : "cas_userinfo",
       "is_dev_mode" : false,
       "dev_mode_user" : "dev_user",
-      "renew" : false
+      "renew" : true,
+      "renew_query_parameter_name" : "bypassMaxsso"
     }
   },
   "circle": {
@@ -90,7 +92,8 @@ module.exports = {
       "session_info" : "cas_userinfo",
       "is_dev_mode" : true,
       "dev_mode_user" : "dev_user",
-      "renew" : false
+      "renew" : true,
+      "renew_query_parameter_name" : "bypassMaxsso"
     }
   },
   "clouddev": {
@@ -118,7 +121,8 @@ module.exports = {
       "session_info" : "cas_userinfo",
       "is_dev_mode" : false,
       "dev_mode_user" : "",
-      "renew" : false
+      "renew" : true,
+      "renew_query_parameter_name" : "bypassMaxsso"
     }
   },
   "cloudstage": {
@@ -146,7 +150,8 @@ module.exports = {
       "session_info" : "cas_userinfo",
       "is_dev_mode" : false,
       "dev_mode_user" : "dev_user",
-      "renew" : false
+      "renew" : true,
+      "renew_query_parameter_name" : "bypassMaxsso"
     }
   },
   "test": {
@@ -173,7 +178,8 @@ module.exports = {
       "session_info" : "cas_userinfo",
       "is_dev_mode" : false,
       "dev_mode_user" : "",
-      "renew" : false
+      "renew" : true,
+      "renew_query_parameter_name" : "bypassMaxsso"
     }
   },
   "production": {
@@ -201,7 +207,8 @@ module.exports = {
       "session_info" : "cas_userinfo",
       "is_dev_mode" : false,
       "dev_mode_user" : "",
-      "renew" : false
+      "renew" : true,
+      "renew_query_parameter_name" : "bypassMaxsso"
     }
   }
 

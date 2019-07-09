@@ -2,6 +2,7 @@ const supertest = require('supertest')
 const request = require('supertest')
 const CASAuthentication = require('cas-authentication');
 let app = null
+const supertestSession = require('supertest-session')
 const mockToken = require('./mocktoken')
 const env = process.env.NODE_ENV || 'development'
 const config = require('./../config/config.js')[env]
@@ -318,8 +319,18 @@ describe('/api/auth/', () => {
   })
 
   test('cas login', () => {
-    return request(app)
-      .get('/api/casLogin')
+    let casConfig = config['maxCas']
+    casConfig.dev_mode_info = common['casDevModeData']
+    casConfig.is_dev_mode = true
+    casConfig.dev_mode_user = "dev_user"
+    let cas = new CASAuthentication(casConfig)
+    let app3 = require('../app')(null, cas)
+    /**
+     * @type {express-session}
+     */
+    let testSession = supertestSession(app3)
+
+    return testSession.get('/api/casLogin')
       .then( (res) => {
         let redirectUrl = res.get('Location')
         expect(res.status).toBe(302)
@@ -414,13 +425,30 @@ describe('/api/auth/', () => {
       set: function (header, val) {mockRes.hResult = header; mockRes.vResult = val; mockRes.valResult = val; return mockRes},
       send: function (text) {mockRes.textResult = text; return mockRes;}
     }
-    authRoutes.casStage2(mockReq, mockRes)
-    expect(mockRes.statusResult).toBe(302) // quirky but kept for client compatibility
-    expect(mockRes.hResult).toMatch(/Location/)
-    expect(mockRes.vResult).toMatch(/auth$/) // should end withOUT a token
+    return authRoutes.casStage2(mockReq, mockRes).then( () => {
+      expect(mockRes.statusResult).toBe(302) // quirky but kept for client compatibility
+      expect(mockRes.hResult).toMatch(/Location/)
+      expect(mockRes.vResult).toMatch(/auth$/) // should end withOUT a token
+    })
   })
 
-  test ('CAS login user record creation', () => {
+  test( 'that PIV login is required', () => {
+    const mockReq = {session: { cas_userinfo : common['casDevModeData'], destroy: ()=>true }}
+    mockReq.session['cas_userinfo']['samlauthenticationstatementauthmethod'] = 'urn:oasis:names:tc:SAML:1.0:am:password'
+    mockReq.session['cas_userinfo']['authenticationmethod'] = 'urn:oasis:names:tc:SAML:1.0:am:password'
+    const mockRes = {
+      status: function (x) {mockRes.statusResult = x; return mockRes; },
+      set: function (header, val) {mockRes.hResult = header; mockRes.vResult = val; mockRes.valResult = val; return mockRes},
+      send: function (text) {mockRes.textResult = text; return mockRes;}
+    }
+    return authRoutes.casStage2(mockReq, mockRes).then( () => {
+      expect(mockRes.statusResult).toBe(302) // quirky but kept for client compatibility
+      expect(mockRes.hResult).toMatch(/Location/)
+      expect(mockRes.vResult).toMatch(/\?error=PIV/)
+    })
+  })
+
+  test('CAS login user record creation', () => {
     let targetId = 'A0000002'
 
     let casConfig = config['maxCas']
@@ -430,12 +458,15 @@ describe('/api/auth/', () => {
     casConfig.dev_mode_info['max-id'] = targetId
     casConfig.is_dev_mode = true
     casConfig.dev_mode_user = "dev_user"
+    casConfig.dev_mode_info['authenticationmethod'] = 'urn:max:fips-201-pivcard'
     let cas = new CASAuthentication(casConfig)
 
     let app2 = require('../app')(null, cas)
 
-    return request(app2)
-      .get('/api/casLogin')
+    /** @type {express-session} */
+    let session = supertestSession(app2)
+
+    return session.get('/api/casLogin')
       .then( (res) => {
         let location = res.get('Location')
         expect(location).toMatch(/token/)

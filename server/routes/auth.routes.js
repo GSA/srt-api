@@ -8,6 +8,7 @@ const User = require('../models').User
 
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
+const {common} = require('../config/config.js')
 
 const roles = [
   { name: "Administrator", casGroup:"AGY-GSA-SRT-ADMINISTRATORS.ROLEMANAGEMENT", priority: 10},
@@ -63,6 +64,34 @@ function updateMAXUser(cas_data, user) {
   } catch (e) {
     logger.log ("error", "caught error in auth.routes.js", {error:e, tag: 'updateMAXUser'})
   }
+}
+
+
+/**
+ * @typedef {Object} express-session
+ * @property {function}  destroy
+ * @property {function}  get
+ */
+
+/**
+ * Verifies that a login used a PIV/CAC card.
+ * If one was not used, log that and wipe the session so the
+ * cas-authentication module won't auto-login the user
+ *
+ * @param  {express-session} session
+ * @return {boolean}
+ */
+function verifyPIVUsed(session) {
+  // verify that we got a PIV login
+  let authMethod = session['cas_userinfo']['authenticationmethod'];
+  let pivRegex = new RegExp(common.PIVLoginCheckRegex)
+  if( ! authMethod.match(pivRegex)) {
+    let userEmail = session['cas_userinfo']['email-address']
+    console.log('info', `User ${userEmail} was rejected due to login type ${authMethod}`, {tag: 'casStage2', 'cas_userinfo': session['cas_userinfo']})
+    session.destroy()
+    return false
+  }
+  return true
 }
 
 /**
@@ -451,6 +480,13 @@ module.exports = {
         .set('Location', config['srtClientUrl'] + 'auth') // send them back with no token
         .send(`<html lang="en"><body>Login Failed</body></html>`)
     }
+
+    if( ! verifyPIVUsed(req.session)) {
+      return res.status(302)
+        .set('Location', encodeURI(config['srtClientUrl'] + '/auth' + '?error=PIV login required')) // send them back with no token
+        .send(`<html lang="en"><body>Login Failed</body></html>`)
+    }
+
     logger.log('info', req.session.cas_userinfo['email-address'] + ' authenticated with MAX CAS ID ' + req.session.cas_userinfo['max-id'], {cas_userinfo: req.session.cas_userinfo, tag: 'casStage2'})
 
     let responseJson = await tokenJsonFromCasInfo(req.session.cas_userinfo, 'innovation')
