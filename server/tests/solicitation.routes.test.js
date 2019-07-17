@@ -126,6 +126,34 @@ describe('solicitation tests', () => {
       })
   })
 
+  test('sending an non-existing ID to get solicitation', () => {
+    return db.sequelize.query('select id from notice order by solicitation_number desc limit 1')
+      .then((rows) => {
+        let id = rows[0][0].id + 9999
+        expect(id).toBeDefined()
+        return request(app)
+          .get('/api/solicitation/' + id)
+          .set('Authorization', `Bearer ${token}`)
+          .send({})
+          .then((res) => {
+            // noinspection JSUnresolvedVariable
+            return expect(res.statusCode).toBe(404)
+          })
+      })
+  })
+
+  test('sending a too large/invalid ID to get solicitation', () => {
+    let url = '/api/solicitation/' + Number.MAX_SAFE_INTEGER
+    return request(app)
+      .get(url)
+      .set('Authorization', `Bearer ${token}`)
+      .send({})
+      .then((res) => {
+        // noinspection JSUnresolvedVariable
+        return expect(res.statusCode).toBe(500)
+      })
+  })
+
   test('Test document count', () => {
     return db.sequelize.query('select solicitation_number , count(*) as c from attachment join notice n on attachment.notice_id = n.id group by solicitation_number order by count(*) desc;')
       .then((rows) => {
