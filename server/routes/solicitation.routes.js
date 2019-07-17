@@ -34,14 +34,21 @@ module.exports = function (db) {
     get: function (req, res) {
       return Notice.findByPk(req.params.id)
         .then((notice) => {
+          if ( ! notice ) {  // no notice found with that ID
+            return res.status(404).send({})
+          }
           return predictionRoute.getPredictions({ solNum: notice.solicitation_number })
             .then(predictions => {
-              return res.status(200).send(predictions[0]) // we should only have one since they will all merge by solicitation number
+              // we should only have one 'prediction' since they will all merge by solicitation number
+              // but for consistency we should set the ID number to the one requested rather than to
+              // a pseudo-random choice
+              predictions[0].id = parseInt(req.params.id)
+              return res.status(200).send(predictions[0])
             })
         })
         .catch((e) => {
           logger.log('error', 'error in: solicitation get', { error:e, tag: 'solicitation get' })
-          return res.status(400).send('Error finding solicitation')
+          return res.status(500).send('Error finding solicitation')
         })
     },
 
