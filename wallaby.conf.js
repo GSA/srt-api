@@ -14,7 +14,7 @@ module.exports = function (wallaby) {
     env: {
       type: 'node',
       params: {
-        env: 'NODE_ENV=development;MAIL_ENGINE=nodemailer-mock'
+        env: 'JWT_SECRET=1234;NODE_ENV=development;MAIL_ENGINE=nodemailer-mock'
       }
     },
     testFramework: 'jest'

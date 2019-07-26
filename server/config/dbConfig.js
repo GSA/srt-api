@@ -1,12 +1,12 @@
 // export DB connection for sequelize command line
 // you can run it with:
-// node ./node_modules/.bin/sequelize -c server/config/dbConfigig.js
+// node ./node_modules/.bin/sequelize -c server/config/dbConfig.js
 let dbConfig = {
   "development": {
     "username": "circleci",
     "password": "srtpass",
     "database": "srt",
-    "host": "192.168.33.101",
+    "host": "192.168.33.22",
     "port": 5432,
     "dialect": "postgres",
     "logging": false,

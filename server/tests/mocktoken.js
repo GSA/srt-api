@@ -4,7 +4,7 @@ const {common} = require('../config/config')
 
 module.exports = async function (user, secret) {
   if ( ! secret ) {
-    secret = common.jwt_secret
+    secret = common.jwtSecret
   }
   user.position = "mock"
   let token = await authRoutes.tokenJsonFromCasInfo(user, secret)

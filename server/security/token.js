@@ -1,6 +1,7 @@
 // token pass
 let jwt = require('jsonwebtoken')
 const logger = require('../config/winston')
+const {common} = require('../config/config')
 
 module.exports = function () {
   return async function (req, res, next) {
@@ -11,7 +12,7 @@ module.exports = function () {
       if (req.headers.hasOwnProperty('authorization')) {
         token = req.headers['authorization'].split(' ')[1]
         if (token && token !== 'null') {
-          jwt.verify(token, 'innovation') // will thrown an error on an invalid token
+          jwt.verify(token, common.jwtSecret) // will thrown an error on an invalid token
           failed = false
           next()
         }

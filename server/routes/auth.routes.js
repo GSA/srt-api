@@ -168,7 +168,7 @@ function mapCASRoleToUserRole (roleList) {
   let priority = 99999;
   roleList = roleList || "";
   for (let casGroup of roleList.split(',')) {
-    let match = roles.filter( (role) => role.casGroup === casGroup ) //?
+    let match = roles.filter( (role) => role.casGroup === casGroup )
     if (match.length > 0 && match[0].priority < priority) {
       mostPrivilegedRole = match[0].name
       priority = match[0].priority
@@ -352,7 +352,7 @@ module.exports = {
           logger.log('info', user.email + ' authenticated with temporary password.', {tag: 'login'})
         }
 
-        let token = jwt.sign({ user: user }, 'innovation', { expiresIn: '2h' }) // token is good for 2 hours
+        let token = jwt.sign({ user: user }, common.jwtSecret, { expiresIn: '2h' }) // token is good for 2 hours
 
         let retObj = {
           message: 'Successfully logged in',
@@ -444,7 +444,7 @@ module.exports = {
   tokenCheck: function (req, res) {
     let token = req.body.token
     try {
-      if ( token && jwt.verify(token, 'innovation')) {
+      if ( token && jwt.verify(token, common.jwtSecret)) {
         let tokenInfo = jwt.decode(token)
         /** @namespace tokenInfo.user */
 
@@ -489,7 +489,7 @@ module.exports = {
 
     logger.log('info', req.session.cas_userinfo['email-address'] + ' authenticated with MAX CAS ID ' + req.session.cas_userinfo['max-id'], {cas_userinfo: req.session.cas_userinfo, tag: 'casStage2'})
 
-    let responseJson = await tokenJsonFromCasInfo(req.session.cas_userinfo, 'innovation')
+    let responseJson = await tokenJsonFromCasInfo(req.session.cas_userinfo, common.jwtSecret)
     let location = `${config['srtClientUrl']}/auth?token=${responseJson}`
 
     return res.status(302)
