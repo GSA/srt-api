@@ -353,13 +353,13 @@ checkout_tag
 build_client
 build_server
 
+check_cloud_gov_env
+
 # check if this is a dry run. Will exit here if it is.
 check_dryrun
 
 deploy_client
 deploy_server
-
-check_cloud_gov_env
 
 log "Deployment complete"
 
