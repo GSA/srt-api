@@ -28,7 +28,7 @@ describe('User API Routes', () => {
     userAcceptedCASData = Object.assign({}, userAcceptedCASData, { "email-address": 'crowley+accepted-token2@tcg.com', firstName: 'beforeAll-filter' })
     console.log ("BEFORE------------");
     console.log (userAcceptedCASData)
-    return mockToken(userAcceptedCASData, common['jwt_secret'])
+    return mockToken(userAcceptedCASData, common['jwtSecret'])
       .then( t => {
         token = t
         let acceptedUserInfo = jwt.decode(token)
@@ -50,7 +50,7 @@ describe('User API Routes', () => {
     //       return User.create(userAcceptedCASData)
     //         .then(async (user2) => {
     //           // token belongs to userAcceptedCASData
-    //           token = await mockToken(user2, common['jwt_secret'])
+    //           token = await mockToken(user2, common['jwtSecret'])
     //           acceptedUserId = user2.id
     //         })
     //     })

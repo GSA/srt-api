@@ -41,7 +41,7 @@ jobs:
 
       # Download and cache dependencies
       - restore_cache:
-          key: v1-dependencies-{{ checksum "package.json" }}
+          key: v1.1-dependencies-{{ checksum "package.json" }}
 
       - run: test ! -d node_modules && npm install || echo "node modules were cached"
 
@@ -49,7 +49,7 @@ jobs:
           paths:
             - node_modules
             - cc-test-reporter
-          key: v1-dependencies-{{ checksum "package.json" }}
+          key: v1.1-dependencies-{{ checksum "package.json" }}
 
       - run:
           name: Setup Code Climate test-reporter

@@ -32,7 +32,7 @@ describe('/api/auth/', () => {
     let cas = new CASAuthentication(casConfig)
 
     app = require('../app')(null, cas)
-    token = await mockToken(myUser, common['jwt_secret'])
+    token = await mockToken(myUser, common['jwtSecret'])
   })
 
   afterAll(async () => {
@@ -46,7 +46,7 @@ describe('/api/auth/', () => {
     user.agency = 'General Services Administration'
     user.firstName = 'auth-beforeAllUser'
     delete user.id
-    let token = await mockToken(user, common['jwt_secret'])
+    let token = await mockToken(user, common['jwtSecret'])
     return User.create(user)
       .then(() => {
         return request(app)
@@ -64,7 +64,7 @@ describe('/api/auth/', () => {
         let user = Object.assign({}, myUser)
         user.userRole = 'Public'
         user.email = 'notreal@example.com'
-        let token = await mockToken(user, common['jwt_secret'])
+        let token = await mockToken(user, common['jwtSecret'])
         return request(app)
           .post('/api/auth/tokenCheck')
           .send({ token: token })
@@ -83,7 +83,7 @@ describe('/api/auth/', () => {
         user.email = 'notreal2@example.com'
         user.firstName = 'auth-beforeAllUser'
         delete user.id
-        let token = await mockToken(user, common['jwt_secret'])
+        let token = await mockToken(user, common['jwtSecret'])
         return User.create(user)
           .then(() => {
             return request(app)
@@ -108,7 +108,7 @@ describe('/api/auth/', () => {
         userCASData['first-name'] = 'auth-beforeAllUser'
         userCASData['grouplist'] = authRoutes.roles[authRoutes.roleKeys.PROGRAM_MANAGER_ROLE].casGroup
         delete userCASData.id
-        let token = await mockToken(userCASData, common['jwt_secret'])
+        let token = await mockToken(userCASData, common['jwtSecret'])
         return request(app)
           .post('/api/auth/tokenCheck')
           .send({ token: token })
@@ -349,7 +349,7 @@ describe('/api/auth/', () => {
 
   test( 'accept cas user token', async () => {
 
-    const token = await mockToken(casUserInfo, common['jwt_secret'])
+    const token = await mockToken(casUserInfo, common['jwtSecret'])
 
     return request(app)
       .post('/api/auth/tokenCheck')
@@ -383,7 +383,7 @@ describe('/api/auth/', () => {
         'max-id' : 'A11223344',
         'grouplist' : authRoutes.roles[authRoutes.ADMIN_ROLE].casGroup
     }
-    const token = await mockToken(fakeAdmin, common['jwt_secret'])
+    const token = await mockToken(fakeAdmin, common['jwtSecret'])
 
     return request(app)
       .post('/api/auth/tokenCheck')
@@ -404,7 +404,7 @@ describe('/api/auth/', () => {
       'userRole' : authRoutes.roles[authRoutes.ADMIN_ROLE].casGroup,
       'agency-name' : 'General Services Admin'
     }
-    const token = await mockToken(adminUser, common['jwt_secret'])
+    const token = await mockToken(adminUser, common['jwtSecret'])
 
     return request(app)
       .post('/api/auth/tokenCheck')

@@ -7,8 +7,14 @@ let token = require('./security/token')
 const env = process.env.NODE_ENV || 'development'
 const config = require('./config/config.js')[env]
 const {common} = require('./config/config.js')
-const session = require('express-session');
-const CASAuthentication = require('cas-authentication');
+const session = require('express-session')
+const CASAuthentication = require('cas-authentication')
+const jwtSecret = common.jwtSecret || undefined
+
+if (! jwtSecret) {
+  console.log("No JWT secret defined.  Be sure to set JWT_SECRET in the environment before running startup")
+  process.exit(1)
+}
 
 //
 // Setup ORM
@@ -64,7 +70,7 @@ module.exports = function (db, cas) {
       if (req.headers['authorization'] && req.headers['authorization'].length > 0) {
         try {
           token = req.headers['authorization'].split(' ')[1]
-          let decoded = jwt.verify(token, 'innovation')
+          let decoded = jwt.verify(token, common.jwtSecret)
           user = (decoded.user) ? decoded.user : user; // make sure we got something to prevent crash below
         } catch (e) {
           user.id = 'Caught error decoding JWT'
@@ -88,7 +94,7 @@ module.exports = function (db, cas) {
   }))
 
   app.use( session({
-    secret            : 'super secret key',
+    secret            : common.jwtSecret,
     resave            : false,
     saveUninitialized : true
   }));
@@ -155,7 +161,7 @@ module.exports = function (db, cas) {
       let user = { id: null, position: null, userRole: null, email: null }
       if (req.headers['authorization'] && req.headers['authorization'].length > 0) {
         token = req.headers['authorization'].split(' ')[1]
-        let decoded = jwt.verify(token, 'innovation')
+        let decoded = jwt.verify(token, common.jwtSecret)
         user = decoded.user
       }
       return `ERROR - ${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`
