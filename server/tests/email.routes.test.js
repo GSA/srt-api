@@ -26,7 +26,7 @@ describe('/api/email', () => {
     return User.create(myUser)
       .then(async (user) => {
         myUser.id = user.id
-        token = await mockToken(myUser, common['jwt_secret'])
+        token = await mockToken(myUser, common['jwtSecret'])
       })
   })
 

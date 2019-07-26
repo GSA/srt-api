@@ -2,7 +2,7 @@
 
 module.exports = {
   common: {
-    "jwt_secret" : "innovation",
+    "jwtSecret" : process.env.JWT_SECRET,
     "casDevModeData" :     {
       "last-name": "Test User",
       "agency-code": "023",

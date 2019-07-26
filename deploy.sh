@@ -2,8 +2,8 @@
 
 POSITIONAL=()
 TEMP_DIR="/tmp"
-SERVER_REPO="http://acrowley:***REMOVED***@gitlab.tcg.com/SRT/srt-api.git"
-CLIENT_REPO="http://acrowley:***REMOVED***@gitlab.tcg.com/SRT/srt-client.git"
+SERVER_REPO="git@github.com:GSA/srt-api.git"
+CLIENT_REPO="git@github.com:GSA/srt-ui.git"
 TIME_STR=`date +%Y-%m-%d.%H.%M.%S`
 CWD=`pwd`
 RECLONE=true
@@ -146,6 +146,32 @@ function check_cloud_gov_env() {
         esac
       done
     fi
+
+    if [[ `cf env srt-server-${SPACE} | grep JWT_SECRET | wc -l` -lt 1 ]]; then
+      log "There is no JWT_SECRET set on srt-server=${SPACE}"
+      log "This can be any value at all and does not need to match anything particular"
+      log "but it must be configured for the server to run properly. (or at all)"
+      log ""
+      log "CLI command to set manually:"
+      log "cf set-env srt-server-${SPACE} JWT_SECRET [random_string]"
+      log ""
+      log "You can see current environment settings with: "
+      log "cf env srt-server-${SPACE}"
+      log ""
+      while true; do
+        read -p "Would you like to enter a JWT_SECRET now?" yn
+        case $yn in
+            [Yy]* )
+              log "yes chosen"
+              read -p "key: " secret
+              runline ${CF_CLI} set-env "srt-server-${SPACE}" JWT_SECRET ${secret}
+              runline ${CF_CLI} restage "srt-server-${SPACE}"
+              break;;
+            [Nn]* ) log "no chosen."; break;;
+            * ) log "Please answer yes or no.";;
+        esac
+      done
+    fi
 }
 
 function help() {
@@ -166,7 +192,7 @@ function help() {
 }
 
 function switch_space() {
-    log "Switching to space ${SPACEE} on cloud.gov"
+    log "Switching to space ${SPACE} on cloud.gov"
     log "Executing: ${CF_CLI} target -s ${SPACE}"
     ${CF_CLI} target -s ${SPACE}
     RESULT=${PIPESTATUS[0]}

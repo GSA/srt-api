@@ -15,7 +15,7 @@ describe('/api/agencies', () => {
   let acronym = 'def'
 
   beforeAll( async () => {
-    token = await mockToken(userAcceptedCASData, common['jwt_secret'])
+    token = await mockToken(userAcceptedCASData, common['jwtSecret'])
   })
 
   afterAll(() => {
