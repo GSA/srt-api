@@ -3,6 +3,9 @@
 module.exports = {
   common: {
     "jwtSecret" : process.env.JWT_SECRET,
+    "sessionLength" : 43200,  // 12 hours
+    "tokenLife" : 1800, // 30 minutes
+    "renewTokenLife" : 1500, // 25 minutes
     "casDevModeData" :     {
       "last-name": "Test User",
       "agency-code": "023",

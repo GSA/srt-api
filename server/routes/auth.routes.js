@@ -209,9 +209,10 @@ function convertCASNamesToSRT (cas_userinfo) {
  *
  * @param {Object} cas_userinfo
  * @param {string} secret
+ * @param expireTime
  * @return {Promise<string>}
  */
-async function tokenJsonFromCasInfo (cas_userinfo, secret) {
+async function tokenJsonFromCasInfo (cas_userinfo, secret, expireTime) {
   cas_userinfo.userRole = mapCASRoleToUserRole(cas_userinfo.grouplist)
   cas_userinfo['maxId'] = (cas_userinfo['max-id']) ? cas_userinfo['max-id'] : cas_userinfo.maxId
 
@@ -223,8 +224,9 @@ async function tokenJsonFromCasInfo (cas_userinfo, secret) {
   cas_userinfo['id'] = await createOrUpdateMAXUser(cas_userinfo)
 
   let srt_userinfo = convertCASNamesToSRT(cas_userinfo)
+  srt_userinfo.sessionStart = Math.floor (new Date().getTime() / 1000)
 
-  let token = jwt.sign({user: srt_userinfo}, secret, { expiresIn: '2h' }) // token is good for 2 hours
+  let token = jwt.sign({user: srt_userinfo}, secret, { expiresIn: common.tokenLife })
   return JSON.stringify({
     token: token,
     firstName: srt_userinfo['firstName'],
@@ -421,6 +423,18 @@ module.exports = {
     let email = req.body.email
     logger.log("warn", "Call to deprecated auth.routes.resetPassword by " + email, {body: req.body, tag: 'resetPassword'})
     res.status(200).send({})
+  },
+
+  renewToken: function (req, res) {
+
+    let oldToken = req.headers['authorization'].split(' ')[1]
+    let user = jwt.decode(oldToken).user
+
+    user.renewTime = Math.round (new Date().getTime() / 1000)
+    let newToken = jwt.sign({user: user}, common.jwtSecret, { expiresIn: common.renewTokenLife }) //?
+
+
+    return res.status(200).send({token: newToken})
   },
 
   /**

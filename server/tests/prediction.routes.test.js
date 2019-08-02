@@ -12,7 +12,7 @@ const db = require('../models/index')
 let predictionRoutes = require('../routes/prediction.routes')
 let randomWords = require('random-words')
 const {common} = require('../config/config.js')
-
+const timeout = 10000 // set to 10 seconds because some of these tests are slow.
 
 const { userAcceptedCASData } = require('./test.data')
 
@@ -86,6 +86,7 @@ let predictionTemplate = {
 
 describe('prediction tests', () => {
   beforeAll(() => {
+    jest.setTimeout(10000) // some of these tests are slow
     process.env.MAIL_ENGINE = 'nodemailer-mock'
     app = require('../app')() // don't load the app till the mock is configured
 
@@ -136,7 +137,7 @@ describe('prediction tests', () => {
             .reduce((accum, i) => accum + i)
         ).toBeGreaterThan(1)
       })
-  }, 60000)
+  }, timeout)
 
   test('Empty predictions filter ', () => {
     return request(app)
@@ -152,7 +153,7 @@ describe('prediction tests', () => {
         expect(res.body[0].url).toContain('http')
         return expect(res.body[0].title).toBeDefined()
       })
-  }, 60000)
+  }, timeout)
 
   test('Test that all predictions with the same notice number are merged', () => {
     return request(app)
@@ -174,7 +175,7 @@ describe('prediction tests', () => {
 
         return expect(res.body[0].title).toBeDefined()
       })
-  }, 60000)
+  }, timeout)
 
   test('Test that all predictions with the same notice number are merged', () => {
     return request(app)
@@ -196,7 +197,7 @@ describe('prediction tests', () => {
 
         return expect(res.body[0].title).toBeDefined()
       })
-  }, 60000)
+  }, timeout)
 
   test('Test that all predictions with the same notice number are merged', () => {
     return request(app)
@@ -218,7 +219,7 @@ describe('prediction tests', () => {
 
         return expect(res.body[0].title).toBeDefined()
       })
-  }, 60000)
+  }, timeout)
 
   test('Filter predictions to only return a certain office', () => {
     return db.sequelize.query("select notice_data->>'office' as office from notice where notice_data->>'office' is not null limit 1;")
@@ -254,7 +255,7 @@ describe('prediction tests', () => {
               })
           })
       })
-  })
+  }, timeout)
 
   test('Filter predictions on multiple dimensions', () => {
     return db.sequelize.query('select agency from notice where agency is not null limit 1;')
@@ -294,7 +295,7 @@ describe('prediction tests', () => {
               })
           })
       })
-  }, 60000)
+  }, timeout)
 
   test('Filter predictions on solicitation number', () => {
     return db.sequelize.query('select solicitation_number from notice order by id desc limit 1')
@@ -316,7 +317,7 @@ describe('prediction tests', () => {
             expect(res.body[0].solNum).toBe(noticeNum)
           })
       })
-  })
+  }, timeout)
 
   test('Test unsupported parameter for Filter predictions', () => {
     return request(app)
@@ -355,7 +356,7 @@ describe('prediction tests', () => {
               })
           })
       })
-  })
+  }, timeout)
 
   test('Test prediction date filters', () => {
     return db.sequelize.query('select date from notice order by agency desc limit 1')
@@ -386,7 +387,7 @@ describe('prediction tests', () => {
             }
           })
       })
-  })
+  }, timeout)
 
   test('Test merge prediction function', () => {
     let p1 = Object.assign({}, predictionTemplate,
@@ -517,7 +518,7 @@ describe('prediction tests', () => {
     expect(predictions['pred6'].parseStatus.length).toBe(p6.parseStatus.length + p7.parseStatus.length)
     expect(predictions['pred8'].parseStatus.length).toBe(p8.parseStatus.length + p9.parseStatus.length + p12.parseStatus.length)
     expect(predictions['pred10'].parseStatus.length).toBe(p10.parseStatus.length) // p11.parseStatus is undefined
-  })
+  }, timeout)
 
   test('Test attachment association', () => {
     return db.sequelize.query('select notice_id from attachment limit 1')
@@ -529,7 +530,7 @@ describe('prediction tests', () => {
             expect(attachment.attachment_url.length).toBeGreaterThan(4)
           })
       })
-  })
+  }, timeout)
 
   test('default solicitation title', () => {
     let notice = {}
@@ -543,5 +544,5 @@ describe('prediction tests', () => {
     notice = {notice_data : {subject: 'title here'} }
     prediction = predictionRoutes.makeOnePrediction(notice)
     expect(prediction.title).toBe('title here')
-  })
+  }, timeout)
 })

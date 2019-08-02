@@ -22,7 +22,8 @@ module.exports = {
     return {
       body: data,
       get: jest.fn ( function(x) { return headers[x]}),
-      session: session
+      session: session,
+      headers: headers
     }
   },
   mockResponse : mockResponse
