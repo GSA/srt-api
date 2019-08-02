@@ -4,15 +4,35 @@ const env = process.env.NODE_ENV || 'development'
 const config = require('./../config/config.js')[env]
 const jwt = require('jsonwebtoken')
 const CASAuthentication = require('cas-authentication');
-const supertest = require('supertest')
 const mockToken = require('./mocktoken')
 let {  userAcceptedCASData } = require('./test.data')
-const authRoutes = require('../routes/auth.routes')
-const mocks = require('./mocks')
+// const authRoutes = require('../routes/auth.routes')
+// const mocks = require('./mocks')
+const User = require('../models').User
 
+let token = null
+let invalidToken = null
 
 
 describe('JWT Tests', () => {
+
+  beforeAll(async() => {
+    let user1 = Object.assign({}, userAcceptedCASData)
+    user1.firstName = 'token-beforeAllUser'
+    user1.email = 'crowley+token1@tcg.com'
+    token = await mockToken(user1)
+
+    let user2 = Object.assign({}, userAcceptedCASData)
+    user2.firstName = 'token-beforeAllUser'
+    user2.email = 'crowley+token2@tcg.com'
+    invalidToken = await mockToken(user2, 'invalid')
+  })
+
+  afterAll(async () => {
+    await User.destroy({ where: { firstName: 'token-beforeAllUser' } })
+  })
+
+
   test('JWT to use common config',  () => {
     function wrongSecret() {
       let token = jwt.sign({ a: 1, b: 2, c: 3 }, common.jwtSecret, { expiresIn: '2h' }) // token is good for 2 hours
@@ -33,7 +53,6 @@ describe('JWT Tests', () => {
      * @type {express-session}
      */
     let testSession = supertestSession(app)
-    let token = await mockToken(userAcceptedCASData)
 
     return testSession.get('/api/renewToken')
       .set('Authorization', `Bearer ${token}`)
@@ -58,12 +77,10 @@ describe('JWT Tests', () => {
      * @type {express-session}
      */
     let testSession = supertestSession(app)
-    let token = await mockToken(userAcceptedCASData, 'invalid')
 
     return testSession.get('/api/renewToken')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${invalidToken}`)
       .then( (res) => {
-        res.body //?
         expect(res.statusCode).toBe(401)
         expect(res.body.token).toBeUndefined()
       })
@@ -74,8 +91,8 @@ describe('JWT Tests', () => {
     // set the date back to be the tokenLife + 10 seconds ago. (ex 30 minutes and 10 seconds ago)
     const realNow = Date.now()
     const realDateNow = Date.now.bind(global.Date);
-    const dateNowStub = jest.fn(() => realNow - (common.tokenLife * 1000) - 10000); // ten seconds more than the timeout ago
-    global.Date.now = dateNowStub;
+     // ten seconds more than the timeout ago
+    global.Date.now = jest.fn(() => realNow - (common.tokenLife * 1000) - 10000);
 
 
     let app = require('../app')()
