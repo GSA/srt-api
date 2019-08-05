@@ -36,7 +36,7 @@ module.exports = {
       "authenticationmethod": "urn:max:fips-201-pivcard",
       "email-address": "albert.crowley@gsa.gov"
     },
-    "PIVLoginCheckRegex": "pivcard"
+    "PIVLoginCheckRegex": "p"
   },
   development: {
     "emailFrom": "crowley+srt@tcg.com",
