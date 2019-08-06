@@ -141,6 +141,7 @@ module.exports = function (db, cas) {
   app.get('/api/version', versionRoutes.version)
 
   app.get('/api/casLogin', cas.bounce, authRoutes.casStage2)
+  app.get('/api/renewToken', token(), authRoutes.renewToken)
 
 
 

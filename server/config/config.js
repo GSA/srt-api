@@ -3,6 +3,9 @@
 module.exports = {
   common: {
     "jwtSecret" : process.env.JWT_SECRET,
+    "sessionLength" : "12h",  // 12 hours
+    "tokenLife" : "30m",  // 30 minutes
+    "renewTokenLife" : "30m", // 30 minutes
     "casDevModeData" :     {
       "last-name": "Test User",
       "agency-code": "023",
@@ -211,5 +214,4 @@ module.exports = {
       "renew_query_parameter_name" : "bypassMaxsso"
     }
   }
-
 }
