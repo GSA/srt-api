@@ -9,6 +9,7 @@ const User = require('../models').User
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
 const {common} = require('../config/config.js')
+const {getConfig} = require('../config/configuration')
 
 const roles = [
   { name: "Administrator", casGroup:"AGY-GSA-SRT-ADMINISTRATORS.ROLEMANAGEMENT", priority: 10},
@@ -84,7 +85,7 @@ function updateMAXUser(cas_data, user) {
 function verifyPIVUsed(session) {
   // verify that we got a PIV login
   let authMethod = session['cas_userinfo']['authenticationmethod'];
-  let pivRegex = new RegExp(common.PIVLoginCheckRegex)
+  let pivRegex = new RegExp(getConfig('PIVLoginCheckRegex'))
   if( ! authMethod.match(pivRegex)) {
     let userEmail = session['cas_userinfo']['email-address']
     console.log('info', `User ${userEmail} was rejected due to login type ${authMethod}`, {tag: 'casStage2', 'cas_userinfo': session['cas_userinfo']})
@@ -226,7 +227,8 @@ async function tokenJsonFromCasInfo (cas_userinfo, secret, expireTime) {
   let srt_userinfo = convertCASNamesToSRT(cas_userinfo)
   srt_userinfo.sessionStart = Math.floor (new Date().getTime() / 1000)
 
-  let token = jwt.sign({user: srt_userinfo}, secret, { expiresIn: common.tokenLife })
+  let token = jwt.sign({user: srt_userinfo}, secret, { expiresIn: getConfig('tokenLife') })
+  logger.log("debug", "creating a token valid for " + getConfig('tokenLife') )
   return JSON.stringify({
     token: token,
     firstName: srt_userinfo['firstName'],
@@ -354,7 +356,9 @@ module.exports = {
           logger.log('info', user.email + ' authenticated with temporary password.', {tag: 'login'})
         }
 
-        let token = jwt.sign({ user: user }, common.jwtSecret, { expiresIn: '2h' }) // token is good for 2 hours
+        let token = jwt.sign({ user: user }, common.jwtSecret, { expiresIn: getConfig('tokenLife') })
+        logger.log("debug", "creating a token valid for " + getConfig('tokenLife') )
+
 
         let retObj = {
           message: 'Successfully logged in',
@@ -431,7 +435,8 @@ module.exports = {
     let user = jwt.decode(oldToken).user
 
     user.renewTime = Math.round (new Date().getTime() / 1000)
-    let newToken = jwt.sign({user: user}, common.jwtSecret, { expiresIn: common.renewTokenLife }) //?
+    let newToken = jwt.sign({user: user}, common.jwtSecret, { expiresIn: getConfig('renewTokenLife') }) //?
+    logger.log("debug", "creating a renewal token valid for " + getConfig('renewTokenLife') )
 
 
     return res.status(200).send({token: newToken})
