@@ -55,6 +55,7 @@
     "mocha": "^3.2.0",
     "mock-express-request": "^0.2.2",
     "mock-express-response": "^0.2.2",
+    "ms": "^2.1.2",
     "nodemailer-mock": "^1.3.15",
     "sequelize-auto": "^0.4.29",
     "sinon": "^7.3.2",

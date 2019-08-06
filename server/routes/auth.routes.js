@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken')
 const logger = require('../config/winston')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
+const ms = require('ms')
 
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
@@ -142,7 +143,6 @@ function createOrUpdateMAXUser (cas_data) {
     logger.log('error', "Trying to make a token without a MAX ID", { cas_data: cas_data, tag: 'createOrUpdateMAXUser' })
     return false
   }
-
   return User.findOne({ where: { 'maxId': cas_data["maxId"] } })
     .then(async u => {
       if (u) {
@@ -211,9 +211,10 @@ function convertCASNamesToSRT (cas_userinfo) {
  * @param {Object} cas_userinfo
  * @param {string} secret
  * @param expireTime
+ * @param sessionStart
  * @return {Promise<string>}
  */
-async function tokenJsonFromCasInfo (cas_userinfo, secret, expireTime) {
+async function tokenJsonFromCasInfo (cas_userinfo, secret, expireTime, sessionStart) {
   cas_userinfo.userRole = mapCASRoleToUserRole(cas_userinfo.grouplist)
   cas_userinfo['maxId'] = (cas_userinfo['max-id']) ? cas_userinfo['max-id'] : cas_userinfo.maxId
 
@@ -225,9 +226,9 @@ async function tokenJsonFromCasInfo (cas_userinfo, secret, expireTime) {
   cas_userinfo['id'] = await createOrUpdateMAXUser(cas_userinfo)
 
   let srt_userinfo = convertCASNamesToSRT(cas_userinfo)
-  srt_userinfo.sessionStart = Math.floor (new Date().getTime() / 1000)
+  srt_userinfo.sessionStart = sessionStart || Math.floor (new Date().getTime() / 1000)
 
-  let token = jwt.sign({user: srt_userinfo}, secret, { expiresIn: getConfig('tokenLife') })
+  let token = jwt.sign({user: srt_userinfo}, secret, { expiresIn: expireTime || getConfig('tokenLife') })
   logger.log("debug", "creating a token valid for " + getConfig('tokenLife') )
   return JSON.stringify({
     token: token,
@@ -432,7 +433,13 @@ module.exports = {
   renewToken: function (req, res) {
 
     let oldToken = req.headers['authorization'].split(' ')[1]
-    let user = jwt.decode(oldToken).user
+    let user = (jwt.decode(oldToken)).user
+
+    // verify that the original login wasn't more than [sessionLength] ago
+    let cutOff = user.sessionStart + (ms(getConfig('sessionLength')) /1000)
+    if (cutOff < Math.floor(Date.now() / 1000)) {
+      return res.status(401).send({msg: 'token expired'})
+    }
 
     user.renewTime = Math.round (new Date().getTime() / 1000)
     let newToken = jwt.sign({user: user}, common.jwtSecret, { expiresIn: getConfig('renewTokenLife') }) //?

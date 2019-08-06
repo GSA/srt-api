@@ -9,6 +9,7 @@ let {  userAcceptedCASData } = require('./test.data')
 // const authRoutes = require('../routes/auth.routes')
 // const mocks = require('./mocks')
 const User = require('../models').User
+const ms = require('ms')
 
 let token = null
 let invalidToken = null
@@ -65,7 +66,7 @@ describe('JWT Tests', () => {
         expect(jwt.verify(newToken, common.jwtSecret)).toBeTruthy()
 
         expect(newToken).toBeDefined();
-        expect(decoded.exp).toBeWithin( (now + common.renewTokenLife) - 2, (now + common.renewTokenLife) + 2 )
+        expect(decoded.exp).toBeWithin( (now + (ms(common.renewTokenLife)/1000)) - 2, (now + (ms(common.renewTokenLife)/1000)) + 2 )
         expect(decoded.user.sessionStart).toBeWithin( now - 10, now + 10)
         expect(decoded.user.grouplist).toBe(userAcceptedCASData.grouplist)
       })
@@ -88,11 +89,29 @@ describe('JWT Tests', () => {
 
   test('timed out tokens can not be used for refresh', async() => {
 
-    // set the date back to be the tokenLife + 10 seconds ago. (ex 30 minutes and 10 seconds ago)
+    let app = require('../app')()
+    /**
+     * @type {express-session}
+     */
+    let testSession = supertestSession(app)
+    let token = await mockToken(userAcceptedCASData, null, null, 10)  // generate an expired token
+
+    return testSession.get('/api/renewToken')
+      .set('Authorization', `Bearer ${token}`)
+      .then( (res) => {
+        expect(res.statusCode).toBe(401)
+        expect(res.body.token).toBeUndefined()
+        expect(res.body.msg).toContain("expired")
+      })
+  })
+
+  test('tokens older then max session length ca not be renewed', async() => {
+
+    // set the date back to be the sessionLength + 10 seconds ago. (ex 30 minutes and 10 seconds ago)
     const realNow = Date.now()
     const realDateNow = Date.now.bind(global.Date);
-     // ten seconds more than the timeout ago
-    global.Date.now = jest.fn(() => realNow - (common.tokenLife * 1000) - 10000);
+    // ten seconds more than the timeout ago
+    global.Date.now = jest.fn(() => realNow - (common.sessionLength * 1000) - 10000);
 
 
     let app = require('../app')()
@@ -112,6 +131,7 @@ describe('JWT Tests', () => {
         expect(res.body.success).toBeFalsy()
       })
   })
+
 
   // test('max session length is 12 hours', async() => {
   //
