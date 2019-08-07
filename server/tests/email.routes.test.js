@@ -105,24 +105,4 @@ describe('/api/email', () => {
       })
   })
 
-  test('/api/email/updatePassword', () => {
-    return request(app)
-      .post('/api/email/updatePassword')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ email: myUser.email })
-      .then((res) => {
-        // noinspection JSUnresolvedVariable
-        expect(res.statusCode).toBe(200)
-      })
-  })
-
-  test('/api/email/resetPassword', () => {
-    return request(app)
-      .post('/api/email/resetPassword')
-      .send({ email: myUser.email })
-      .then((res) => {
-        // noinspection JSUnresolvedVariable
-        expect(res.statusCode).toBe(200)
-      })
-  })
 })

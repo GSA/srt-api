@@ -105,8 +105,20 @@ module.exports = function (db, cas) {
     next()
   })
 
-  app.post('/api/auth', authRoutes.create)
-  app.post('/api/auth/login', authRoutes.login)
+  app.get('/api/agencies', token(), agencyRoutes.getAgency)
+  app.put('/api/agencies', token(), agencyRoutes.putAgency)
+  app.get('/api/agencyList', token(), agencyRoutes.agencyList)
+  app.post('/api/analytics', token(), analyticsRoutes.analytics)
+  app.post('/api/Analytics', token(), analyticsRoutes.analytics)
+  app.post('/api/auth/tokenCheck', authRoutes.tokenCheck)
+  app.get('/api/casLogin', cas.bounce, authRoutes.casStage2)
+  app.post('/api/email', token(), emailRoutes.email)
+  app.post('/api/predictions/filter', token(), predictionRoutes.predictionFilter)
+  app.get('/api/renewToken', token(), authRoutes.renewToken)
+  app.post('/api/solicitation', token(), solicitationRoutes.postSolicitation)
+  app.get('/api/solicitation/:id', token(), solicitationRoutes.get)
+  app.post('/api/solicitation/feedback', token(), solicitationRoutes.solicitationFeedback)
+  app.get('/api/surveys', token(), surveyRoutes.get)
   app.post('/api/user/filter', token(), userRoutes.filter)
   app.get('/api/user/getUserInfo', token(), userRoutes.getUserInfo)
   app.post('/api/user/updateUserInfo', token(), userRoutes.update)
@@ -114,34 +126,8 @@ module.exports = function (db, cas) {
   app.post('/api/user/updatePassword', token(), userRoutes.updatePassword)
   app.post('/api/user/getCurrentUser', token(), userRoutes.getCurrentUser)
   app.post('/api/user/getUserInfo', token(), userRoutes.getUserInfo)
-
-  app.post('/api/auth/login', authRoutes.login)
-  app.post('/api/auth/resetPassword', authRoutes.resetPasswordFake)
-  app.post('/api/email/resetPassword', authRoutes.resetPassword)
-  app.post('/api/auth/tokenCheck', authRoutes.tokenCheck)
-
-  app.post('/api/email', token(), emailRoutes.email)
-  app.post('/api/email/updatePassword', token(), emailRoutes.updatePassword)
-
-  app.get('/api/agencies', agencyRoutes.getAgency)
-  app.put('/api/agencies', agencyRoutes.putAgency)
-  app.get('/api/agencyList', token(), agencyRoutes.agencyList)
-
-  app.post('/api/predictions/filter', token(), predictionRoutes.predictionFilter)
-
-  app.post('/api/analytics', token(), analyticsRoutes.analytics)
-  app.post('/api/Analytics', token(), analyticsRoutes.analytics)
-
-  app.post('/api/solicitation', token(), solicitationRoutes.postSolicitation)
-  app.get('/api/solicitation/:id', token(), solicitationRoutes.get)
-  app.post('/api/solicitation/feedback', token(), solicitationRoutes.solicitationFeedback)
-
-  app.get('/api/surveys', token(), surveyRoutes.get)
-
   app.get('/api/version', versionRoutes.version)
 
-  app.get('/api/casLogin', cas.bounce, authRoutes.casStage2)
-  app.get('/api/renewToken', token(), authRoutes.renewToken)
 
 
 

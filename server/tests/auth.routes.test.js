@@ -1,4 +1,3 @@
-const supertest = require('supertest')
 const request = require('supertest')
 const CASAuthentication = require('cas-authentication');
 let app = null
@@ -15,7 +14,6 @@ const mocks = require('./mocks')
 
 const { userAcceptedCASData } = require('./test.data')
 
-const userRoutes = require('../routes/user.routes')
 let myUser = Object.assign({}, userAcceptedCASData)
 myUser.firstName = 'auth-beforeAllUser'
 myUser.email = 'crowley+auth@tcg.com'
@@ -197,114 +195,6 @@ describe('/api/auth/', () => {
       })
   })
 
-  test('/api/auth/login', async () => {
-    let loginUser = Object.assign({}, myUser)
-    loginUser.email = 'crowley+login_user@tcg.com'
-    let loginUserPass = 'abcdefghijklmnop'
-    loginUser.password = loginUserPass
-
-    delete loginUser.id
-    return User.create(loginUser)
-      .then(async () => {
-        // test no password
-        await request(app)
-          .post('/api/auth/login')
-          .send({ email: loginUser.email })
-          .then((res) => {
-            // noinspection JSUnresolvedVariable
-            return expect(res.statusCode).toBe(401)
-          })
-
-        // test no email or password
-        await request(app)
-          .post('/api/auth/login')
-          .send({ other: 'thing' })
-          .then((res) => {
-            // noinspection JSUnresolvedVariable
-            return expect(res.statusCode).toBe(401)
-          })
-
-        // test wrong password
-        await request(app)
-          .post('/api/auth/login')
-          .send({ email: loginUser.email, password: 'wrong password' })
-          .then((res) => {
-            // noinspection JSUnresolvedVariable
-            return expect(res.statusCode).toBe(401)
-          })
-
-        // test correct password
-        return User.findOne({ where: { email: loginUser.email } })
-          .then((u) => {
-            return userRoutes.performUpdatePassword(u, loginUserPass)
-              .then((u) => {
-                u.isAccepted = true
-                u.isRejected = false
-                u.tempPassword = 'will-not-be-used'
-                return u.save()
-                  .then(() => {
-                    return request(app)
-                      .post('/api/auth/login')
-                      .send({ email: loginUser.email, password: loginUserPass })
-                      .then((res) => {
-                        // noinspection JSUnresolvedVariable
-                        expect(res.statusCode).toBe(200)
-                        expect(res.body.token).toBeDefined()
-                        expect(res.body.id).toBeDefined()
-                        expect(res.body.id).toBeGreaterThan(0)
-                        return expect(res.body.firstName).toBe(loginUser.firstName)
-                      })
-                  })
-              })
-          })
-      })
-  })
-
-  test('Test temp password', async () => {
-    let loginUser = Object.assign({}, myUser)
-    loginUser.email = 'crowley+temp@tcg.com'
-    loginUser.firstName = 'auth-beforeAllUser'
-    let loginUserTempPass = 'tttttt'
-    loginUser.tempPassword = loginUserTempPass
-    loginUser.password = 'jdslfjsdalfjasdlkjfsaldk'
-    delete loginUser.id
-    return User.create(loginUser)
-      .then(async () => {
-        return request(app)
-          .post('/api/auth/login')
-          .send({ email: loginUser.email, password: loginUserTempPass })
-          .then((res) => {
-            // noinspection JSUnresolvedVariable
-            expect(res.statusCode).toBe(200)
-            expect(res.body.token).toBeDefined()
-            expect(res.body.id).toBeDefined()
-            expect(res.body.id).toBeGreaterThan(0)
-            expect(res.body.email).toBe(loginUser.email)
-            return expect(res.body.firstName).toBe(loginUser.firstName)
-          })
-      })
-  })
-
-  test('test register', async () => {
-    let u = Object.assign({}, userAcceptedCASData)
-    u.firstName = 'auth-beforeAllUser'
-    u.email = 'notreal3@example.com'
-
-    // now try the actual api router
-    await supertest(app)
-      .post('/api/auth')
-      .send(u)
-      .then((response) => {
-        // noinspection JSUnresolvedVariable
-        return expect(response.statusCode).toBe(201)
-      })
-      .then(() => {
-        return User.findOne({ where: { email: u.email } })
-          .then((u) => {
-            expect(u.agency).toBe(u.agency)
-          })
-      })
-  })
 
   // Test what happens when we send an invalid or null JWT
   test('bad token', () => {

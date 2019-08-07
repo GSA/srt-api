@@ -114,20 +114,6 @@ module.exports = {
           return res.status(500).send('Error sending email.')
         }
       })
-  },
-
-  /**
-     * This method will send an email to the user informing them of a password change request.
-     * User info is obtained by decoding the JWT attached to the request.
-     *
-     * @param {Object} req
-     * @param res
-     * @return {Promise}
-     */
-  updatePassword: async (req, res) => {
-    logger.log("warn", "Call to deprecated email.routes.resetPassword", {tag: 'resetPassword'})
-    return res.status(200).send('')
-
   }
 
 }
