@@ -25,6 +25,7 @@ describe('/api/agencies', () => {
   test('/api/agencies (get)', async () => {
     return request(app)
       .get('/api/agencies')
+      .set('Authorization', `Bearer ${token}`)
       .then((res) => {
         // noinspection JSUnresolvedVariable
         expect(res.statusCode).toBe(200)
@@ -36,6 +37,7 @@ describe('/api/agencies', () => {
   test('/api/agencies (put)', async () => {
     return request(app)
       .put('/api/agencies')
+      .set('Authorization', `Bearer ${token}`)
       .send({ agency: agency, acronym: acronym })
       .then((res) => {
         // noinspection JSUnresolvedVariable

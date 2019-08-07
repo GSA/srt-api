@@ -3,6 +3,7 @@ const logger = require('../config/winston')
 // noinspection JSUnresolvedVariable
 const Agency = require('../models').Agency
 const db = require('../models/index')
+const jwt = require('jsonwebtoken')
 
 /**
  * Defines the functions used to process the various Agency related API routes.
@@ -27,6 +28,12 @@ module.exports = {
       agency: req.body.agency,
       acronym: req.body.acronym
     }
+    let token = req.headers['authorization'].split(' ')[1]
+    let decode = jwt.decode(token)
+    if (decode.user.userRole !== 'Administrator') {
+      return res.status(401).send({})
+    }
+
 
     Agency.create(agency)
       .then((agency) => {
