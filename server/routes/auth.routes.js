@@ -276,7 +276,7 @@ module.exports = {
     logger.log("debug", "creating a renewal token valid for " + getConfig('renewTokenLife') )
 
 
-    return res.status(200).send({token: newToken})
+    return res.status(200).send({token: newToken, token_life_in_seconds: ms(getConfig('renewTokenLife'))/1000 })
   },
 
   /**
