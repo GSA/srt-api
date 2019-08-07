@@ -128,7 +128,7 @@ module.exports = {
       "renew_query_parameter_name" : "bypassMaxsso"
     }
   },
-  "cloudstage": {
+  "cloudstaging": {
     "emailFrom": "crowley+srtstage@tcg.com",
     "emailServer" : {
       "host": "smtp.sendgrid.net",
