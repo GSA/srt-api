@@ -290,7 +290,7 @@ function checkout_tag() {
 function build_client() {
     changedir "${TEMP_DIR}/srt-ui"
     runline npm install --loglevel=error
-    runline ng build --env=${SPACE}
+    runline ng build --configuration=${SPACE}
     changedir "${TEMP_DIR}/srt-ui/dist"
     runline touch Staticfile
     log "Writing version info to ${TEMP_DIR}/srt-ui/dist/version.html"

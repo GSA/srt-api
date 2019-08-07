@@ -8,7 +8,7 @@ applications:
   instances: 1
   buildpack: https://github.com/cloudfoundry/nodejs-buildpack
   env:
-    NODE_ENV: clouddev
+    NODE_ENV: cloudstaging
   services:
     - srt-postgres-staging
 
