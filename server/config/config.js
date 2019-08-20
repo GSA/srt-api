@@ -39,7 +39,15 @@ module.exports = {
       "authenticationmethod": "urn:max:fips-201-pivcard",
       "email-address": "albert.crowley@gsa.gov"
     },
-    "PIVLoginCheckRegex": "pivcard"
+    "PIVLoginCheckRegex": "pivcard",
+    "CORSWhitelist": [
+      "http://localhost:4200",
+      "https://srt.app.cloud.gov",
+      "https://srt-client.app.cloud.gov",
+      "https://srt-client-dev.app.cloud.gov",
+      "https://srt-client-staging.app.cloud.gov",
+      "https://srt-client-prod.app.cloud.gov",
+    ]
   },
   development: {
     "emailFrom": "crowley+srt@tcg.com",
@@ -68,7 +76,8 @@ module.exports = {
       "dev_mode_user" : "dev_user",
       "renew" : true,
       "renew_query_parameter_name" : "bypassMaxsso"
-    }
+    },
+    "sessionCookieSecure" : false
   },
   "circle": {
     "emailFrom": "crowley+srt@tcg.com",

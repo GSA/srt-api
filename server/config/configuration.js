@@ -4,17 +4,17 @@ const {common} = require('../config/config.js')
 
 
 module.exports = {
-  "getConfig": (name) => {
-    if (process.env[name]) {
+  "getConfig": (name, defaultValue) => {
+    if (name in process.env) {
       return process.env[name]
     }
-    if (config[name]) {
+    if (name in config) {
       return config[name]
     }
-    if (common[name]) {
+    if (name in common) {
       return common[name]
     }
-    return null
+    return defaultValue
   }
 }
 
