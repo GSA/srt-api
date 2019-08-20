@@ -213,7 +213,7 @@ function convertCASNamesToSRT (cas_userinfo) {
  * @param sessionStart
  * @return {Promise<string>}
  */
-async function tokenJsonFromCasInfo (cas_userinfo, secret, expireTime, sessionStart) {
+async function tokenJsonFromCasInfo (cas_userinfo, secret, expireTime, sessionStart, sessionEnd) {
   cas_userinfo.userRole = mapCASRoleToUserRole(cas_userinfo.grouplist)
   cas_userinfo['maxId'] = (cas_userinfo['max-id']) ? cas_userinfo['max-id'] : cas_userinfo.maxId
 
@@ -226,6 +226,7 @@ async function tokenJsonFromCasInfo (cas_userinfo, secret, expireTime, sessionSt
 
   let srt_userinfo = convertCASNamesToSRT(cas_userinfo)
   srt_userinfo.sessionStart = sessionStart || Math.floor (new Date().getTime() / 1000)
+  srt_userinfo.sessionEnd = sessionEnd || Math.floor ((new Date().getTime() + ms(getConfig('sessionLength')) )/ 1000)
 
   let token = jwt.sign({user: srt_userinfo}, secret, { expiresIn: expireTime || getConfig('tokenLife') })
   logger.log("debug", "creating a token valid for " + getConfig('tokenLife') )

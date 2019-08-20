@@ -64,7 +64,7 @@ module.exports = {
       "service_url" : "http://localhost:3000",
       "session_name" : "cas_user",
       "session_info" : "cas_userinfo",
-      "is_dev_mode" : false,
+      "is_dev_mode" : true,
       "dev_mode_user" : "dev_user",
       "renew" : true,
       "renew_query_parameter_name" : "bypassMaxsso"
