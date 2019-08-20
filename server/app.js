@@ -10,6 +10,7 @@ const {common} = require('./config/config.js')
 const session = require('express-session')
 const CASAuthentication = require('cas-authentication')
 const jwtSecret = common.jwtSecret || undefined
+const {getConfig} = require('./config/configuration')
 
 if (! jwtSecret) {
   console.log("No JWT secret defined.  Be sure to set JWT_SECRET in the environment before running startup")
@@ -21,6 +22,8 @@ if (! jwtSecret) {
 //
 module.exports = function (db, cas) {
   let app = express()
+
+  app.disable('x-powered-by');
 
   if (db === undefined) {
     db = require('./models/index')
@@ -43,7 +46,19 @@ module.exports = function (db, cas) {
   let versionRoutes = require('./routes/version.routes')()
 
   app.use(bodyParser.json())
-  app.use(cors())
+
+  // setup CORS
+  let corsOptions = {
+    origin: function (origin, callback) {
+      console.log ("origin:", origin);
+      if (origin === undefined || common.CORSWhitelist.indexOf(origin) !== -1) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    }
+  }
+  app.use(cors(corsOptions));
 
   if (env === 'development' || env === 'sqlite') {
     expressWinston.requestWhitelist.push('body')
@@ -96,7 +111,8 @@ module.exports = function (db, cas) {
   app.use( session({
     secret            : common.jwtSecret,
     resave            : false,
-    saveUninitialized : true
+    saveUninitialized : true,
+    cookie            : { sameSite : 'strict', secure: getConfig('sessionCookieSecure', true)  }
   }));
 
   // This will prevent express from sending 304 responses.
