@@ -72,7 +72,7 @@ module.exports = {
       "service_url" : "http://localhost:3000",
       "session_name" : "cas_user",
       "session_info" : "cas_userinfo",
-      "is_dev_mode" : true,
+      "is_dev_mode" : false,
       "dev_mode_user" : "dev_user",
       "renew" : true,
       "renew_query_parameter_name" : "bypassMaxsso"
@@ -128,7 +128,7 @@ module.exports = {
     "logStdOut" : true,
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
-      "service_url" : "http://srt-server-dev.app.cloud.gov",
+      "service_url" : "https://srt-server-dev.app.cloud.gov",
       "session_name" : "cas_user",
       "session_info" : "cas_userinfo",
       "is_dev_mode" : false,
@@ -157,7 +157,7 @@ module.exports = {
     "logStdOut" : true,
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
-      "service_url" : "http://srt-server-staging.app.cloud.gov",
+      "service_url" : "https://srt-server-staging.app.cloud.gov",
       "session_name" : "cas_user",
       "session_info" : "cas_userinfo",
       "is_dev_mode" : false,
@@ -185,7 +185,7 @@ module.exports = {
     "logStdOut" : true,
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
-      "service_url" : "http://srt-server-test.app.cloud.gov",
+      "service_url" : "https://srt-server-test.app.cloud.gov",
       "session_name" : "cas_user",
       "session_info" : "cas_userinfo",
       "is_dev_mode" : false,
@@ -214,7 +214,7 @@ module.exports = {
     "logStdOut" : true,
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
-      "service_url" : "http://srt-server.app.cloud.gov",
+      "service_url" : "https://srt-server.app.cloud.gov",
       "session_name" : "cas_user",
       "session_info" : "cas_userinfo",
       "is_dev_mode" : false,
