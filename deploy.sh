@@ -9,6 +9,8 @@ CWD=`pwd`
 RECLONE=true
 LOG_FILE="${CWD}/deploy-log-${TIME_STR}.log"
 CF_CLI=cf
+DEPLOYUI=true
+DEPLOYAPI=true
 
 
 function read_args() {
@@ -52,6 +54,14 @@ function read_args() {
             ;;
             -n|--no)
             RECLONE=false
+            shift # past argument
+            ;;
+            -a|--api-only)
+            DEPLOYUI=false
+            shift # past argument
+            ;;
+            -u|--ui-only)
+            DEPLOYAPI=false
             shift # past argument
             ;;
             -b|--create-tag-from-branch)
@@ -288,28 +298,32 @@ function checkout_tag() {
 }
 
 function build_client() {
-    changedir "${TEMP_DIR}/srt-ui"
-    runline npm install --loglevel=error
-    runline ng build --configuration=${SPACE}
-    changedir "${TEMP_DIR}/srt-ui/dist"
-    runline touch Staticfile
-    log "Writing version info to ${TEMP_DIR}/srt-ui/dist/version.html"
-    echo "${VERSION_INFO}" >  "${TEMP_DIR}/srt-ui/dist/version.html"
-    log "DONE CLIENT BUILD"
+    if [[ "${DEPLOYUI}" == "true" ]]; then
+      changedir "${TEMP_DIR}/srt-ui"
+      runline npm install --loglevel=error
+      runline ng build --configuration=${SPACE}
+      changedir "${TEMP_DIR}/srt-ui/dist"
+      runline touch Staticfile
+      log "Writing version info to ${TEMP_DIR}/srt-ui/dist/version.html"
+      echo "${VERSION_INFO}" >  "${TEMP_DIR}/srt-ui/dist/version.html"
+      log "DONE CLIENT BUILD"
+    fi
 }
 
 function build_server() {
-    changedir "${TEMP_DIR}/srt-api"
-    # verify we have a config file for $SPACE
-    if [[ ! -f "manifest.${SPACE}.yml" ]]; then
-      runline echo "No manifest file for ${SPACE} found. Expected srt-api/manifest.${SPACE}.yml"
-      exit
+    if [[ "${DEPLOYAPI}" == "true" ]]; then
+      changedir "${TEMP_DIR}/srt-api"
+      # verify we have a config file for $SPACE
+      if [[ ! -f "manifest.${SPACE}.yml" ]]; then
+        runline echo "No manifest file for ${SPACE} found. Expected srt-api/manifest.${SPACE}.yml"
+        exit
+      fi
+      runline rm -f "${TEMP_DIR}/srt-api/manifest.yml"
+      runline cp "manifest.${SPACE}.yml" manifest.yml
+      log "Writing version info to ${TEMP_DIR}/srt-api/server/version.json"
+      echo "${VERSION_INFO}" >  "${TEMP_DIR}/srt-api/server/version.json"
+      log "DONE CLIENT BUILD"
     fi
-    runline rm -f "${TEMP_DIR}/srt-api/manifest.yml"
-    runline cp "manifest.${SPACE}.yml" manifest.yml
-    log "Writing version info to ${TEMP_DIR}/srt-api/server/version.json"
-    echo "${VERSION_INFO}" >  "${TEMP_DIR}/srt-api/server/version.json"
-    log "DONE CLIENT BUILD"
 }
 
 function check_dryrun() {
@@ -323,13 +337,17 @@ function check_dryrun() {
 }
 
 function deploy_client(){
-    changedir "${TEMP_DIR}/srt-ui/dist"
-    runline ${CF_CLI} push -m 64M srt-client-${SPACE}
+    if [[ "${DEPLOYUI}" == "true" ]]; then
+      changedir "${TEMP_DIR}/srt-ui/dist"
+      runline ${CF_CLI} push -m 64M srt-client-${SPACE}
+    fi
 }
 
 function deploy_server() {
-    changedir "${TEMP_DIR}/srt-api"
-    runline ${CF_CLI} push srt-server-${SPACE}
+    if [[ "${DEPLOYAPI}" == "true" ]]; then
+      changedir "${TEMP_DIR}/srt-api"
+      runline ${CF_CLI} push srt-server-${SPACE}
+    fi
 }
 
 read_args "$@"
@@ -341,6 +359,13 @@ echo "$0 $@" | tee ${LOG_FILE}| tee ${LOG_FILE}
 echo "" | tee ${LOG_FILE}| tee ${LOG_FILE}
 echo SPACE           = "${SPACE}"| tee ${LOG_FILE}
 echo TAG             = "${TAG}"| tee ${LOG_FILE}
+if [[ "${DEPLOYAPI}" == "true" ]]; then
+  echo "Deploying API" | tee ${LOG_FILE}
+fi
+if [[ "${DEPLOYUI}" == "true" ]]; then
+  echo "Deploying UI" | tee ${LOG_FILE}
+fi
+
 
 switch_space
 

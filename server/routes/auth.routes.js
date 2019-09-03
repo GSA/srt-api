@@ -211,6 +211,7 @@ function convertCASNamesToSRT (cas_userinfo) {
  * @param {string} secret
  * @param expireTime
  * @param sessionStart
+ * @param sessionEnd
  * @return {Promise<string>}
  */
 async function tokenJsonFromCasInfo (cas_userinfo, secret, expireTime, sessionStart, sessionEnd) {
