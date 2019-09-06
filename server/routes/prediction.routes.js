@@ -12,6 +12,7 @@ const db = require('../models/index')
 const SqlString = require('sequelize/lib/sql-string')
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
+const configuration = require('../config/configuration')
 
 /**
  * PredictionFilter
@@ -269,6 +270,13 @@ function getPredictions (filter) {
     whereArray.push('date < ' + SqlString.escape(makePostgresDate(endDate), null, 'postgres'))
     whereArray.push('date is not null')
   }
+
+  // put in a way to optionally limit the number of solicitations returned
+  let limit = configuration.getConfig('SolicitationCountLimit', '2000000000')  // default to one less than max integer
+  if (limit !== '2000000000' ) {
+    whereArray.push(`solicitation_number in (select solicitation_number from notice order by date desc limit ${limit} )`)
+  }
+
 
   let where = whereArray.join(' AND ')
   let sql = `
