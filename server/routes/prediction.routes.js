@@ -102,7 +102,11 @@ function makeOnePrediction (notice) {
   o.date = notice.date
   o.office = (notice.notice_data !== undefined) ? notice.notice_data.office : ''
   o.predictions = {
-    value: (notice.compliant === 1) ? 'GREEN' : 'RED'
+    value: (notice.compliant === 1) ? 'GREEN' : 'RED',
+    history: [{
+      date: notice.date,
+      value: (notice.compliant === 1) ? 'GREEN' : 'RED'
+    }]
   }
   o.eitLikelihood = {
     naics: notice.naics,
@@ -177,6 +181,7 @@ function mergeOnePrediction (older, newer) {
   merge.parseStatus = deepConcat(older.parseStatus, newer.parseStatus)
 
   merge.predictions = Object.assign({}, newer.predictions)
+  merge.predictions.history = deepConcat(older.predictions.history, newer.predictions.history)
   merge.contactInfo = Object.assign({}, newer.contactInfo)
 
   merge.numDocs = older.numDocs + newer.numDocs
