@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node_modules/.bin/sequelize db:migrate && node server/server.js",
     "dev": "export JWT_SECRET=abc123 && export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock && node_modules/.bin/sequelize db:migrate && node --max-old-space-size=256 server/server.js",
+    "dev-monitor": "export JWT_SECRET=abc123 && export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock && node_modules/.bin/sequelize db:migrate && nodemon --delay 1 node --max-old-space-size=256 server/server.js",
     "old-test": "export NODE_ENV=test || SET NODE_ENV=test && mocha server/**/*.test.js",
     "analysis": "snyk test",
     "test": "export JWT_SECRET=abcd && export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock &&  ./node_modules/.bin/jest  --detectOpenHandles --config=jest.config.js ",

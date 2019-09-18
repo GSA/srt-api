@@ -177,6 +177,20 @@ function mapCASRoleToUserRole (roleList) {
   return mostPrivilegedRole
 }
 
+/**
+ * Takes in a role name, such as "Section 508 Coordinator" and returns the associated CAS group
+ * @param roleName
+ * @return {string|null}
+ */
+function roleNameToCASGroup (roleName) {
+  for (let r of roles) {
+    if (r.name === roleName) {
+      return r.casGroup
+    }
+  }
+  return null
+}
+
 /***
  * This function does some translation between the cas naming
  * conventions and the JavaScript/SRT naming conventions for user info.
@@ -364,6 +378,7 @@ module.exports = {
   tokenJsonFromCasInfo : tokenJsonFromCasInfo,
 
   mapCASRoleToUserRole : mapCASRoleToUserRole,
+  roleNameToCASGroup   : roleNameToCASGroup,
   createOrUpdateMAXUser: createOrUpdateMAXUser,
 
   roles : roles,
