@@ -29,6 +29,8 @@ module.exports = function (db, cas) {
   if (db === undefined) {
     db = require('./models/index')
   }
+  // noinspection JSUndefinedPropertyAssignment
+  app.db = db
 
   if ( ! cas ) {
     let casConfig = config['maxCas']
@@ -51,7 +53,7 @@ module.exports = function (db, cas) {
   // setup CORS
   let corsOptions = {
     origin: function (origin, callback) {
-      console.log ("origin:", origin);
+      logger.log('info', `Request origin: ${origin}`, {tag: 'CORS'});
       if (origin === undefined || common.CORSWhitelist.indexOf(origin) !== -1) {
         callback(null, true)
       } else {
@@ -151,6 +153,7 @@ module.exports = function (db, cas) {
   app.post('/api/user/updatePassword', token(), userRoutes.updatePassword)
   app.post('/api/user/getCurrentUser', token(), userRoutes.getCurrentUser)
   app.post('/api/user/getUserInfo', token(), userRoutes.getUserInfo)
+  app.get('/api/user/masquerade', token(), userRoutes.masquerade)
   app.get('/api/version', versionRoutes.version)
 
 

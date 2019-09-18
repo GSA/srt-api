@@ -5,7 +5,7 @@ let user1 = {
   'password': 'pass',
   'org-agency-name': 'General Services Administration',
   'position': 'director',
-  'userRole': 'superuser',
+  'userRole': 'Administrator',
   'isAccepted': true,
   'tempPassword': 'tpass',
   'creationDate': '01/01/2019',
@@ -19,12 +19,43 @@ let userAcceptedCASData = {
   'password': 'pass',
   'org-agency-name': 'General Services Administration',
   'position': 'director',
-  'userRole': 'superuser',
+  'userRole': 'Administrator',
   'isAccepted': true,
   'tempPassword': 'tpass',
   'creationDate': '01/02/2019',
   'max-id' : 'A0002',
   'grouplist' : "AGY-GSA,EXECUTIVE_BRANCH,AGY-GSA-SRT-ADMINISTRATORS.ROLEMANAGEMENT,MAX-AUTHENTICATION-CUSTOMERS-CAS,MAX-AUTHENTICATION-CUSTOMERS-CAS-GSA-SRT,MAXINFO"
+}
+
+let adminCASData = {
+  'first-name': 'Accepted',
+  'last-name': 'User',
+  'email-address': 'crowley+casadmin@tcg.com',
+  'password': 'pass',
+  'org-agency-name': 'General Services Administration',
+  'position': 'director',
+  'userRole': 'Administrator',
+  'isAccepted': true,
+  'tempPassword': 'tpass',
+  'creationDate': '01/02/2019',
+  'max-id' : 'A0002',
+  'grouplist' : "AGY-GSA,EXECUTIVE_BRANCH,AGY-GSA-SRT-ADMINISTRATORS.ROLEMANAGEMENT,MAX-AUTHENTICATION-CUSTOMERS-CAS,MAX-AUTHENTICATION-CUSTOMERS-CAS-GSA-SRT,MAXINFO"
+}
+
+// noinspection JSUnusedLocalSymbols
+let coordinatorCASData = {
+  'first-name': 'Accepted',
+  'last-name': 'User',
+  'email-address': 'crowley+cascoordinator@tcg.com',
+  'password': 'pass',
+  'org-agency-name': 'National Institutes of Health',
+  'position': 'director',
+  'userRole': 'Section 508 Coordinator',
+  'isAccepted': true,
+  'tempPassword': 'tpass',
+  'creationDate': '01/02/2019',
+  'max-id' : 'A0002',
+  'grouplist' : "AGY-GSA,EXECUTIVE_BRANCH,AGY-GSA-SRT-508-COORDINATOR,MAX-AUTHENTICATION-CUSTOMERS-CAS,MAX-AUTHENTICATION-CUSTOMERS-CAS-GSA-SRT,MAXINFO"
 }
 
 let userRejected = {
@@ -34,11 +65,11 @@ let userRejected = {
   'password': 'pass',
   'org-agency-name': 'General Services Administration',
   'position': 'director',
-  'userRole': 'superuser',
+  'userRole': 'Administrator',
   'isRejected': true,
   'tempPassword': 'tpass',
   'creationDate': '01/03/2019',
   'max-id' : 'A0003'
 }
 
-module.exports = { user1, userAcceptedCASData: userAcceptedCASData, userRejected: userRejected }
+module.exports = { user1, userAcceptedCASData: userAcceptedCASData, userRejected: userRejected, adminCASData: adminCASData }
