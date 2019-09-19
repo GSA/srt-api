@@ -249,7 +249,7 @@ module.exports = {
     "srtClientUrl": "https://srt.app.cloud.gov",
     "logStdOut" : true,
     "maxCas" : {
-      "cas_url" : "https://login.test.max.gov/cas/",
+      "cas_url" : "https://login.max.gov/cas/",
       "service_url" : "https://srt-server.app.cloud.gov",
       "session_name" : "cas_user",
       "session_info" : "cas_userinfo",
