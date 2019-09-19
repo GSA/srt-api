@@ -197,7 +197,8 @@ function help() {
     echo "    -y --yes        : delete existing git repo in temp directory"
     echo "    -n --no         : do not delete any existing git repo in temp directory"
     echo "    -b --create-tag-from-branch : Create TAG at head of this branch"
-    echo ""
+    echo "    --ui-only       : Deploy the srt-ui server only"
+    echo "    --api-only      : Deploy the srt-api server only"
     echo ""
 }
 
