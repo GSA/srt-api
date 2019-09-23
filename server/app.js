@@ -145,7 +145,7 @@ module.exports = function (db, cas) {
   app.post('/api/solicitation', token(), solicitationRoutes.postSolicitation)
   app.get('/api/solicitation/:id', token(), solicitationRoutes.get)
   app.post('/api/solicitation/:id', token(), solicitationRoutes.update)
-  app.post('/api/solicitation/feedback', token(), solicitationRoutes.solicitationFeedback)
+  app.post('/api/feedback', token(), solicitationRoutes.solicitationFeedback)
   app.get('/api/surveys', token(), surveyRoutes.get)
   app.post('/api/user/filter', token(), userRoutes.filter)
   app.get('/api/user/getUserInfo', token(), userRoutes.getUserInfo)

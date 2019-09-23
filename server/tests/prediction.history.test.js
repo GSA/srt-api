@@ -23,7 +23,7 @@ describe('Prediction History', () => {
   beforeAll(() => {
     process.env.MAIL_ENGINE = 'nodemailer-mock'
     app = require('../app')() // don't load the app till the mock is configured
-    return db.sequelize.query("select solicitation_number from notice limit 1;")
+    return db.sequelize.query("select solicitation_number from notice order by date desc limit 1;")
       .then( (rows) => {
         testSolNum = rows[0][0]['solicitation_number'] //?
       })
@@ -31,6 +31,7 @@ describe('Prediction History', () => {
 
   afterAll(() => {
     return User.destroy({ where: { firstName: 'pred-beforeAllUser' } })
+      .then( () => { app.db.close(); })
   })
 
   test('Solicitations have a prediction history element', () => {
@@ -43,8 +44,8 @@ describe('Prediction History', () => {
         expect(history).toBeArray()
         expect(history[0]).toHaveProperty('date')
         expect(history[0]).toHaveProperty('value')
-        expect(history[0].date).toBe(p.date)
-        expect(history[0].value).toBe(p.predictions.value)
+        expect(history.slice(-1)[0].date).toBe(p.date)
+        expect(history.slice(-1)[0].value).toBe(p.predictions.value)
       })
   })
 
@@ -64,9 +65,9 @@ describe('Prediction History', () => {
     expect(sol.predictions.history.length).toBe(3)
     let count = 0
     for (let historyLine of sol.predictions.history) {
-      if (historyLine.date === n1.date) { expect(historyLine.value).toBe('GREEN'); count += 1 }
-      if (historyLine.date === n2.date) { expect(historyLine.value).toBe('GREEN'); count += 2 }
-      if (historyLine.date === n3.date) { expect(historyLine.value).toBe('RED'); count += 4 }
+      if (historyLine.date === n1.date) { expect(historyLine.value).toBe('green'); count += 1 }
+      if (historyLine.date === n2.date) { expect(historyLine.value).toBe('green'); count += 2 }
+      if (historyLine.date === n3.date) { expect(historyLine.value).toBe('red'); count += 4 }
     }
     expect(count).toBe(7)
   })

@@ -28,7 +28,7 @@ let predictionTemplate = {
   title: 'sample title',
   url: 'http://www.tcg.com/',
   predictions: {
-    value: 'GREEN'
+    value: 'green'
   },
   reviewRec: 'Compliant', // one of "Compliant", "Non-compliant (Action Required)", or "Undetermined"
   date: '2019-01-10T09:02:15.895Z',
@@ -222,7 +222,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Filter predictions to only return a certain office', () => {
-    return db.sequelize.query("select notice_data->>'office' as office from notice where notice_data->>'office' is not null limit 1;")
+    return db.sequelize.query("select notice_data->>'office' as office from notice where notice_data->>'office' is not null order by date desc limit 1;")
       .then((rows) => {
         let office = rows[0][0].office
 
@@ -359,7 +359,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Test prediction date filters', () => {
-    return db.sequelize.query('select date from notice order by agency desc limit 1')
+    return db.sequelize.query('select date from notice order by date desc, agency desc limit 1')
       .then((rows) => {
         let date = rows[0][0].date
         let year = date.getFullYear()
