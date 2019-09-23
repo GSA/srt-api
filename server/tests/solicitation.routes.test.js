@@ -32,6 +32,7 @@ describe('solicitation tests', () => {
 
   afterAll(() => {
     return User.destroy({ where: { firstName: 'sol-beforeAllUser' } })
+      .then( () => { app.db.close(); })
   })
 
   test('solicitation post', () => {
@@ -268,4 +269,5 @@ describe('solicitation tests', () => {
           })
       })
   })
+
 }) // end describe

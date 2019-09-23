@@ -47,6 +47,10 @@ module.exports = function(sequelize, DataTypes) {
     history: {
       type: DataTypes.JSONB,
       allowNull: true
+    },
+    na_flag: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true
     }
   }, {
     tableName: 'notice'
