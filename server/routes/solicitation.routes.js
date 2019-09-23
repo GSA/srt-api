@@ -4,6 +4,9 @@ const logger = require('../config/winston')
 // noinspection JSUnresolvedVariable
 const Notice = require('../models').notice
 const predictionRoute = require('../routes/prediction.routes')
+const authRoutes = require('../routes/auth.routes')
+
+
 
 /**
  * API routes related to solicitations
@@ -49,6 +52,61 @@ module.exports = function (db) {
         .catch((e) => {
           logger.log('error', 'error in: solicitation get', { error:e, tag: 'solicitation get' })
           return res.status(500).send('Error finding solicitation')
+        })
+    },
+
+
+    /**
+     * Updates some pieces of a solicitaiton.
+     * Only changes the most recent entry in the Notice table.
+     * Columns affected:
+     *   na_flag
+     *
+     * @param {Request} req
+     * @param {solicitation} req.body.solicitation
+     * @param {Response} res
+     * @return {Promise<T>|*}
+     */
+
+    update: function(req, res) {
+      // Be a GSA Admin or update sol from your org.
+
+      let userInfo = authRoutes.userInfoFromReq(req)
+      if (userInfo == null) {
+        return res.status(401).send({ msg: 'Not authorized' })
+      }
+
+      return Notice.findAll({
+        where: {solicitation_number: req.body.solicitation.solNum},
+        order: [['date', 'desc']]
+      })
+        .then( (notices) => {
+          // we are only going to work with the first entry - which is the newest row having the given notice_number
+          let notice = (notices.length > 0) ? notices[0] : null
+          if (notice == null) {
+            logger.log('error', req.body, { tag: 'postSolicitation - solicitation not found' })
+            return res.status(404).send({ msg: 'solicitation not found' })
+          }
+
+          // check that we are allowed to update this one
+          if (userInfo.userRole !== 'Administrator' && userInfo.agency !== notice.agency ) {
+            return res.status(401).send({ msg: 'Not authorized' })
+          }
+
+          notice.na_flag = req.body.solicitation.na_flag
+
+          return notice.save()
+            .then( (n) => {
+              logger.log("info",
+                `Updated Notice row for solicitation ${notice.solicitation_number}`,
+                {
+                      tag: 'solicitation update',
+                      test_flag: req.body.solicitation.na_flag,
+                      na_flag: (n.na_flag) ? "true" : "false"
+                })
+              return res.status(200).send(predictionRoute.makeOnePrediction(n))
+            })
+
         })
     },
 

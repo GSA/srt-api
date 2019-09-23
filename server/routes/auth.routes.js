@@ -270,6 +270,17 @@ function isGSAAdmin(agency, role) {
     (role === roles[ADMIN_ROLE].name || role === roles[PROGRAM_MANAGER_ROLE].name)
 }
 
+function userInfoFromReq(req) {
+  try {
+    let token = req.headers['authorization'].split(' ')[1]
+    // noinspection JSUnresolvedVariable
+    return (jwt.decode(token)).user
+  } catch (error) {
+    logger.log("info", `error decoding token`, {tag: 'userInfoFromReq', error: error})
+  }
+  return null;
+}
+
 /**
  * Defines the functions used to process the various authorization and authentication related API routes.
  */
@@ -279,6 +290,7 @@ module.exports = {
   renewToken: function (req, res) {
 
     let oldToken = req.headers['authorization'].split(' ')[1]
+    // noinspection JSUnresolvedVariable
     let user = (jwt.decode(oldToken)).user
 
     // verify that the original login wasn't more than [sessionLength] ago
@@ -380,6 +392,7 @@ module.exports = {
   mapCASRoleToUserRole : mapCASRoleToUserRole,
   roleNameToCASGroup   : roleNameToCASGroup,
   createOrUpdateMAXUser: createOrUpdateMAXUser,
+  userInfoFromReq      : userInfoFromReq,
 
   roles : roles,
   roleKeys : roleKeys,

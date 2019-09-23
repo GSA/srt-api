@@ -198,7 +198,7 @@ module.exports = {
                 for (let j = 0; j < predictions[i].parseStatus.length; j++) {
                   // Non machine readable solicitations
                   if (predictions[i].parseStatus[j].status === 'processing error') {
-                    if (predictions[i].predictions.value === 'RED') {
+                    if (predictions[i].predictions.value === 'red') {
                       if (latest) {
                         data.LatestMachineUnreadableSolicitation_RED++
                       }
@@ -217,7 +217,7 @@ module.exports = {
                   }
                 }
               } else if (predictions[i].parseStatus.length === 0 && predictions[i].numDocs === '0') {
-                if (predictions[i].predictions.value === 'RED') {
+                if (predictions[i].predictions.value === 'red') {
                   if (latest) {
                     data.LatestNoDocumentSolicitation_RED++
                   }
@@ -233,7 +233,7 @@ module.exports = {
                 }
                 data.TotalNoDocumentSolicitation++
               } else {
-                if (predictions[i].predictions.value === 'RED') {
+                if (predictions[i].predictions.value === 'red') {
                   if (latest) {
                     data.LatestOtherUndeterminedSolicitation_RED++
                   }
@@ -253,11 +253,11 @@ module.exports = {
               if (!predictions[i].undetermined) {
                 // prediction result chart
                 if (latest) {
-                  if (predictions[i].predictions.value === 'GREEN') {
+                  if (predictions[i].predictions.value === 'green') {
                     data.LatestComplianceSolicitation++
                   } else data.LatestNonComplianceSolicitation++
                 }
-                if (predictions[i].predictions.value === 'GREEN') {
+                if (predictions[i].predictions.value === 'green') {
                   data.TotalComplianceSolicitation++
                 } else data.TotalNonComplianceSolicitation++
 
@@ -286,16 +286,16 @@ module.exports = {
                                 new Date(predictions[i].date) < to &&
                                 (agency === predictions[i].agency || agency === 'Government-wide')) {
                 if (!predictions[i].undetermined) {
-                  if (predictions[i].predictions.value === 'GREEN') {
+                  if (predictions[i].predictions.value === 'green') {
                     data.FilteredComplianceSolicitation++
                   } else data.FilteredNonComplianceSolicitation++
 
-                  if (predictions[i].predictions.value === 'GREEN' &&
+                  if (predictions[i].predictions.value === 'green' &&
                                         predictions[i].history.filter(function (e) {
                                           return e['action'].indexOf('Solicitation Updated on FBO.gov') > -1
                                         }).length > 0) { data.LatestUpdateCompliance++ }
 
-                  if (predictions[i].predictions.value === 'RED' &&
+                  if (predictions[i].predictions.value === 'red' &&
                                         predictions[i].history.filter(function (e) {
                                           return e['action'].indexOf('Solicitation Updated on FBO.gov') > -1
                                         }).length > 0) { data.LatestUpdateNonCompliance++ }
@@ -320,10 +320,10 @@ module.exports = {
                       data.topAgencies[predictions[i].agency]['name'] = predictions[i].agency
                       data.topAgencies[predictions[i].agency]['red'] = 0
                       data.topAgencies[predictions[i].agency]['green'] = 0
-                      if (predictions[i].predictions.value === 'GREEN') data.topAgencies[predictions[i].agency]['green']++
+                      if (predictions[i].predictions.value === 'green') data.topAgencies[predictions[i].agency]['green']++
                       else data.topAgencies[predictions[i].agency]['red']++
                     } else {
-                      if (predictions[i].predictions.value === 'GREEN') data.topAgencies[predictions[i].agency]['green']++
+                      if (predictions[i].predictions.value === 'green') data.topAgencies[predictions[i].agency]['green']++
                       else data.topAgencies[predictions[i].agency]['red']++
                     }
                   } else {

@@ -94,7 +94,6 @@ function makeOnePrediction (notice) {
   o.id = notice.id
   o.title = (notice.notice_data && notice.notice_data.subject) ? notice.notice_data.subject : 'title not available'
   o.url = (notice.notice_data !== undefined) ? notice.notice_data.url : ''
-  o.reviewRec = (notice.compliant === 1) ? 'Compliant' : 'Non-compliant (Action Required)'
   o.agency = notice.agency
   o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0
   o.solNum = notice.solicitation_number
@@ -102,11 +101,17 @@ function makeOnePrediction (notice) {
   o.date = notice.date
   o.office = (notice.notice_data !== undefined) ? notice.notice_data.office : ''
   o.predictions = {
-    value: (notice.compliant === 1) ? 'GREEN' : 'RED',
+    value: (notice.na_flag) ? 'black' : (notice.compliant === 1) ? 'green' : 'red',
     history: [{
       date: notice.date,
-      value: (notice.compliant === 1) ? 'GREEN' : 'RED'
+      value: (notice.compliant === 1) ? 'green' : 'red'
     }]
+  }
+  o.na_flag = notice.na_flag
+  if (o.na_flag) {
+    o.reviewRec = "Not Applicable"
+  } else {
+    o.reviewRec = (notice.compliant === 1) ? 'Compliant' : 'Non-compliant (Action Required)'
   }
   o.eitLikelihood = {
     naics: notice.naics,

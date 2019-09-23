@@ -53,7 +53,7 @@ module.exports = function (db, cas) {
   // setup CORS
   let corsOptions = {
     origin: function (origin, callback) {
-      logger.log('info', `Request origin: ${origin}`, {tag: 'CORS'});
+      // logger.log('info', `Request origin: ${origin}`, {tag: 'CORS'});
       if (origin === undefined || common.CORSWhitelist.indexOf(origin) !== -1) {
         callback(null, true)
       } else {
@@ -144,7 +144,8 @@ module.exports = function (db, cas) {
   app.get('/api/renewToken', token(), authRoutes.renewToken)
   app.post('/api/solicitation', token(), solicitationRoutes.postSolicitation)
   app.get('/api/solicitation/:id', token(), solicitationRoutes.get)
-  app.post('/api/solicitation/feedback', token(), solicitationRoutes.solicitationFeedback)
+  app.post('/api/solicitation/:id', token(), solicitationRoutes.update)
+  app.post('/api/feedback', token(), solicitationRoutes.solicitationFeedback)
   app.get('/api/surveys', token(), surveyRoutes.get)
   app.post('/api/user/filter', token(), userRoutes.filter)
   app.get('/api/user/getUserInfo', token(), userRoutes.getUserInfo)

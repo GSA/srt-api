@@ -42,13 +42,12 @@ let adminCASData = {
   'grouplist' : "AGY-GSA,EXECUTIVE_BRANCH,AGY-GSA-SRT-ADMINISTRATORS.ROLEMANAGEMENT,MAX-AUTHENTICATION-CUSTOMERS-CAS,MAX-AUTHENTICATION-CUSTOMERS-CAS-GSA-SRT,MAXINFO"
 }
 
-// noinspection JSUnusedLocalSymbols
 let coordinatorCASData = {
   'first-name': 'Accepted',
   'last-name': 'User',
   'email-address': 'crowley+cascoordinator@tcg.com',
   'password': 'pass',
-  'org-agency-name': 'National Institutes of Health',
+  'org-agency-name': 'Department of Health and Human Services',
   'position': 'director',
   'userRole': 'Section 508 Coordinator',
   'isAccepted': true,
@@ -72,4 +71,10 @@ let userRejected = {
   'max-id' : 'A0003'
 }
 
-module.exports = { user1, userAcceptedCASData: userAcceptedCASData, userRejected: userRejected, adminCASData: adminCASData }
+module.exports = {
+  user1: user1,
+  userAcceptedCASData: userAcceptedCASData,
+  userRejected: userRejected,
+  adminCASData: adminCASData,
+  coordinatorCASData: coordinatorCASData
+}
