@@ -84,7 +84,7 @@ function updateMAXUser(cas_data, user) {
  */
 function verifyPIVUsed(session) {
   // verify that we got a PIV login
-  let authMethod = session['cas_userinfo']['authenticationmethod'];
+  let authMethod = session['cas_userinfo']['authenticationmethod'] || session['cas_userinfo']['samlauthenticationstatementauthmethod']
   let pivRegex = new RegExp(getConfig('PIVLoginCheckRegex'))
   if( ! authMethod.match(pivRegex)) {
     let userEmail = session['cas_userinfo']['email-address']

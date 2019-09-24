@@ -250,7 +250,8 @@ module.exports = {
     "logStdOut" : true,
     "maxCas" : {
       "cas_url" : "https://login.max.gov/cas/",
-      "service_url" : "https://srt-server.app.cloud.gov",
+      "service_url" : "https://srt-server-prod.app.cloud.gov",
+      "cas_version" : "2.0",
       "session_name" : "cas_user",
       "session_info" : "cas_userinfo",
       "is_dev_mode" : false,
