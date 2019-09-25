@@ -42,7 +42,6 @@ describe('Test masquerade functionality', () => {
   afterAll(() => {
 
     return User.destroy({ where: { firstName: 'masq-beforeAllUser' } }).then( () =>{
-      console.log ('&&&&&&&&&&&&&& closing DB &&&&&&&&&&&&&&&&&&&&&&&')
       app.db.sequelize.close()
       })
   })

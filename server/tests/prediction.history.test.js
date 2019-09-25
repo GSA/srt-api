@@ -56,8 +56,6 @@ describe('Prediction History', () => {
       predictionRoutes.makeOnePrediction(n3),
     ])
     let sol = solArray[0]
-    console.log (n1)
-    console.log (sol)
     expect(sol).toHaveProperty('predictions')
     expect(sol.predictions).toHaveProperty('history')
 

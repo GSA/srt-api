@@ -9,7 +9,7 @@ const {common} = require('../config/config.js')
 let myUser = {}
 let token = {}
 
-describe('/api/analytics', () => {
+describe('Analytics routes tests', () => {
   beforeAll(() => {
     myUser = Object.assign({}, userAcceptedCASData)
     myUser.firstName = 'an-beforeAllUser'
@@ -39,5 +39,5 @@ describe('/api/analytics', () => {
         expect(res.body.TopSRTActionChart.determinedICT).toBeGreaterThan(2)
         return expect(res.body.TopAgenciesChart).toBeDefined()
       })
-  }, 30000)
+  }, 10000)
 })

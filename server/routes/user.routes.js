@@ -191,7 +191,6 @@ module.exports = {
               : (req.body.UserId) ? req.body.UserId
                 : (req.body.id) ? req.body.id : -1
 
-    console.log ("decided to look for " + id)
     return User.findOne({ where: { id: id } })
       .then(user => {
         if (user) {
@@ -223,9 +222,7 @@ module.exports = {
       .then(user => {
         let date = user.creationDate
         if ( date.match(/^[0-9]+$/)) { // if it's a numeric timestamp
-          console.log(user.creationDate)
           let d = new Date(parseInt(date))
-          console.log (d)
           date = (d.getMonth()+1) + "-" + d.getDate() + "-" + d.getFullYear()
         }
         return res.status(200).send({ creationDate: date })
@@ -258,9 +255,6 @@ module.exports = {
     decoded.user.grouplist = authRoutes.roleNameToCASGroup(req.query.role)
     decoded.user.firstName = "Masquerade"
     decoded.user.lastName = req.query.role
-
-
-    console.log(decoded) //?
 
     let newToken = jwt.sign({user: decoded.user}, common.jwtSecret, { expiresIn: getConfig('tokenLife') })
 

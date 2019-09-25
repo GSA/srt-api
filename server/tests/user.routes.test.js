@@ -26,15 +26,12 @@ describe('User API Routes', () => {
     await mockToken(filterUser)  // make sure the filter user is created in the database
 
     userAcceptedCASData = Object.assign({}, userAcceptedCASData, { "email-address": 'crowley+accepted-token2@tcg.com', firstName: 'beforeAll-filter' })
-    console.log ("BEFORE------------");
-    console.log (userAcceptedCASData)
     return mockToken(userAcceptedCASData, common['jwtSecret'])
       .then( t => {
         token = t
         let acceptedUserInfo = jwt.decode(token)
         // noinspection JSUnresolvedVariable
         acceptedUserId = acceptedUserInfo.user.id
-        console.log (`set acceptedUserId to ${acceptedUserId}`)
       })
 
 
@@ -107,8 +104,6 @@ describe('User API Routes', () => {
         // noinspection JSUnresolvedVariable,JSUnresolvedFunction
         expect(res.statusCode).toBe(200)
 
-        console.log (res.body)
-        console.log(userAcceptedCASData.creationDate)
         return expect(res.body.creationDate).toMatch(/[0-9]+-[0-9]+-[0-9]+/)
       })
       .then(() => {
@@ -142,9 +137,6 @@ describe('User API Routes', () => {
       .then((res) => {
         // noinspection JSUnresolvedVariable,JSUnresolvedFunction
         expect(res.statusCode).toBe(200)
-
-        console.log (`looking for user id ${acceptedUserId}`)
-        console.log (res.body);
         expect(res.body.id).toBe(acceptedUserId)
       })
   })

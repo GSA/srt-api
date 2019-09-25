@@ -102,7 +102,6 @@ describe('solicitation tests', () => {
                 let hist = rows[0][0].history
                 expect(hist.length).toBeGreaterThan(2)
                 return expect(hist[2].action).toMatch(/again reviewed solicitation/)
-                //                                return console.log ("history is: ", rows[0][0]);
               })
           })
       })

@@ -96,7 +96,6 @@ describe('prediction tests', () => {
       .then(async (user) => {
         myUser.id = user.id
         token = await mockToken(myUser, common['jwtSecret'])
-        console.log (token)
       })
   })
 

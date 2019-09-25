@@ -48,7 +48,7 @@ describe('migrationUtils tests', async () => {
     try {
       await upDown.up()
     } catch(e) {
-      console.log ("caught expected exception", e)
+      // console.log ("caught expected exception", e)
     }
 
     expect(stub.calledWith('BEGIN')).toBeTruthy()

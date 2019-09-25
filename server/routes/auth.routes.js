@@ -88,7 +88,7 @@ function verifyPIVUsed(session) {
   let pivRegex = new RegExp(getConfig('PIVLoginCheckRegex'))
   if( ! authMethod.match(pivRegex)) {
     let userEmail = session['cas_userinfo']['email-address']
-    console.log('info', `User ${userEmail} was rejected due to login type ${authMethod}`, {tag: 'casStage2', 'cas_userinfo': session['cas_userinfo']})
+    logger.log('info', `User ${userEmail} was rejected due to login type ${authMethod}`, {tag: 'casStage2', 'cas_userinfo': session['cas_userinfo']})
     session.destroy()
     return false
   }

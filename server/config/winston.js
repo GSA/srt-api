@@ -23,7 +23,8 @@ let options = {
   }
 }
 
-if (config['logStdOut']) {
+// Don't log to stdout when running tests
+if (config['logStdOut'] && process.env.JEST_WORKER_ID == undefined) {
   options.transports.push(new winston.transports.Console({ level: 'debug', json: true, colorize: false }))
 }
 

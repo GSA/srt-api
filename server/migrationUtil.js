@@ -3,6 +3,7 @@ const env = process.env.NODE_ENV || 'development'
 const path = require('path')
 const dbConfig = require(path.join(__dirname, 'config', 'dbConfig.js'))[env]
 let connectionString = 'postgres://' + dbConfig.username + ':' + dbConfig.password + '@' + dbConfig.host + ':' + dbConfig.port + '/' + dbConfig.database
+const logger = require('./config/winston')
 
 /**
  * Runs a single sql statement and prints results
@@ -14,9 +15,9 @@ let connectionString = 'postgres://' + dbConfig.username + ':' + dbConfig.passwo
 function runNext (pgClient, sql) {
   return pgClient.query(sql)
     .then((res) => {
-      console.log('sql:', sql)
+      logger.log('info', 'sql:', sql)
       res.rows.forEach(r => {
-        console.log(r)
+        logger.log('info', r)
       })
     })
 }
@@ -40,7 +41,7 @@ async function migrate(sqlArray, pg) {
       })
     }
   } catch (e) {
-    console.log('ROLLBACK', e)
+    logger.log('error', 'ROLLBACK', {tag: 'migration', error: e})
     return pgClient.query('ROLLBACK')
       .then(() => {
         throw e

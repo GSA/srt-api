@@ -1,7 +1,7 @@
 const request = require('supertest')
 let app = require('../app')()
 
-describe('/api/analytics', () => {
+describe('Version route tests', () => {
   test('Get version', () => {
     return request(app)
       .get('/api/version')

@@ -9,7 +9,7 @@ const {common} = require('../config/config.js')
 let myUser = {}
 let token = {}
 
-describe('/api/analytics', () => {
+describe('Survey routes tests', () => {
   beforeAll(() => {
     myUser = Object.assign({}, userAcceptedCASData)
     myUser.firstName = 'survey-beforeAllUser'

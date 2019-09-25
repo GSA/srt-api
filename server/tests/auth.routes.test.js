@@ -145,56 +145,6 @@ describe('/api/auth/', () => {
       })
   })
 
-  test('/api/auth/resetPassword', async () => {
-    let user = Object.assign({}, userAcceptedCASData)
-    user.firstName = 'auth-beforeAllUser'
-    user.email = 'crowley+auth3@tcg.com'
-    delete user.id
-    return User.create(user)
-      .then(() => {
-        return request(app)
-          .post('/api/auth/resetPassword')
-          .send({ email: user.email })
-          .then((res) => {
-            // noinspection JSUnresolvedVariable
-            expect(res.statusCode).toBe(200)
-            expect(res.body.tempPassword).toBeDefined()
-            expect(res.body.message).toContain('password request')
-
-            return User.findOne({ where: { email: user.email } })
-              .then((u) => {
-                let success = res.body.tempPassword === u.tempPassword
-                expect(success).toBe(true)
-              })
-          })
-      })
-    // make sure we don't fail on bad email
-      .then(() => {
-        return request(app)
-          .post('/api/auth/resetPassword')
-          .send({ email: 'fake@example.com' })
-          .then((res) => {
-            // noinspection JSUnresolvedVariable
-            expect(res.statusCode).toBe(200)
-            expect(res.body.message).toContain('password request')
-          })
-      })
-    // make sure we don't fail with no email
-      .then(() => {
-        return request(app)
-          .post('/api/auth/resetPassword')
-          .send({})
-          .then((res) => {
-            // noinspection JSUnresolvedVariable
-            expect(res.statusCode).toBe(200)
-            expect(res.body.message).toContain('password request')
-          })
-      })
-      .catch(e => {
-        console.log(e)
-      })
-  })
-
 
   // Test what happens when we send an invalid or null JWT
   test('bad token', () => {
@@ -421,12 +371,10 @@ describe('/api/auth/', () => {
         expect(mockRes.vResult).toMatch(/token=/)
         let token = mockRes.vResult.substr(mockRes.vResult.indexOf("token=") + 6 )
         let tokenObj = JSON.parse(token)
-        console.log(tokenObj)
         expect(tokenObj.userRole).toBe(authRoutes.roles[authRoutes.ADMIN_ROLE].name)
       })
 
     let mockReq2 = {session: { cas_userinfo : Object.assign({}, common.casDevModeData,{"grouplist": authRoutes.roles[authRoutes.FIVE08_COORDINATOR_ROLE].casGroup}) }}
-    console.log(mockReq2.session.cas_userinfo.grouplist)
     let mockRes2 =mocks.mockResponse();
     return authRoutes.casStage2(mockReq2, mockRes2)
       .then( () => {
@@ -437,7 +385,6 @@ describe('/api/auth/', () => {
         expect(location).toMatch(/token=/)
         let token = location.substr(location.indexOf("token=") + 6 )
         let tokenObj = JSON.parse(token)
-        console.log(tokenObj)
         expect(tokenObj.userRole).toBe(authRoutes.roles[authRoutes.FIVE08_COORDINATOR_ROLE].name)
       })
 
@@ -469,7 +416,6 @@ describe('/api/auth/', () => {
 
     let req = mocks.mockRequest({token: 'invalid token'})
     let res = mocks.mockResponse()
-    console.log (authRoutes.tokenCheck(req, res))
     return authRoutes.tokenCheck(req, res)
       .then( () => {
         expect(res.status.mock.calls[0][0]).toBe(200)
@@ -507,7 +453,7 @@ describe('/api/auth/', () => {
 
     authRoutes.tokenJsonFromCasInfo(user, "abc")
       .then( jsn => {
-        expect(jsn.valueOf()).toBe({})
+        expect(jsn.valueOf()).toBe("{}")
       })
 
   })
