@@ -4,6 +4,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 let cors = require('cors')
 let token = require('./security/token')
+const admin_only = require('./security/admin.only')
 const env = process.env.NODE_ENV || 'development'
 const config = require('./config/config.js')[env]
 const {common} = require('./config/config.js')
@@ -70,7 +71,7 @@ module.exports = function (db, cas) {
 
   let transports = [ new winston.transports.File({ filename: 'winston.log.json', level: 'debug' }) ]
   // Don't log to stdout when running tests
-  if (config['logStdOut'] && process.env.JEST_WORKER_ID == undefined) {
+  if (config['logStdOut'] && process.env.JEST_WORKER_ID === undefined) {
     transports.push(new winston.transports.Console({ level: 'debug', json: true }))
   }
 
@@ -136,8 +137,8 @@ module.exports = function (db, cas) {
   app.get('/api/agencies', token(), agencyRoutes.getAgency)
   app.put('/api/agencies', token(), agencyRoutes.putAgency)
   app.get('/api/agencyList', token(), agencyRoutes.agencyList)
-  app.post('/api/analytics', token(), analyticsRoutes.analytics)
-  app.post('/api/Analytics', token(), analyticsRoutes.analytics)
+  app.post('/api/analytics', token(), admin_only(), analyticsRoutes.analytics)
+  app.post('/api/Analytics', token(), admin_only(), analyticsRoutes.analytics)
   app.post('/api/auth/tokenCheck', authRoutes.tokenCheck)
   app.get('/api/casLogin', cas.bounce, authRoutes.casStage2)
   app.post('/api/email', token(), emailRoutes.email)
@@ -155,7 +156,7 @@ module.exports = function (db, cas) {
   app.post('/api/user/updatePassword', token(), userRoutes.updatePassword)
   app.post('/api/user/getCurrentUser', token(), userRoutes.getCurrentUser)
   app.post('/api/user/getUserInfo', token(), userRoutes.getUserInfo)
-  app.get('/api/user/masquerade', token(), userRoutes.masquerade)
+  app.get('/api/user/masquerade', token(), admin_only(), userRoutes.masquerade)
   app.get('/api/version', versionRoutes.version)
 
 

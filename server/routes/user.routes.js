@@ -63,24 +63,12 @@ function whoAmI (req) {
  * @param req
  * @return {{message: string, status: number}}
  */
-function masqueradeAuthCheck(req) {
-  if (!req.headers['authorization']) {
-    return {status: 401, message: 'No authorization token provided'}
-  }
-
-  let token = req.headers['authorization'].split(' ')[1]
-  // noinspection JSUnresolvedVariable
-  let currentUser = jwt.decode(token).user
-  if (currentUser.userRole !== "Administrator") {
-    return {status: 401, message: 'Not authorized'}
-  }
-
+function roleExists(req) {
   if (authRoutes.roleNameToCASGroup(req.query.role) === null) {
     logger.log("error", "Masquerade attempted to switch role to " + req.query.role, {tag: 'masquerade'})
-    return {status: 400, message: 'Role not found'}
+    return false
   }
-
-  return {status: 200, message: 'OK'}
+  return true
 }
 
 module.exports = {
@@ -243,13 +231,11 @@ module.exports = {
    */
   masquerade: async function (req, res) {
 
-    let check = masqueradeAuthCheck(req)
-    if (check.status !== 200) {
-      return res.status(check.status).send(check.message)
+    if ( ! roleExists(req)) {
+      return res.status(400).send({message: 'Role not found'})
     }
 
-    // @ts-ignore
-    let decoded = jwt.decode(req.headers['authorization'].split(' ')[1])
+    let decoded = jwt.decode(req.headers['authorization'].split(' ')[1])      /** @namespace decoded.user*/
     decoded.user.agency = req.query.agency
     decoded.user.userRole = req.query.role
     decoded.user.grouplist = authRoutes.roleNameToCASGroup(req.query.role)
