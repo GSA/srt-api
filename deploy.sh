@@ -302,7 +302,7 @@ function build_client() {
     if [[ "${DEPLOYUI}" == "true" ]]; then
       changedir "${TEMP_DIR}/srt-ui"
       runline npm install --loglevel=error
-      runline ng build --configuration=${SPACE}
+      runline ng build --configuration=${SPACE} --prod=false
       changedir "${TEMP_DIR}/srt-ui/dist"
       runline touch Staticfile
       log "Writing version info to ${TEMP_DIR}/srt-ui/dist/version.html"
