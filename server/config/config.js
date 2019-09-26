@@ -112,7 +112,7 @@ module.exports = {
       "renew_query_parameter_name" : "bypassMaxsso"
     },
     "sessionCookieSecure" : false,
-    // "SolicitationCountLimit" : 10000
+    "SolicitationCountLimit" : 500
   },
   "circle": {
     "emailFrom": "crowley+srt@tcg.com",

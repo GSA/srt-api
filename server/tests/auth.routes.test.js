@@ -412,8 +412,7 @@ describe('/api/auth/', () => {
   })
 
   test('Test the tokenCheck function', async () => {
-
-
+    // first try with an invalid token
     let req = mocks.mockRequest({token: 'invalid token'})
     let res = mocks.mockResponse()
     return authRoutes.tokenCheck(req, res)
@@ -423,7 +422,7 @@ describe('/api/auth/', () => {
         expect(sentData.isGSAAdmin).toBe(false)
         expect(sentData.isLogin).toBe(false)
 
-
+        // now try with a valid token
         req = mocks.mockRequest({token: token})
         res = mocks.mockResponse()
         return authRoutes.tokenCheck(req, res)
@@ -432,12 +431,8 @@ describe('/api/auth/', () => {
             sentData = res.send.mock.calls[0][0]
             expect(sentData.isGSAAdmin).toBe(true)
             expect(sentData.isLogin).toBe(true)
-
           })
       })
-
-
-
   })
 
   test('MAX ID required to create user', async () => {

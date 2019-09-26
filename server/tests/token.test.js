@@ -2,11 +2,13 @@ const supertestSession = require('supertest-session')
 const {common} = require('../config/config.js')
 const env = process.env.NODE_ENV || 'development'
 const config = require('./../config/config.js')[env]
+const {getConfig} = require('./../config/configuration')
 const jwt = require('jsonwebtoken')
 const CASAuthentication = require('cas-authentication');
 const mockToken = require('./mocktoken')
+const mocks = require('./mocks')
 let {  userAcceptedCASData } = require('./test.data')
-// const authRoutes = require('../routes/auth.routes')
+const authRoutes = require('../routes/auth.routes')
 // const mocks = require('./mocks')
 const User = require('../models').User
 const ms = require('ms')
@@ -208,4 +210,27 @@ describe('JWT Tests', () => {
         })
   })
 
+  test('Dynamic agency name mapping', async () => {
+    process.env.AGENCY_LOOKUP = '{"GSA" : "General Services Administraiton", "Nat Inst Health":  "National Institutes of Health"}'
+    let session = {
+      cas_userinfo :{
+        "max-id": "Z77",
+        "samlauthenticationstatementauthmethod" : getConfig('PIVLoginCheckRegex'),
+        "org-agency-name" : "Nat Inst Health"
+      }
+    }
+    let res = mocks.mockResponse()
+    let req = mocks.mockRequest({}, {}, session)
+
+    await authRoutes.casStage2(req, res);
+    expect(res.status).toBeCalledWith(302)
+    expect(res.set.mock.calls[0][0]).toBe("Location") // first arg
+    let locationRedirect = res.set.mock.calls[0][1]
+
+    let matches = locationRedirect.match('token=({[^}]+})')
+    let userTokenData = JSON.parse(matches[1])
+    expect(userTokenData.agency).toBe("National Institutes of Health")
+    let decoded = jwt.decode(userTokenData.token)
+    expect(decoded.user.agency).toBe("National Institutes of Health")
+  })
 })

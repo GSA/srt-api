@@ -191,6 +191,26 @@ function roleNameToCASGroup (roleName) {
   return null
 }
 
+/**
+ * Takes an agency name as presented by MAX CAS and converts it to
+ * an SRT agency name. The mapping may be described in a JSON formatted string
+ * saved in the AGENCY_LOOKUP env variable. (Or it can just be in the regular config)
+ *
+ * @param {String} cas_agency
+ * @return {String}
+ */
+function translateCASAgencyName(cas_agency) {
+  let agencyLookupDictionary = {}
+  if (process.env.AGENCY_LOOKUP) {
+    try {
+      agencyLookupDictionary = JSON.parse(process.env.AGENCY_LOOKUP)
+    } catch(e) {
+      logger.log("error", "Error parsing AGENCY_LOOKUP. Should be JSON", {tag: "traslate CAS", AGENCY_LOOKUP: process.env.AGENCY_LOOKUP})
+    }
+  }
+  return getConfig(cas_agency, cas_agency, agencyLookupDictionary)
+}
+
 /***
  * This function does some translation between the cas naming
  * conventions and the JavaScript/SRT naming conventions for user info.
@@ -212,7 +232,7 @@ function convertCASNamesToSRT (cas_userinfo) {
   srt_userinfo['lastName'] = srt_userinfo['last-name']
   delete srt_userinfo['last-name']
 
-  srt_userinfo['agency'] = srt_userinfo['org-agency-name']
+  srt_userinfo['agency'] = translateCASAgencyName(srt_userinfo['org-agency-name'])
   delete srt_userinfo['org-agency-name']
 
   return srt_userinfo;
@@ -361,7 +381,7 @@ module.exports = {
     if ( ! ( req.session && req.session['cas_userinfo'] && (req.session.cas_userinfo['max-id'] || req.session.cas_userinfo['maxId']  ))) {
       // didn't get CAS session info
       return res.status(302)
-        .set('Location', config['srtClientUrl'] + 'auth') // send them back with no token
+        .set('Location', config['srtClientUrl'] + '/auth') // send them back with no token
         .send(`<html lang="en"><body>Login Failed</body></html>`)
     }
 
