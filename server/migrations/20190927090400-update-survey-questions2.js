@@ -28,7 +28,7 @@ let upData = [
   {
     id: 3,
     question: 'Other comments such as recommendations to improve the tool or ' +
-      'why the solicitation NOT Section 508 compliant?',
+      'why the solicitation is NOT Section 508 compliant?',
     choices: null,
     section: 'Section1',
     type: 'essay',
@@ -65,7 +65,7 @@ let downData = [
   },
   {
     question: 'Other comments such as recommendations to improve the tool or \n' +
-      ' why the solicitation NOT Section 508 compliant?',
+      ' why the solicitation is NOT Section 508 compliant?',
     choices: null,
     section: 'Section1',
     type: 'essay',
