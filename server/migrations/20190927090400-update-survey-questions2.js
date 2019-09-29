@@ -2,7 +2,7 @@
 // noinspection SpellCheckingInspection
 let upData = [
   {
-    id: 1,
+    id: 0,
     question: 'Did the tool correctly identify this solicitation as an Information and Communication Technology (ICT)?',
     choices: JSON.stringify(['Yes', 'No']),
     section: 'Section1',
@@ -14,7 +14,7 @@ let upData = [
     updatedAt: new Date()
   },
   {
-    id: 2,
+    id: 1,
     question: 'Did the tool correctly predict compliance with Section 508? ',
     choices: JSON.stringify(['Yes', 'No']),
     section: 'Section1',
@@ -26,7 +26,7 @@ let upData = [
     updatedAt: new Date()
   },
   {
-    id: 3,
+    id: 2,
     question: 'Other comments such as recommendations to improve the tool or ' +
       'why the solicitation is NOT Section 508 compliant?',
     choices: null,
@@ -42,6 +42,7 @@ let upData = [
 
 let downData = [
   {
+    id: 1,
     question: 'Did the tool correctly identify this solicitation as an Information and Communication Technology (ICT)?',
     choices: JSON.stringify(['Yes', 'No']),
     section: 'Section1',
@@ -53,6 +54,7 @@ let downData = [
     updatedAt: new Date()
   },
   {
+    id: 2,
     question: 'Did the tool correctly identify this solicitation as non-compliant with Section 508?',
     choices: JSON.stringify(['Yes', 'No']),
     section: 'Section1',
@@ -64,6 +66,7 @@ let downData = [
     updatedAt: new Date()
   },
   {
+    id: 3,
     question: 'Other comments such as recommendations to improve the tool or \n' +
       ' why the solicitation is NOT Section 508 compliant?',
     choices: null,
