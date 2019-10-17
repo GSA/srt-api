@@ -6,7 +6,7 @@ let dbConfig = {
     "username": "circleci",
     "password": "srtpass",
     "database": "srt",
-    "host": "192.168.33.22",
+    "host": "localhost",
     "port": 5432,
     "dialect": "postgres",
     "logging": false,
