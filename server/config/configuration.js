@@ -42,7 +42,6 @@ function lookup(key, defaultValue, extraDictionary) {
   if (key in common) {
     return common[key]
   }
-  console.trace()
   return defaultValue
 }
 
