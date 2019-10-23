@@ -67,7 +67,7 @@
     "supertest-session": "^4.0.0"
   },
   "engines": {
-    "node": "8.16",
+    "node": "8.16.2",
     "npm": "3.10.3"
   }
 }
