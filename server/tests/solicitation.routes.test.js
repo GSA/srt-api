@@ -128,7 +128,7 @@ describe('solicitation tests', () => {
   })
 
   test('sending an non-existing ID to get solicitation', () => {
-    return db.sequelize.query('select id from notice order by solicitation_number desc limit 1')
+    return db.sequelize.query('select id from notice order by id desc limit 1')
       .then((rows) => {
         let id = rows[0][0].id + 9999
         expect(id).toBeDefined()

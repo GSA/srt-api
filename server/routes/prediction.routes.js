@@ -256,6 +256,7 @@ function getPredictions (filter) {
   let endDate = (filter.endDate) ? filter.endDate : filter.toPeriod
   let eitLikelihood = filter.eitLikelihood
 
+
   let whereArray = ['1 = 1']
   if (office && office !== '') {
     whereArray.push("notice_data->>'office' = " + SqlString.escape(office, null, 'postgres'))
@@ -281,9 +282,10 @@ function getPredictions (filter) {
     whereArray.push('date is not null')
   }
 
-  // put in a way to optionally limit the number of solicitations returned
+  // put in a way to optionally limit the number of solicitations returned if no other filter is used
+  let filter_used = (whereArray.length > 1)
   let limit = configuration.getConfig('SolicitationCountLimit', '2000000000')  // default to one less than max integer
-  if (limit !== '2000000000' ) {
+  if (limit !== '2000000000' && !filter_used ) {
     whereArray.push(`solicitation_number in (select solicitation_number from notice order by date desc limit ${limit} )`)
   }
 

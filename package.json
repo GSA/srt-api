@@ -15,7 +15,11 @@
     "backup-db": "export PGPASSWORD=srtpass && pg_dump -U circleci -d srt -h 192.168.1.126 > srt-database.sql ",
     "restore-db": "cp srt-db.crypt srt-database-export.sql.gz && ./node_modules/.bin/cryptify -p ${CRYPTIFY} -d srt-database-export.sql.gz && export PGPASSWORD=srtpass && export PGUSER=circleci && export PGHOST=192.168.33.101 && export PGDATABASE=srt &&  rm -f srt-database.sql* srt-database.sql.gz && cp srt-database-export.sql.gz srt-database.sql.gz && gzip -d srt-database.sql.gz && dropdb  ${PGDATABASE} && createdb ${PGDATABASE} && psql  <srt-database.sql ",
     "restore-stage": "export PGPASSWORD=srtpass && export PGUSER=circleci && export PGHOST=192.168.33.22 && export PGDATABASE=srt && dropdb  ${PGDATABASE} && createdb ${PGDATABASE} && psql  < stage-database.sql ",
+
     "startdb" : "export CRYPTIFY=Blue-Cast-1-Heavy-Bird && mkdir -p docker/sql && rm -f docker/sql/srt-database-export* && cp srt-db.crypt docker/sql/srt-database-export.sql.gz && cd docker/sql && ../.././node_modules/.bin/cryptify -p ${CRYPTIFY} -d srt-database-export.sql.gz && gzip -d srt-database-export.sql.gz && cd .. && ./run-pg.sh && cd .. && node_modules/.bin/sequelize db:migrate ",
+
+    "loaddbbackup" : "export PGHOST=localhost && export PGDATABASE=srt && export PGUSER=circleci && export PGPASSWORD=srtpass && zcat dbbackup.sql.gz | psql && node_modules/.bin/sequelize db:migrate ",
+
     "doc": "node_modules/.bin/jsdoc  -d docs -R ./README.md -r server/routes server/models"
   },
   "author": "TCG",
