@@ -109,7 +109,8 @@ module.exports = {
       "is_dev_mode" : true,
       "dev_mode_user" : "dev_user",
       "renew" : true,
-      "renew_query_parameter_name" : "bypassMaxsso"
+      "renew_query_parameter_name" : "bypassMaxsso",
+      "password-whitelist": [ "samira.isber@gsa.gov", "albert.crowley@gsa.gov" ]
     },
     "sessionCookieSecure" : false,
     "SolicitationCountLimit" : 5000
@@ -198,7 +199,8 @@ module.exports = {
       "is_dev_mode" : false,
       "dev_mode_user" : "dev_user",
       "renew" : true,
-      "renew_query_parameter_name" : "bypassMaxsso"
+      "renew_query_parameter_name" : "bypassMaxsso",
+      "password-whitelist": [ "samira.isber@gsa.gov", "albert.crowley@gsa.gov" ]
     }
     // "SolicitationCountLimit" : 10000
   },

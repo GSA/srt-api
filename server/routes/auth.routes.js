@@ -89,10 +89,42 @@ function verifyPIVUsed(session) {
   if( ! authMethod.match(pivRegex)) {
     let userEmail = session['cas_userinfo']['email-address']
     logger.log('info', `User ${userEmail} was rejected due to login type ${authMethod}`, {tag: 'casStage2', 'cas_userinfo': session['cas_userinfo']})
-    session.destroy()
     return false
   }
   return true
+}
+
+/**
+ * Look at the email address in the MAX CAS session login and
+ * return true if that address is an exact match for
+ * something in ['cas_userinfo']['email-address']
+ * or false otherwise.
+ *
+ * @param session
+ * @returns {boolean}
+ */
+function userOnPasswordOnlyWhitelist(session){
+  let userEmail = session && session['cas_userinfo'] && session['cas_userinfo']['email-address'];
+  let whitelist = getConfig("maxCas:password-whitelist")
+
+  if (! (userEmail && whitelist) ) {
+    return false;
+  }
+
+  // normalize input so it can be an array or a string
+  if (typeof(whitelist) == 'string') {
+    whitelist = [ whitelist]
+  }
+
+  let match = false;
+  whitelist.forEach( e => {
+    if (userEmail === e ) {
+      logger.log("warn", `A user was allowed to access SRT with a password-only login`, {tag: 'Auth', whitelist: whitelist, email: userEmail })
+      match = true;
+    }
+  })
+
+  return match;
 }
 
 /**
@@ -385,7 +417,8 @@ module.exports = {
         .send(`<html lang="en"><body>Login Failed</body></html>`)
     }
 
-    if( ! verifyPIVUsed(req.session)) {
+    if( ! ( verifyPIVUsed(req.session) ||  userOnPasswordOnlyWhitelist(req.session) ) ) {
+      req.session.destroy();
       return res.status(302)
         .set('Location', encodeURI(config['srtClientUrl'] + '/auth' + '?error=PIV login required')) // send them back with no token
         .send(`<html lang="en"><body>Login Failed</body></html>`)
@@ -413,6 +446,7 @@ module.exports = {
   roleNameToCASGroup   : roleNameToCASGroup,
   createOrUpdateMAXUser: createOrUpdateMAXUser,
   userInfoFromReq      : userInfoFromReq,
+  passwordOnlyWhitelist: userOnPasswordOnlyWhitelist,
 
   roles : roles,
   roleKeys : roleKeys,

@@ -273,6 +273,7 @@ describe('/api/auth/', () => {
   })
 
   test( 'that PIV login is required', () => {
+    process.env.maxCas = '{}'
     const mockReq = {session: { cas_userinfo : common['casDevModeData'], destroy: ()=>true }}
     mockReq.session['cas_userinfo']['samlauthenticationstatementauthmethod'] = 'urn:oasis:names:tc:SAML:1.0:am:password'
     mockReq.session['cas_userinfo']['authenticationmethod'] = 'urn:oasis:names:tc:SAML:1.0:am:password'
@@ -285,6 +286,22 @@ describe('/api/auth/', () => {
       expect(mockRes.statusResult).toBe(302) // quirky but kept for client compatibility
       expect(mockRes.hResult).toMatch(/Location/)
       expect(mockRes.vResult).toMatch(/\?error=PIV/)
+    })
+  })
+
+  test( 'that you can use a password only login if you are on the whitelist', () => {
+    // set the password-whitelist to include the expected email
+    process.env.maxCas = '{ "password-whitelist": [ "aaron.anderson@example.com", "'+common['casDevModeData']['email-address']+'", "beth_barns@example.com", "example.com", "connor.carson", "gambit@gmail.com" ] }'
+    const mockReq = {session: { cas_userinfo : common['casDevModeData'], destroy: ()=>true }}
+    mockReq.session['cas_userinfo']['samlauthenticationstatementauthmethod'] = 'urn:oasis:names:tc:SAML:1.0:am:password'
+    mockReq.session['cas_userinfo']['authenticationmethod'] = 'urn:oasis:names:tc:SAML:1.0:am:password'
+
+    let mockRes =mocks.mockResponse();
+    return authRoutes.casStage2(mockReq, mockRes).then( () => {
+      expect(mockRes.status.mock.calls[0][0]).toBe(302) // quirky but kept for client compatibility
+      expect(mockRes.set.mock.calls[0][0]).toMatch(/Location/)
+      expect(mockRes.set.mock.calls[0][1]).toMatch(/token=/) // we will get a token in the redirect if login was successful
+
     })
   })
 
@@ -453,5 +470,40 @@ describe('/api/auth/', () => {
 
   })
 
+
+  test('Test the password only whitelist', () => {
+
+    process.env.maxCas = '{}'
+    expect(authRoutes.passwordOnlyWhitelist({})).toBeFalse();
+
+    expect(authRoutes.passwordOnlyWhitelist(
+      {'cas_userinfo':{'email-address': 'atc@example.com'}})).toBeFalse();
+
+
+    process.env.maxCas = '{ "password-whitelist": [ "aaron.anderson@example.com", "beth_barns@example.com", "example.com", "connor.carson", "gambit@gmail.com" ] }'
+
+    expect(authRoutes.passwordOnlyWhitelist(
+      {'cas_userinfo':{'email-address': 'atc@example.com'}})).toBeFalse();
+
+    expect(authRoutes.passwordOnlyWhitelist(
+      {'cas_userinfo':{'email-address': 'gambit@gmail.com'}})).toBeTrue();
+
+    expect(authRoutes.passwordOnlyWhitelist(
+      {'cas_userinfo':{'email-address': 'beth_barns@example.com'}})).toBeTrue();
+
+    expect(authRoutes.passwordOnlyWhitelist(
+      {'cas_userinfo':{'email-address': 'joe@example.com'}})).toBeFalse();
+
+    expect(authRoutes.passwordOnlyWhitelist(
+      {'cas_userinfo':{'email-address': 'connor.carson@gsa.gov'}})).toBeFalse();
+
+    process.env.maxCas = '{ "password-whitelist": "aaron.anderson" }'
+
+    expect(authRoutes.passwordOnlyWhitelist(
+      {'cas_userinfo':{'email-address': 'arron.anderson@gsa.gov'}})).toBeFalse();
+
+    expect(authRoutes.passwordOnlyWhitelist(
+      {'cas_userinfo':{'email-address': 'arron.smith@gsa.gov'}})).toBeFalse();
+  })
 
   })
