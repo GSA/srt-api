@@ -1,4 +1,5 @@
 /** @module PredictionRoutes */
+const Prediction = require('../models').Prediction
 
 /**
  * Prediction routes
@@ -12,7 +13,8 @@ const db = require('../models/index')
 const SqlString = require('sequelize/lib/sql-string')
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
-const configuration = require('../config/configuration')
+const cloneDeep = require('clone-deep')
+const Op = require('sequelize').Op
 
 /**
  * PredictionFilter
@@ -142,6 +144,8 @@ function makeOnePrediction (notice) {
 
   o.parseStatus = (notice.attachment_json !== undefined && notice.attachment_json != null) ? notice.attachment_json : []
 
+  o.searchText = [o.solNum, o.noticeType, o.title, o.date, o.reviewRec, o.actionStatus, o.actionDate, o.agency, o.office].join(' ').toLowerCase()
+
   return o
 }
 
@@ -207,37 +211,42 @@ function mergeOnePrediction (older, newer) {
  * @return Array Merged prediction list
  */
 function mergePredictions (predictionList) {
-  let merged = {}
+  let merged = []
+  let dupeIndex = {}
 
   for (let p of predictionList) {
-    if (merged[p.solNum]) {
-      let newer = (merged[p.solNum].date > p.date) ? merged[p.solNum] : p
-      let older = (merged[p.solNum].date > p.date) ? p : merged[p.solNum]
-      merged[p.solNum] = mergeOnePrediction(older, newer)
+    if (dupeIndex[p.solNum] !== undefined) {
+      let indexOfDuplicate = dupeIndex[p.solNum]
+      let newer = (merged[indexOfDuplicate].date > p.date) ? merged[indexOfDuplicate] : p
+      let older = (merged[indexOfDuplicate].date > p.date) ? p : merged[indexOfDuplicate]
+      merged[indexOfDuplicate] = mergeOnePrediction(older, newer)
     } else {
-      merged[p.solNum] = Object.assign({}, p)
+      merged.push(Object.assign({}, p))
+      dupeIndex[ p.solNum ] = merged.length - 1
     }
   }
 
   return (Object.keys(merged)).map(key => merged[key])
 }
 
-/**
- * Helper function to convert a date string to YYYY-MM-DD format
- * @param {string} origDate - date in either MM/DD/YYYY or MM-DD-YYYY format
- * @return {string} date in YYYY-MM-DD format
+
+
+/***
+ * moves equality entries that were put directly in the filter to use the format PrimeNG uses
+ *
+ * @param filter
+ * @param field
  */
-function makePostgresDate (origDate) {
-  let split = origDate.split('/')
-  if (split.length < 3) {
-    split = origDate.split('-')
+function normalizeMatchFilter(filter, field){
+  // special case: agency == 'government wide' means all agencies, so don't filter by that!
+  if (field === 'agency' && filter[field] && filter[field].toLowerCase() === 'government-wide' ) {
+    return;
   }
-  if (split.length < 3) { return '' }
-  if (split[0] > 1900) {
-    // looks like it may have already been in year-month-day format
-    return origDate
+
+  if (filter[field]) {
+    if ( filter.filters === undefined) { filter.filters = {} }
+    filter.filters[field] = { value: filter[field] , matchMode: 'equals' }
   }
-  return split[2] + '-' + split[0] + '-' + split[1]
 }
 
 /**
@@ -247,79 +256,67 @@ function makePostgresDate (origDate) {
  * @return {Promise<Array(Prediction)>} All predictions that match the filter
  */
 /** @namespace filter.numDocs */
-function getPredictions (filter) {
-  let agency = (filter.agency) ? filter.agency.split(' (')[0] : undefined
-  let office = filter.office
-  let numDocs = filter.numDocs
-  let solNum = filter.solNum
-  let startDate = (filter.startDate) ? filter.startDate : filter.fromPeriod
-  let endDate = (filter.endDate) ? filter.endDate : filter.toPeriod
-  let eitLikelihood = filter.eitLikelihood
+async function getPredictions (filter) {
 
 
-  let whereArray = ['1 = 1']
-  if (office && office !== '') {
-    whereArray.push("notice_data->>'office' = " + SqlString.escape(office, null, 'postgres'))
-  }
-  if (agency && agency !== '' && agency !== 'Government-wide') {
-    whereArray.push('agency = ' + SqlString.escape(agency, null, 'postgres'))
-  }
-  if (numDocs && numDocs !== '') {
-    whereArray.push('attachment_count = ' + SqlString.escape(numDocs, null, 'postgres'))
-  }
-  if (solNum && solNum !== '') {
-    whereArray.push('solicitation_number = ' + SqlString.escape(solNum, null, 'postgres'))
-  }
-  if (eitLikelihood && eitLikelihood !== '') {
-    // this is a no-op for now since all records added to the database should have eitLikelihood true
-  }
-  if (startDate && startDate !== '') {
-    whereArray.push('date > ' + SqlString.escape(makePostgresDate(startDate), null, 'postgres'))
-    whereArray.push('date is not null')
-  }
-  if (endDate && endDate !== '') {
-    whereArray.push('date < ' + SqlString.escape(makePostgresDate(endDate), null, 'postgres'))
-    whereArray.push('date is not null')
+  await updatePredictionTable()
+
+  let attributes = {
+    offset: filter.first,
+    limit:filter.rows
   }
 
-  // put in a way to optionally limit the number of solicitations returned if no other filter is used
-  let filter_used = (whereArray.length > 1)
-  let limit = configuration.getConfig('SolicitationCountLimit', '2000000000')  // default to one less than max integer
-  if (limit !== '2000000000' && !filter_used ) {
-    whereArray.push(`solicitation_number in (select solicitation_number from notice order by date desc limit ${limit} )`)
+  // filter out rows
+  if (filter.globalFilter) {
+    if (attributes.where === undefined) { attributes.where = {} }
+    attributes.where.searchText = { [Op.like]: `%${filter.globalFilter.toLowerCase()}%` }
+  }
+  for (let f of ['office', 'agency', 'title', 'solNum', 'reviewRec' ]) {
+    normalizeMatchFilter(filter, f)
   }
 
-
-  let where = whereArray.join(' AND ')
-  let sql = `
-            -- noinspection SqlResolve
-            select n.*, notice_type, attachment_json 
-            from notice n 
-            left join ( 
-                  select notice_id, json_agg(src) as attachment_json, count(*) as attachment_count
-                  from notice 
-                  left join ( 
-                    select id, attachment_url, filename as name, case machine_readable when true then 'successfully parsed' else 'processing error' end as status, notice_id 
-                    from attachment
-                    ) src on notice.id = src.notice_id             
-                  group by  notice_id
-                  ) a on a.notice_id = n.id
-            left join notice_type t on n.notice_type_id = t.id
-            WHERE ${where} 
-            order by id desc`
-
-  return db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
-    .then(notices => {
-      let data = []
-      for (let i = 0; i < notices.length; i++) {
-        data.push(makeOnePrediction(notices[i]))
+  // process PrimeNG filters: filter.filters = { field: { value: 'x', matchMode: 'equals' } }
+  if (filter.filters) {
+    for (f in filter.filters) {
+      if (filter.filters[f].matchMode == 'equals') {
+        if (attributes.where === undefined) { attributes.where = {} }
+        attributes.where[f] = filter.filters[f].value
       }
-      return mergePredictions(data)
-    })
-    .catch(e => {
-      logger.log('error', 'error in: getPredictions', { error:e, tag: 'getPredictions', sql: sql })
-      return null
-    })
+    }
+  }
+
+
+  // process dates
+  if (filter.startDate) {
+    if (attributes.where === undefined) { attributes.where = {} }
+    attributes.where.date =  { [Op.gt] : filter.startDate }
+  }
+  if (filter.endDate) {
+    if (attributes.where === undefined) { attributes.where = {} }
+    attributes.where.date = (attributes.where.date) ?
+      Object.assign(attributes.where.date, { [Op.lt] : filter.endDate }) :
+      { [Op.lt] : filter.endDate }
+  }
+
+  // set order
+  attributes.order = []
+  if (filter.sortField !== 'unsorted' && filter.sortField){
+    filter.sortField
+    attributes.order.push([filter.sortField ] )
+    if (filter.sortOrder && filter.sortOrder < 0 ) {
+      attributes.order[0].push('DESC')
+    }
+  }
+  attributes.order.push( [ 'id' ] ) // always end with an order by id to keep the ordering deterministic
+
+  let preds = await Prediction.findAll( attributes )
+
+  return {
+    predictions: preds,
+    first: filter.first,
+    rows: Math.min(filter.rows,preds.length),
+    totalCount: preds.length
+  }
 }
 
 /**
@@ -329,8 +326,8 @@ module.exports = {
 
   getPredictions: getPredictions,
   mergePredictions: mergePredictions,
-
   makeOnePrediction: makeOnePrediction,
+  updatePredictionTable: updatePredictionTable,
 
   /**
      * Finds all the predictions that match the filter and send them out to the response.
@@ -353,6 +350,8 @@ module.exports = {
 
     // verify that only supported filter params are used
     let validKeys = ['agency', 'office', 'numDocs', 'solNum', 'eitLikelihood', 'startDate', 'fromPeriod', 'endDate', 'toPeriod']
+    // add in the keys used by the PrimeNG table lazy loader
+    validKeys.push('first', 'filters', 'globalFilter', 'multiSortMeta', 'rows', 'sortField', 'sortOrder')
     for (let i = 0; i < keys.length; i++) {
       if (req.body[keys[i]] !== '' && !validKeys.includes(keys[i])) {
         logger.log('error', 'Received unsupported filter parameter '+ keys[i], { body: req.body, tag: 'predictionFilter'})
@@ -368,184 +367,100 @@ module.exports = {
       return res.status(501).send('The server does not yet support filter by ' + JSON.stringify(unsupportedKeys))
     }
 
+    // if there isn't any bouding on the result count, limit it to the first 100
+    req.body.first = (req.body.first !== undefined) ? req.body.first : 0
+    req.body.rows = (req.body.rows !== undefined) ? req.body.rows : 100
+
     return getPredictions(req.body)
       .then((predictions) => {
         if (predictions == null) {
           return res.status(500).send({})
         }
-
         return res.status(200).send(predictions)
       })
       .catch(e => {
         logger.log('error', 'error in: predictionFilter', { error:e, tag: 'predictionFilter' })
+        e //?
         return res.status(500).send(data)
       })
-  }
+  },
+
 }
 
-// *********************************************************
-//  below code is used if you want to mock solicitation data
-// *********************************************************
-//
-// Math.seed = 52;
-//
-// function getRandomInt(min, max) {
-//     max = (max === undefined) ? 1 : max;
-//     min = (min === undefined) ? 1 : min;
-//
-//     Math.seed = (Math.seed * 9301 + 49297) % 233280;
-//     let rnd = Math.seed / 233280;
-//
-//     return Math.floor(min + rnd * (max - min));
-// }
-// function pickOne(a) {
-//     return a[getRandomInt(0, a.length)]
-// }
-//
-// let template =
-//
-//     {
-//         solNum: "1234",
-//         title: "sample title",
-//         url: "http://www.tcg.com/",
-//         predictions: {
-//             value: "GREEN"
-//         },
-//         reviewRec: "Non-compliant", // one of "Compliant", "Non-compliant (Action Required)", or "Undetermined"
-//         date: "01/01/2019",
-//         numDocs: 3,
-//         eitLikelihood: {
-//             naics: "naics here",  // initial version uses NAICS code to determine
-//             value: "45"
-//         },
-//         agency: "National Institutes of Health",
-//         office: "Office of the Director",
-//
-//         contactInfo: {
-//             contact: "contact str",
-//             name: "Joe Smith",
-//             position: "Manager",
-//             email: "joe@example.com"
-//         },
-//         position: "pos string",
-//         reviewStatus: "on time",
-//         noticeType: "N type",
-//         actionStatus: "ready",
-//         actionDate: "02/02/2019",
-//         parseStatus: [{
-//             name: "attachment name",
-//             status: "??? enumeration, one of 'successfully parsed', 'processing error'  maybe derived f"
-//         }],
-//         history: [{
-//             date: "03/03/2018",
-//             action: "sending",
-//             user: "crowley",
-//             status: "submitted"
-//         }],
-//         feedback: [{
-//             questionID: "1",
-//             question: "Is this a good solicitation?",
-//             answer: "Yes",
-//         }],
-//         undetermined: true
-//
-//     };
-//
-// // let reviewRecArray = ["Compliant", "Non-compliant (Action Required)", "Undetermined"];
-// let noticeTypeArray = ["Presolicitation", "Combined Synopsis/Solicitation", "Sources Sought", "Special Notice", "Other"];
-// let actionStatusArray = ["Email Sent to POC", "reviewed solicitation action requested summary", "provided feedback on the solicitation prediction result"];
-//
-// function mockData() {
-//     if (myCache.get("sample_data") != undefined) {
-//         return myCache.get("sample_data");
-//     }
-//
-//         let reviewRecArray = ["Compliant", "Non-compliant (Action Required)", "Undetermined"];
-//         let noticeTypeArray = ["Presolicitation", "Combined Synopsis/Solicitation", "Sources Sought", "Special Notice", "Other"];
-//         let actionStatusArray = ["Email Sent to POC", "reviewed solicitation action requested summary", "provided feedback on the solicitation prediction result"];
-//         let template =
-//
-//             {
-//                 solNum: "1234",
-//                 title: "sample title",
-//                 url: "http://www.tcg.com/",
-//                 predictions: {
-//                     value: "GREEN"
-//                 },
-//                 reviewRec: "Compliant", // one of "Compliant", "Non-compliant (Action Required)", or "Undetermined"
-//                 date: "01/01/2019",
-//                 numDocs: 3,
-//                 eitLikelihood: {
-//                     naics: "naics here",  // initial version uses NAICS code to determine
-//                     value: "45"
-//                 },
-//                 agency: "National Institutes of Health",
-//                 office: "Office of the Director",
-//
-//                 contactInfo: {
-//                     contact: "contact str",
-//                     name: "Joe Smith",
-//                     position: "Manager",
-//                     email: "joe@example.com"
-//                 },
-//                 position: "pos string",
-//                 reviewStatus: "on time",
-//                 noticeType: "N type",
-//                 actionStatus: "ready",
-//                 actionDate: "02/02/2019",
-//                 parseStatus: [{
-//                     name: "doc 1",
-//                     status: "parsed"
-//                 }],
-//                 history: [{
-//                     date: "03/03/2018",
-//                     action: "sending",
-//                     user: "crowley",
-//                     status: "submitted"
-//                 }],
-//                 feedback: [{
-//                     questionID: "1",
-//                     question: "Is this a good solicitation?",
-//                     answer: "Yes",
-//                 }],
-//                 undetermined: true
-//
-//             };
-//
-//         let sample_data = new Array();
-//
-//         for (let i = 0; i < 6000; i++) {
-//             let o = Object.assign({}, template);
-//
-//             o.title = randomWords({exactly: 1, wordsPerString: getRandomInt(2, 7)})[0];
-//             o.reviewRec = pickOne(reviewRecArray);
-//             o.agency = pickOne(['Navy Department', 'Education Department',   'National Institutes of Health', 'National Library of Medicine']);
-//             o.numDocs = getRandomInt(0,3);
-//             o.solNum = getRandomInt(999, 99999999);
-//             o.noticeType = pickOne(noticeTypeArray);
-//             o.actionStatus = pickOne(actionStatusArray);
-//             o.actionDate = new Date( getRandomInt(2018, 2020),  getRandomInt(0, 12),getRandomInt(1,27));;;
-//             o.date = new Date( getRandomInt(2018, 2020),  getRandomInt(0, 12),getRandomInt(1,27));;
-//             o.office = randomWords({exactly: 1, wordsPerString: getRandomInt(2, 4)})[0];
-//             o.predictions = Object.assign({}, template.predictions);
-//             o.predictions.value = pickOne(["RED", "GREEN"]);
-//             o.eitLikelihood = Object.assign({}, template.eitLikelihood);
-//             o.eitLikelihood.naics = getRandomInt(10, 99999);
-//             o.eitLikelihood.value = pickOne(['Yes', 'No']);
-//             o.undetermined = (getRandomInt(0,2) == 0);
-//
-//             o.parseStatus = [];
-//             let count = getRandomInt(0,3);
-//             for (let x=0; x < count; x++) {
-//                 let stat = {};
-//                 stat.name = "doc 1";
-//                 stat.status = pickOne( ["successfully parsed", "processing error"] )
-//                 o.parseStatus.push ( stat )
-//             }
-//
-//             sample_data.push(o);
-//         }
-//
-//         myCache.set("sample_data", sample_data);
-//         return sample_data;
-// }
+
+async function updatePredictionTable  () {
+
+  let actualCount = 0
+  let outdatedPredictions = await getOutdatedPrediction()
+  while (outdatedPredictions && outdatedPredictions.length > 0) {
+    actualCount ++
+    let pred = outdatedPredictions.pop()
+    pred.actionDate = makeDate(pred.actionDate)
+    pred.date = makeDate(pred.date)
+
+    // TODO: fix race condition
+    try {
+      delete (pred.id) // remove the id since that should be auto-increment
+      await Prediction.destroy({ where: { solNum: pred.solNum } }) // delete any outdated prediction
+      await Prediction.create(pred);
+    } catch(e) {
+      e //?
+      logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', error: e})
+    }
+
+    if (outdatedPredictions.length == 0) {
+      outdatedPredictions = await getOutdatedPrediction()
+    }
+  }
+  logger.log("info", `Updated ${actualCount} prediction records`)
+  return actualCount
+}
+
+function getOutdatedPrediction() {
+
+  let sql = `select n.*, notice_type, attachment_json
+            from notice n 
+            left join ( 
+                  select notice_id, json_agg(src) as attachment_json, count(*) as attachment_count
+                  from notice 
+                  left join ( 
+                    select id, attachment_url, filename as name, case machine_readable when true then 'successfully parsed' else 'processing error' end as status, notice_id 
+                    from attachment
+                    ) src on notice.id = src.notice_id             
+                  group by  notice_id
+                  ) a on a.notice_id = n.id
+            left join notice_type t on n.notice_type_id = t.id
+                WHERE solicitation_number IN 
+                  (SELECT DISTINCT solicitation_number
+                   FROM notice nn
+                   LEFT JOIN "Predictions" pp on pp."solNum" = nn.solicitation_number
+                   WHERE (nn."updatedAt" > pp."updatedAt" or
+                         pp."updatedAt" is null) and
+                         nn.solicitation_number != '' and nn.solicitation_number is not null limit 1000)`
+
+  return db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
+    .then(notices => {
+      let data = []
+      for (let i = 0; i < notices.length; i++) {
+        data[i] =cloneDeep(makeOnePrediction(notices[i]))
+      }
+      let merged = mergePredictions(data)
+      return merged
+    })
+    .catch(e => {
+      e //?
+      logger.log('error', 'error in: getOutdatedPrediction', { error:e, tag: 'getOutdatedPrediction', sql: sql })
+      return null
+    })
+}
+
+function makeDate(x) {
+  let d
+  if (x == undefined || x == '') {
+    d = new Date(2000,1,1)
+  } else {
+    d = new Date(x)
+  }
+  return  d.toLocaleDateString() + ' ' + d.toLocaleTimeString()
+}
+

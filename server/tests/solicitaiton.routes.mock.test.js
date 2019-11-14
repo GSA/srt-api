@@ -29,7 +29,6 @@ describe('solicitation tests', async () => {
     return app.db.close();
   })
 
-
   test('Update Not Applicable', async () => {
     let rows = await db.sequelize.query('select solicitation_number from notice order by solicitation_number desc limit 1')
     let solNum = rows[0][0].solicitation_number
@@ -41,6 +40,7 @@ describe('solicitation tests', async () => {
     let req = mocks.mockRequest({ solicitation: { solNum: solNum, na_flag: true } }, {'authorization': `bearer ${adminToken}`})
     await solRoute.update(req, res)
     expect(res.status.mock.calls[0][0]).toBe(200)
+
     let updateTrue = await Notice.findOne({ where: { solicitation_number: solNum } })
     expect(updateTrue.na_flag).toBe(true)
 
@@ -79,7 +79,7 @@ describe('solicitation tests', async () => {
   test('Agency User can update Not Applicable for any solicitations in their agency', async () => {
     let sql = `select solicitation_number from notice where agency = '${coordinatorCASData["org-agency-name"]}' order by solicitation_number desc limit 1`
     let rows = await db.sequelize.query(sql)
-    let solNum = rows[0][0].solicitation_number //?
+    let solNum = rows[0][0].solicitation_number
     expect(solNum).toBeDefined()
 
     let res = mocks.mockResponse();
@@ -93,7 +93,7 @@ describe('solicitation tests', async () => {
   test('Agency User can NOT update Not Applicable for any solicitations for another agency', async () => {
     let sql = `select solicitation_number from notice where agency != '${coordinatorCASData["org-agency-name"]}' order by solicitation_number desc limit 1`
     let rows = await db.sequelize.query(sql)
-    let solNum = rows[0][0].solicitation_number //?
+    let solNum = rows[0][0].solicitation_number
     expect(solNum).toBeDefined()
 
     let res = mocks.mockResponse();

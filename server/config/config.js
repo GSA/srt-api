@@ -113,7 +113,7 @@ module.exports = {
       "password-whitelist": [ "samira.isber@gsa.gov", "albert.crowley@gsa.gov" ]
     },
     "sessionCookieSecure" : false,
-    "SolicitationCountLimit" : 5000
+    "SolicitationCountLimit" : 1000
   },
   "circle": {
     "emailFrom": "crowley+srt@tcg.com",

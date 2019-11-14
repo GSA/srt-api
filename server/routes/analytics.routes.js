@@ -87,9 +87,13 @@ module.exports = {
       params.fromPeriod = fromPeriod
       params.toPeriod = toPeriod
       params.agency = agency
+      params.first = 0
+      params.rows = Number.MAX_SAFE_INTEGER
+      params.sortField = 'unsorted' // set to unsorted so we get all results at once.
 
       return predictionRoutes.getPredictions(params)
-        .then((predictions) => {
+        .then((result) => {
+          let predictions = result.predictions
           let data = {
             // Total number of ICT
             TotalICT: predictions.length,
@@ -391,6 +395,7 @@ module.exports = {
           return res.status(200).send(analytics)
         })
         .catch((e) => {
+          e//?
           logger.log('error', 'error in: analytics', { error:e, tag: 'analytics' })
           return res.status(500).send({})
         })

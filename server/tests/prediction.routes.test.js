@@ -6,6 +6,8 @@ const User = require('../models').User
 // noinspection JSUnresolvedVariable
 const Notice = require('../models').notice
 // noinspection JSUnresolvedVariable
+const NoticeType = require('../models').notice
+// noinspection JSUnresolvedVariable
 const Attachment = require('../models').attachment
 const env = process.env.NODE_ENV || 'development'
 const db = require('../models/index')
@@ -13,6 +15,8 @@ let predictionRoutes = require('../routes/prediction.routes')
 let randomWords = require('random-words')
 const {common} = require('../config/config.js')
 const timeout = 10000 // set to 10 seconds because some of these tests are slow.
+const mocks = require('./mocks')
+
 
 const { userAcceptedCASData } = require('./test.data')
 
@@ -101,9 +105,13 @@ describe('prediction tests', () => {
 
   afterAll(() => {
     return User.destroy({ where: { firstName: 'pred-beforeAllUser' } })
+      .then(() => {
+        return app.db.close();
+
+      })
   })
 
-  test('Test we do not loose history in the notice merges', () => {
+  test.skip('Test we do not loose history in the notice merges', () => {
     if (env !== 'development') {
       // test depends on history in the database.
       // Should be mocked, but too much work for the return
@@ -112,7 +120,8 @@ describe('prediction tests', () => {
     }
 
     return predictionRoutes.getPredictions({})
-      .then(predictions => {
+      .then(result => {
+        let predictions = result.predictions
         let expectedActions = [
           //                    'Solicitation Updated on FBO.gov',
           'sent email to POC',
@@ -138,7 +147,7 @@ describe('prediction tests', () => {
       })
   }, timeout)
 
-  test('Empty predictions filter ', () => {
+  test('Empty predictions filter', () => {
     return request(app)
       .post('/api/predictions/filter')
       .set('Authorization', `Bearer ${token}`)
@@ -146,11 +155,35 @@ describe('prediction tests', () => {
       .then((res) => {
         // noinspection JSUnresolvedVariable
         expect(res.statusCode).toBe(200)
+        expect(res.body.predictions.length).toBeDefined()
+        expect(res.body.predictions[0].noticeType).toBeDefined()
+        expect(res.body.predictions[0].url).toContain('http')
+        return expect(res.body.predictions[0].title).toBeDefined()
+      })
+  }, timeout)
 
-        expect(res.body.length).toBeDefined()
-        expect(res.body[0].noticeType).toBeDefined()
-        expect(res.body[0].url).toContain('http')
-        return expect(res.body[0].title).toBeDefined()
+  test('Test that all predictions with the same notice number are merged', () => {
+    let row_count = 1001
+    let filter = {rows: row_count, first:0}
+    return request(app)
+      .post('/api/predictions/filter')
+      .set('Authorization', `Bearer ${token}`)
+      .send(filter)
+      .then((res) => {
+        // noinspection JSUnresolvedVariable
+        expect(res.statusCode).toBe(200)
+        expect(res.body.predictions.length).toBeDefined()
+
+        expect(res.body.rows.toString()).toBe(row_count.toString())
+
+        // test for no duplicate solNumbers
+        let solNumList = {}
+        for (let p of res.body.predictions) {
+          expect(solNumList[p.solNum]).toBeUndefined()
+          solNumList[p.solNum] = true
+        }
+
+        return expect(res.body.predictions[0].title).toBeDefined()
       })
   }, timeout)
 
@@ -163,16 +196,16 @@ describe('prediction tests', () => {
         // noinspection JSUnresolvedVariable
         expect(res.statusCode).toBe(200)
 
-        expect(res.body.length).toBeDefined()
+        expect(res.body.predictions.length).toBeDefined()
 
         // test for no duplicate solNumbers
         let solNumList = {}
-        for (let p of res.body) {
+        for (let p of res.body.predictions) {
           expect(solNumList[p.solNum]).toBeUndefined()
           solNumList[p.solNum] = true
         }
 
-        return expect(res.body[0].title).toBeDefined()
+        return expect(res.body.predictions[0].title).toBeDefined()
       })
   }, timeout)
 
@@ -185,38 +218,16 @@ describe('prediction tests', () => {
         // noinspection JSUnresolvedVariable
         expect(res.statusCode).toBe(200)
 
-        expect(res.body.length).toBeDefined()
+        expect(res.body.predictions.length).toBeDefined()
 
         // test for no duplicate solNumbers
         let solNumList = {}
-        for (let p of res.body) {
+        for (let p of res.body.predictions) {
           expect(solNumList[p.solNum]).toBeUndefined()
           solNumList[p.solNum] = true
         }
 
-        return expect(res.body[0].title).toBeDefined()
-      })
-  }, timeout)
-
-  test('Test that all predictions with the same notice number are merged', () => {
-    return request(app)
-      .post('/api/predictions/filter')
-      .set('Authorization', `Bearer ${token}`)
-      .send()
-      .then((res) => {
-        // noinspection JSUnresolvedVariable
-        expect(res.statusCode).toBe(200)
-
-        expect(res.body.length).toBeDefined()
-
-        // test for no duplicate solNumbers
-        let solNumList = {}
-        for (let p of res.body) {
-          expect(solNumList[p.solNum]).toBeUndefined()
-          solNumList[p.solNum] = true
-        }
-
-        return expect(res.body[0].title).toBeDefined()
+        return expect(res.body.predictions[0].title).toBeDefined()
       })
   }, timeout)
 
@@ -233,11 +244,11 @@ describe('prediction tests', () => {
             // noinspection JSUnresolvedVariable
             expect(res.statusCode).toBe(200)
 
-            expect(res.body.length).toBeDefined()
-            expect(res.body[0].title).toBeDefined()
+            expect(res.body.predictions.length).toBeDefined()
+            expect(res.body.predictions[0].title).toBeDefined()
 
-            for (let i = 0; i < res.body.length; i++) {
-              expect(res.body[i].office).toBe(office)
+            for (let i = 0; i < res.body.predictions.length; i++) {
+              expect(res.body.predictions[i].office).toBe(office)
             }
           })
           .then(() => {
@@ -249,8 +260,8 @@ describe('prediction tests', () => {
                 // noinspection JSUnresolvedVariable
                 expect(res.statusCode).toBe(200)
 
-                expect(res.body.length).toBeDefined()
-                expect(res.body.length).toBe(0)
+                expect(res.body.predictions.length).toBeDefined()
+                expect(res.body.predictions.length).toBe(0)
               })
           })
       })
@@ -284,12 +295,12 @@ describe('prediction tests', () => {
                 // noinspection JSUnresolvedVariable
                 expect(res.statusCode).toBe(200)
 
-                expect(res.body.length).toBeDefined()
-                expect(res.body[0].title).toBeDefined()
+                expect(res.body.predictions.length).toBeDefined()
+                expect(res.body.predictions[0].title).toBeDefined()
 
-                for (let i = 0; i < res.body.length; i++) {
-                  expect(res.body[i].eitLikelihood.value).toBe('Yes')
-                  expect(res.body[i].agency).toBe(agency)
+                for (let i = 0; i < res.body.predictions.length; i++) {
+                  expect(res.body.predictions[i].eitLikelihood.value).toBe('Yes')
+                  expect(res.body.predictions[i].agency).toBe(agency)
                 }
               })
           })
@@ -311,9 +322,9 @@ describe('prediction tests', () => {
             // noinspection JSUnresolvedVariable
             expect(res.statusCode).toBe(200)
 
-            expect(res.body.length).toBe(1)
-            expect(res.body[0].title).toBeDefined()
-            expect(res.body[0].solNum).toBe(noticeNum)
+            expect(res.body.predictions.length).toBe(1)
+            expect(res.body.predictions[0].title).toBeDefined()
+            expect(res.body.predictions[0].solNum).toBe(noticeNum)
           })
       })
   }, timeout)
@@ -357,35 +368,41 @@ describe('prediction tests', () => {
       })
   }, timeout)
 
-  test('Test prediction date filters', () => {
-    return db.sequelize.query('select date from notice order by date desc, agency desc limit 1')
-      .then((rows) => {
-        let date = rows[0][0].date
-        let year = date.getFullYear()
-        let month = date.getMonth() + 1
-        let day = date.getDate()
-        let dayPlus = day + 1
-        let start = `${month}/${day}/${year}`
-        let end = `${month}/${dayPlus}/${year}`
+  test('Test prediction date filters', async () => {
+    let rows = await db.sequelize.query('select date from notice order by date desc, agency desc limit 1')
 
-        return request(app)
-          .post('/api/predictions/filter')
-          .set('Authorization', `Bearer ${token}`)
-          .send({
-            startDate: start,
-            endDate: end
-          })
-          .then((res) => {
-            // noinspection JSUnresolvedVariable
-            expect(res.statusCode).toBe(200)
+    let date = rows[0][0].date
+    let year = date.getFullYear()
+    let month = date.getMonth() + 1
+    let day = date.getDate()
+    let dayPlus = day + 1
+    let start = `${month}/${day}/${year}`
+    let end = `${month}/${dayPlus}/${year}`
 
-            expect(res.body.length).toBeGreaterThan(1)
-            for (let i = 0; i < res.body.length; i++) {
-              expect(new Date(res.body[i].date) > new Date(year, month - 1, day)).toBeTruthy() // don't forget months are 0 indexed!
-              expect(new Date(res.body[i].date) < new Date(year, month - 1, dayPlus)).toBeTruthy()
-            }
-          })
+    let res = await request(app)
+      .post('/api/predictions/filter')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        startDate: start,
+        endDate: end
       })
+    // noinspection JSUnresolvedVariable
+    expect(res.statusCode).toBe(200)
+    expect(res.body.predictions.length).toBeGreaterThan(1)
+    for (let i = 0; i < res.body.predictions.length; i++) {
+      expect(new Date(res.body.predictions[i].date) > new Date(year, month - 1, day)).toBeTruthy() // don't forget months are 0 indexed!
+      expect(new Date(res.body.predictions[i].date) < new Date(year, month - 1, dayPlus)).toBeTruthy()
+    }
+
+    res = await request(app)
+      .post('/api/predictions/filter')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ endDate: '1/1/1945' })
+    // noinspection JSUnresolvedVariable
+    expect(res.statusCode).toBe(200)
+    expect(res.body.predictions.length).toBe(0)
+
+
   }, timeout)
 
   test('Test merge prediction function', () => {
@@ -396,7 +413,11 @@ describe('prediction tests', () => {
         actionDate: '2019-01-01T09:02:15.895Z',
         title: 'incorrect title',
         noticeType: 'N1',
-        feedback: [ { answer: 'No', question: 'q1 here', questionID: 1 }, { answer: 'No', question: 'q2 here', questionID: 2 } ],
+        feedback: [{ answer: 'No', question: 'q1 here', questionID: 1 }, {
+          answer: 'No',
+          question: 'q2 here',
+          questionID: 2
+        }],
         contactInfo: { contact: 'contact str', name: 'Joe Smith', position: 'Manager', email: 'joe@example.com' },
         parseStatus: [{ name: 'n1', status: 's1' }, { name: 'n2', status: 's2' }]
       })
@@ -413,20 +434,59 @@ describe('prediction tests', () => {
             user: 'phineas',
             status: 'submitted'
           }],
-        feedback: [ { answer: 'No', question: 'q3 here', questionID: 3 }, { answer: 'No', question: 'q4 here', questionID: 4 } ],
+        feedback: [{ answer: 'No', question: 'q3 here', questionID: 3 }, {
+          answer: 'No',
+          question: 'q4 here',
+          questionID: 4
+        }],
         noticeType: 'N2',
         contactInfo: { contact: 'aaa', name: 'bbb', position: 'ccc', email: 'ddd@example.com' },
         parseStatus: [{ name: 'n3', status: 's3' }, { name: 'n4', status: 's4' }]
       })
     let p4 = Object.assign({}, predictionTemplate, { solNum: 'noMatch2' })
     let p5 = Object.assign({}, predictionTemplate, { solNum: 'noMatch3' })
-    let p6 = Object.assign({}, predictionTemplate, { solNum: 'pred6', date: '2018-02-02T09:02:15.895Z', actionDate: '2019-01-01T09:02:15.895Z', contactInfo: { contact: 'alpha', name: 'beta', position: 'gamma', email: 'dddd@example.com' } })
-    let p7 = Object.assign({}, predictionTemplate, { solNum: 'pred6', date: '2018-01-01T09:02:15.895Z', actionDate: '2019-02-04T09:02:15.895Z', contactInfo: { contact: 'ff', name: 'gg', position: 'hh', email: 'ii@example.com' } })
-    let p8 = Object.assign({}, predictionTemplate, { solNum: 'pred8', date: '2018-02-02T09:02:15.895Z', actionDate: undefined, parseStatus: [{ name: 'n1', status: 's1' }, { name: 'n2', status: 's2' }] })
-    let p9 = Object.assign({}, predictionTemplate, { solNum: 'pred8', date: '2018-01-01T09:02:15.895Z', actionDate: '2019-02-04T09:02:15.895Z', parseStatus: [{ name: 'n1', status: 's1' }, { name: 'n2', status: 's2' }] })
-    let p10 = Object.assign({}, predictionTemplate, { solNum: 'pred10', date: '2018-02-02T09:02:15.895Z', actionDate: '2019-02-04T09:02:15.895Z', parseStatus: [{ name: 'n1', status: 's1' }, { name: 'n2', status: 's2' }] })
-    let p11 = Object.assign({}, predictionTemplate, { solNum: 'pred10', date: '2018-01-01T09:02:15.895Z', actionDate: undefined, parseStatus: undefined })
-    let p12 = Object.assign({}, predictionTemplate, { solNum: 'pred8', date: '1999-01-01T09:02:15.895Z', actionDate: undefined, parseStatus: [{ name: 'n1', status: 's1' }, { name: 'n2', status: 's2' }] })
+    let p6 = Object.assign({}, predictionTemplate, {
+      solNum: 'pred6',
+      date: '2018-02-02T09:02:15.895Z',
+      actionDate: '2019-01-01T09:02:15.895Z',
+      contactInfo: { contact: 'alpha', name: 'beta', position: 'gamma', email: 'dddd@example.com' }
+    })
+    let p7 = Object.assign({}, predictionTemplate, {
+      solNum: 'pred6',
+      date: '2018-01-01T09:02:15.895Z',
+      actionDate: '2019-02-04T09:02:15.895Z',
+      contactInfo: { contact: 'ff', name: 'gg', position: 'hh', email: 'ii@example.com' }
+    })
+    let p8 = Object.assign({}, predictionTemplate, {
+      solNum: 'pred8',
+      date: '2018-02-02T09:02:15.895Z',
+      actionDate: undefined,
+      parseStatus: [{ name: 'n1', status: 's1' }, { name: 'n2', status: 's2' }]
+    })
+    let p9 = Object.assign({}, predictionTemplate, {
+      solNum: 'pred8',
+      date: '2018-01-01T09:02:15.895Z',
+      actionDate: '2019-02-04T09:02:15.895Z',
+      parseStatus: [{ name: 'n1', status: 's1' }, { name: 'n2', status: 's2' }]
+    })
+    let p10 = Object.assign({}, predictionTemplate, {
+      solNum: 'pred10',
+      date: '2018-02-02T09:02:15.895Z',
+      actionDate: '2019-02-04T09:02:15.895Z',
+      parseStatus: [{ name: 'n1', status: 's1' }, { name: 'n2', status: 's2' }]
+    })
+    let p11 = Object.assign({}, predictionTemplate, {
+      solNum: 'pred10',
+      date: '2018-01-01T09:02:15.895Z',
+      actionDate: undefined,
+      parseStatus: undefined
+    })
+    let p12 = Object.assign({}, predictionTemplate, {
+      solNum: 'pred8',
+      date: '1999-01-01T09:02:15.895Z',
+      actionDate: undefined,
+      parseStatus: [{ name: 'n1', status: 's1' }, { name: 'n2', status: 's2' }]
+    })
 
     // randomize some values to make test data easier to build.
     for (let key of ['title', 'reviewRec', 'agency', 'noticeType', 'office', 'actionStatus']) {
@@ -436,6 +496,9 @@ describe('prediction tests', () => {
 
     let result = predictionRoutes.mergePredictions([p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12])
     let predictions = {}
+    for (r of result) {
+      console.log(r.solNum)
+    }
     expect(result.length).toBe(7)
 
     for (let r of result) {
@@ -488,7 +551,7 @@ describe('prediction tests', () => {
 
     // test prediction.prediction
     // test prediction.eitLikelihood
-    for (let key of [ 'predictions', 'eitLikelihood' ]) {
+    for (let key of ['predictions', 'eitLikelihood']) {
       expect(predictions['pred1'][key].value).toBe(p3[key].value)
       expect(predictions['pred6'][key].value).toBe(p6[key].value)
     }
@@ -536,12 +599,337 @@ describe('prediction tests', () => {
     let prediction = predictionRoutes.makeOnePrediction(notice)
     expect(prediction.title).toBe('title not available')
 
-    notice = {notice_data : {} }
+    notice = { notice_data: {} }
     prediction = predictionRoutes.makeOnePrediction(notice)
     expect(prediction.title).toBe('title not available')
 
-    notice = {notice_data : {subject: 'title here'} }
+    notice = { notice_data: { subject: 'title here' } }
     prediction = predictionRoutes.makeOnePrediction(notice)
     expect(prediction.title).toBe('title here')
   }, timeout)
+
+
+  test('prediction pagination ( first /rows )', async () => {
+
+    let event = {
+      filters: {},
+      first: 55,
+      rows: 5,
+      globalFilter: null,
+      multiSortMeta: undefined,
+      sortField: 'id',
+      sortOrder: -1
+    }
+
+    // get rows 55 to 59
+    let res = mocks.mockResponse()
+    let req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    await predictionRoutes.predictionFilter(req, res)
+    expect(res.status.mock.calls[0][0]).toBe(200);
+    let predictions0 = res.send.mock.calls[0][0].predictions
+    // expect(predictions0.length).toBe(15);
+    let pred59 = predictions0[4]
+
+    for (let i=0; i< predictions0.length; i++){
+      console.log(predictions0[i].solNum)
+    }
+
+    // get rows 59 and 60
+    event.first = 59
+    event.rows = 2
+    event.sortOrder = -1
+    req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    await predictionRoutes.predictionFilter(req, res)
+    expect(res.status.mock.calls[1][0]).toBe(200);
+    let predictions1 = res.send.mock.calls[1][0].predictions
+    let pred59clone1 = predictions1[0]
+    expect(predictions1.length).toBe(2)
+    expect(pred59.solNum).toBe(pred59clone1.solNum)
+
+    event.first = 59
+    event.rows = 100
+    event.sortOrder = -1
+    req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    await predictionRoutes.predictionFilter(req, res)
+    expect(res.status.mock.calls[2][0]).toBe(200);
+    let predictions2 = res.send.mock.calls[2][0].predictions
+    let pred59clone2 = predictions2[0]
+    expect(predictions2.length).toBe(100)
+    expect(pred59clone1.solNum).toBe(pred59clone2.solNum)
+
+
+    event.sortField = 'reviewRec'
+    event.sortOrder = 1
+    event.first = 0
+    req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    await predictionRoutes.predictionFilter(req, res)
+    expect(res.status.mock.calls[3][0]).toBe(200);
+    let predictions3 = res.send.mock.calls[3][0].predictions
+    let pred59clone3 = predictions3[0]
+    expect(predictions3.length).toBe(100)
+    pred59clone1.solNum //?
+    pred59clone3.solNum //?
+    // we changed the sort so they should not be equal anymore
+    expect(pred59clone2.solNum != pred59clone3.solNum).toBeTruthy()
+
+    event.sortOrder = -1
+    req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    await predictionRoutes.predictionFilter(req, res)
+    expect(res.status.mock.calls[4][0]).toBe(200);
+    let predictions4 = res.send.mock.calls[4][0].predictions
+    let pred59clone4 = predictions4[0]
+    expect(predictions4.length).toBe(100)
+    // we changed the sort direction so they should not be equal anymore
+    expect(pred59clone3.solNum != pred59clone4.solNum).toBeTruthy()
+
+  })
+
+  function compare (a,b) {
+    let sort = undefined
+    if (typeof (a) == 'string') {
+      sort = a.localeCompare(b)
+    } if (typeof (a.getTime) == 'function' ) {
+      if (a.getTime() == b.getTime()) {
+        sort = 0
+      } else {
+        sort = (a.getTime() < b.getTime()) ? -1 : 1
+      }
+    } else {
+      if (a == b) {
+        sort = 0
+      } else {
+        sort = (a < b) ? -1 : 1
+      }
+    }
+    return sort
+  }
+
+  test('prediction sorting', async () => {
+
+    /*
+    The ways of postgres sorting are mysterious. As long as it
+    sorts in some direction, I'll be happy
+     */
+
+    let event = {
+      filters: {},
+      first: 45,
+      rows: 10,
+      globalFilter: null,
+      multiSortMeta: undefined,
+      sortField: undefined,
+      sortOrder: 0
+    }
+
+    expect.extend({
+      toBeInOrder(sort, allowed, message) {
+        return {
+          pass: allowed.includes(sort),
+          message: () => message
+        }
+      }
+    })
+
+    for (field of ['reviewRec', 'date', 'agency', 'noticeType', 'solNum']) {
+
+      event.sortField = field
+      event.sortOrder = -1;
+      event.first = 0
+      event.rows = 10
+      let predictions = await getPredictions(event)
+      let first = predictions[0][event.sortField]
+
+      event.sortOrder = 1
+      predictions = await getPredictions(event);
+      let last = predictions[0][event.sortField]
+      expect(compare(first,last)).toBeInOrder([-1, 1], `failed to sort ${first} || ${last}`)
+    }
+  }, 30000)
+
+  async function getPredictions(event){
+    let res = mocks.mockResponse()
+    let req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    await predictionRoutes.predictionFilter(req, res)
+    expect(res.status.mock.calls[0][0]).toBe(200);
+    let result = res.send.mock.calls[0][0]
+    expect(result.predictions.length).toBe(event.rows);
+    return result.predictions;
+  }
+
+  test("sol num ordering SQL", async () => {
+    let order1 = await predictionRoutes.getPredictions({first: 0, rows: 100, sortField: 'solNum'})
+
+    for (let i = 0; i < 90; i+=22) {
+      let order = await predictionRoutes.getPredictions({first:i, rows:100, sortField: 'solNum'})
+      expect(order[0]).toBe(order1[i])
+    }
+
+    let order2 = await predictionRoutes.getPredictions({first: 252, rows: 100, sortField: 'agency'})
+
+    for (let i = 0; i < 90; i+=29) {
+      let order = await predictionRoutes.getPredictions({first:252+i, rows:100, sortField: 'agency'})
+      expect(order[0]).toBe(order2[i])
+    }
+  })
+
+  test("paging no duplicates", async () => {
+
+    for (field of ['agency', 'date', 'solNum']) {
+      let order1 = await predictionRoutes.getPredictions({ first: 0, rows: 100, sortField: field })
+      expect(order1.predictions[0]).toBeTruthy()
+      for (let i = 0; i < 90; i += 32) {
+        let order = await predictionRoutes.getPredictions({ first: i, rows: 7, sortField: field })
+
+        console.log (`comparing ${i} `)
+        // check that first = x is the same as the xth item when starting at 0
+        expect(order.predictions[0].solNum).toBe(order1.predictions[i].solNum)
+
+        // check that we different predictions have different titles.
+        expect(order1.predictions[0].title).not.toBe(order1.predictions[1].title)
+
+      }
+    }
+
+  }, 15000)
+
+  async function globalFilterTest(word){
+    const filter = { first: 0, rows: 20000, globalFilter: word }
+    let {predictions} = await predictionRoutes.getPredictions(filter)
+
+    let found = false
+    for (p of predictions) {
+      found = p.title.toLowerCase().match(word.toLowerCase()) ||
+              p.noticeType.toLowerCase().match(word.toLowerCase()) ||
+              p.solNum.toLowerCase().match(word.toLowerCase()) ||
+              p.office.toLowerCase().match(word.toLowerCase()) ||
+              p.reviewRec.toLowerCase().match(word.toLowerCase()) ||
+              found
+      if (found) {
+        break;
+      }
+    }
+
+    if (! found ) {
+      console.log (`didn't find '${word}' in results`)
+    }
+
+    expect(found).toBeTruthy()
+
+  }
+
+  test("prediction global filter", async () => {
+    // pick a word out of the titles.
+    let {predictions} = await predictionRoutes.getPredictions({ first: 333, rows: 200 })
+
+    const data = [
+      {field:'title', regex: /[a-zA-Z]+/},
+      {field:'noticeType', regex: /[a-zA-Z]+/},
+      {field:'agency', regex: /[a-zA-Z]+/},
+      {field:'office', regex: /[a-zA-Z]+/},
+      {field:'reviewRec', regex: /[a-zA-Z]+/},
+      {field:'solNum', regex: /[0-9]+/}
+    ]
+
+    for (x of data ) {
+      let word = null
+      for (p of predictions) {
+        word = word || p[x.field].match(x.regex)  // pick out a word from the field
+      }
+      word = word[0] // grab the first match string
+      word //?
+      await globalFilterTest(word)
+    }
+
+    for (x of data ) {
+      let word = null
+      for (p of predictions) {
+        word = word || p[x.field].match(x.regex)  // pick out a word from the field
+      }
+      word = word[0].toLowerCase() // grab the first match string
+      console.log(`testing ${x.field}`)
+
+      await globalFilterTest(word)
+    }
+
+    // non-compliant search term acts strange
+    const filter = { first: 0, rows: 20000, globalFilter: 'non-compliant' }
+    let {totalCount: totalCount} = await predictionRoutes.getPredictions(filter)
+    let non_compliant = await Notice.findAll({where : {compliant:0}})
+
+    // not perfect, but generally totalCount should be nearly as many as the number of notice rows
+    expect(Number.parseInt(totalCount)).toBeGreaterThan(non_compliant.length/3)
+
+  })
+
+  test("prediction column filter", async () => {
+    // pick a word out of the titles.
+    let {predictions: samples} = await predictionRoutes.getPredictions({ first: 333, rows: 1 })
+
+    const data = [
+      {field:'noticeType', value: 'Combined Synopsis/Solicitation'},
+      {field:'agency', value: 'Department of the Army'},
+      // {field:'office'},
+      // {field:'reviewRec'},
+    ]
+    for (x of data ) {
+      let field = x.field
+      let word = x.value
+
+
+      const filter = {
+        "first": 0,
+        "rows": 150,
+        "sortField": "noticeType",
+        "sortOrder": -1,
+        "filters": { [field]: { "value": word, "matchMode": "equals" } },
+        "globalFilter": null
+      }
+      let {predictions: preds} = await predictionRoutes.getPredictions(filter)
+
+      let allMatch = true
+      for (p of preds) {
+        p[field] //?
+        allMatch = p[field] == word
+        if ( ! allMatch) {
+          break;
+        }
+      }
+
+      if ( ! allMatch ) {
+        console.log (`Found a record that didn't match '${word}' in results for field ${field}`)
+      }
+
+      expect(allMatch).toBeTrue()
+
+
+    }
+
+
+  }, 30000)
+
+  test("PrimeNG prediction dropdown filter", async () => {
+
+    let {predictions: samples} = await predictionRoutes.getPredictions({ first: 333, rows: 1 })
+
+    let filter =
+      {
+        "filters": {
+          "noticeType": {
+            "matchMode": "equals",
+            "value": samples[0].noticeType
+          }
+        }, "first": 0, "globalFilter": null, "rows": 15, "sortField": "noticeType", "sortOrder": -1
+      }
+
+    let {predictions: preds} = await predictionRoutes.getPredictions(filter)
+
+
+    expect(preds.length).toBeGreaterThan(0)
+    for (p of preds) {
+      expect(p.noticeType).toBe(samples[0].noticeType)
+    }
+
+  })
+
+
 })

@@ -397,7 +397,7 @@ describe('/api/auth/', () => {
       .then( () => {
         expect(mockRes2.status).toBeCalledWith(302)
         // the response.set function should be called with args ( 'Location', 'http://.....')
-        let location = mockRes2.set.mock.calls[0][1]  //?
+        let location = mockRes2.set.mock.calls[0][1]
         expect(mockRes2.set.mock.calls[0][0]).toMatch(/Location/)
         expect(location).toMatch(/token=/)
         let token = location.substr(location.indexOf("token=") + 6 )

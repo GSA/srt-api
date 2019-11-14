@@ -48,6 +48,7 @@ module.exports = function (db, cas) {
   let solicitationRoutes = require('./routes/solicitation.routes')(db)
   let surveyRoutes = require('./routes/survey.routes')
   let versionRoutes = require('./routes/version.routes')()
+  let noticeTypeRoutes = require('./routes/noticeType.routes')
 
   app.use(bodyParser.json())
 
@@ -158,6 +159,7 @@ module.exports = function (db, cas) {
   app.post('/api/user/getUserInfo', token(), userRoutes.getUserInfo)
   app.get('/api/user/masquerade', token(), admin_only(), userRoutes.masquerade)
   app.get('/api/version', versionRoutes.version)
+  app.get('/api/noticeTypes', token(), noticeTypeRoutes.getNoticeTypes)
 
 
 

@@ -108,9 +108,10 @@ describe('solicitation tests', () => {
   })
 
   test('solicitation get', () => {
-    return db.sequelize.query('select id from notice order by date desc, solicitation_number desc limit 1')
+    return db.sequelize.query('select id, solicitation_number from notice order by date desc, solicitation_number desc limit 1')
       .then((rows) => {
         let id = rows[0][0].id
+        let solNum = rows[0][0].solicitation_number
         expect(id).toBeDefined()
 
         return request(app)
@@ -121,7 +122,9 @@ describe('solicitation tests', () => {
             // noinspection JSUnresolvedVariable
             expect(res.statusCode).toBe(200)
             expect(res.body.solNum).toBeDefined()
-            expect(res.body.id).toBe(id)
+            res.body
+            res.body.solNum
+            expect(res.body.solNum).toBe(solNum)
             return expect(res.body.agency).toBeDefined()
           })
       })
@@ -252,7 +255,7 @@ describe('solicitation tests', () => {
 
     return db.sequelize.query(sql)
       .then((rows) => {
-        let solNum = rows[0][0].solicitation_number //?
+        let solNum = rows[0][0].solicitation_number
         return db.sequelize.query(`select filename from attachment join notice n on attachment.notice_id = n.id where solicitation_number = '${solNum}'`)
           .then(files => {
             return db.sequelize.query(`select id from notice where solicitation_number = '${solNum}' limit 1`)

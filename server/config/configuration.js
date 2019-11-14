@@ -67,8 +67,8 @@ function getConfig(key, defaultValue, customDictionary) {
   let parts = key.split(":")
   let dict = customDictionary || {}
   while (parts.length > 1) {
-    let head = parts.shift() //?
-    dict = lookup(head, defaultValue, dict) //?
+    let head = parts.shift()
+    dict = lookup(head, defaultValue, dict)
     dict = (isJSON(dict)) ? JSON.parse(dict) : dict
   }
   return lookup(parts[0], defaultValue, dict)

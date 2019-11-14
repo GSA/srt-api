@@ -25,7 +25,7 @@ describe('Prediction History', () => {
     app = require('../app')() // don't load the app till the mock is configured
     return db.sequelize.query("select solicitation_number from notice order by date desc limit 1;")
       .then( (rows) => {
-        testSolNum = rows[0][0]['solicitation_number'] //?
+        testSolNum = rows[0][0]['solicitation_number']
       })
   })
 
@@ -36,7 +36,8 @@ describe('Prediction History', () => {
 
   test('Solicitations have a prediction history element', () => {
     return predictionRoutes.getPredictions({'solNum' : testSolNum} )
-      .then( predictions => {
+      .then( result => {
+        let predictions = result.predictions
         let p = predictions[0]
         expect(p).toHaveProperty('predictions')
         expect(p.predictions).toHaveProperty('history')
@@ -44,7 +45,13 @@ describe('Prediction History', () => {
         expect(history).toBeArray()
         expect(history[0]).toHaveProperty('date')
         expect(history[0]).toHaveProperty('value')
-        expect(history.slice(-1)[0].date).toBe(p.date)
+
+        // check the last entry in the history is equal to the date of the overall prediction
+
+        let last = (new Date(history.slice(-1)[0].date)).toISOString().split('T')[0]
+        let pdate = p.date.toISOString().split('T')[0]
+
+        expect(last).toBe(pdate)
         expect(history.slice(-1)[0].value).toBe(p.predictions.value)
       })
   })

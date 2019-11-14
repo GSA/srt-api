@@ -47,7 +47,7 @@ describe('Test masquerade functionality', () => {
   })
 
   test('Get new token',  () => {
-    let role = authRoutes.roles[ authRoutes.roleKeys["508_COORDINATOR_ROLE"]].name //?
+    let role = authRoutes.roles[ authRoutes.roleKeys["508_COORDINATOR_ROLE"]].name
     let agency = 'NIH'
     return testSession.get(`/api/user/masquerade?role=${role}&agency=${agency}`)
       .set('Authorization', `Bearer ${adminToken}`)
@@ -55,7 +55,7 @@ describe('Test masquerade functionality', () => {
         // noinspection JSUnresolvedVariable
         expect(res.statusCode).toBe(200)
         expect(res.body.token).toBeDefined()
-        let decoded = jwt.decode(res.body.token) //?
+        let decoded = jwt.decode(res.body.token)
         expect(decoded.user.grouplist).toBe(authRoutes.roleNameToCASGroup(role))
         expect(decoded.user.userRole).toBe(role)
         expect(decoded.user.agency).toBe(agency)
@@ -75,7 +75,7 @@ describe('Test masquerade functionality', () => {
   })
 
   test('Only GSA Admin can masquerade', () => {
-    let role = authRoutes.roles[ authRoutes.roleKeys["508_COORDINATOR_ROLE"]].name //?
+    let role = authRoutes.roles[ authRoutes.roleKeys["508_COORDINATOR_ROLE"]].name
     let agency = 'NIH'
     return testSession.get(`/api/user/masquerade?role=${role}&agency=${agency}`)
       .set('Authorization', `Bearer ${coordinatorToken}`)

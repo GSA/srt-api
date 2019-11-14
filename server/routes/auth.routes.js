@@ -352,7 +352,7 @@ module.exports = {
     }
 
     user.renewTime = Math.round (new Date().getTime() / 1000)
-    let newToken = jwt.sign({user: user}, common.jwtSecret, { expiresIn: getConfig('renewTokenLife') }) //?
+    let newToken = jwt.sign({user: user}, common.jwtSecret, { expiresIn: getConfig('renewTokenLife') })
     logger.log("debug", "creating a renewal token valid for " + getConfig('renewTokenLife') )
 
 
