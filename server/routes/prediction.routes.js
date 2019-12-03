@@ -310,12 +310,13 @@ async function getPredictions (filter) {
   attributes.order.push( [ 'id' ] ) // always end with an order by id to keep the ordering deterministic
 
   let preds = await Prediction.findAll( attributes )
+  let count = await Prediction.findAndCountAll( attributes )
 
   return {
     predictions: preds,
     first: filter.first,
     rows: Math.min(filter.rows,preds.length),
-    totalCount: preds.length
+    totalCount: count.count
   }
 }
 
