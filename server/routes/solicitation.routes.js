@@ -41,15 +41,16 @@ module.exports = function (db) {
             return res.status(404).send({})
           }
           return predictionRoute.getPredictions({ solNum: notice.solicitation_number })
-            .then(predictions => {
+            .then(result => {
               // we should only have one 'prediction' since they will all merge by solicitation number
               // but for consistency we should set the ID number to the one requested rather than to
               // a pseudo-random choice
-              predictions[0].id = parseInt(req.params.id)
-              return res.status(200).send(predictions[0])
+              result.predictions[0].id = parseInt(req.params.id)
+              return res.status(200).send(result.predictions[0])
             })
         })
         .catch((e) => {
+          e //?
           logger.log('error', 'error in: solicitation get', { error:e, tag: 'solicitation get' })
           return res.status(500).send('Error finding solicitation')
         })
@@ -105,6 +106,9 @@ module.exports = function (db) {
                       na_flag: (n.na_flag) ? "true" : "false"
                 })
               return res.status(200).send(predictionRoute.makeOnePrediction(n))
+            })
+            .catch (error => {
+              console.log(error)
             })
 
         })

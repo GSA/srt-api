@@ -7,7 +7,7 @@ module.exports = function () {
   return async function (req, res, next) {
 
     try {
-      if (! (req.headers && req.headers['authorization'])) { //?
+      if (! (req.headers && req.headers['authorization'])) {
         return res.status(401).send({ message: 'No authorization token provided' })
       }
 

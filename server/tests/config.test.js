@@ -39,8 +39,8 @@ describe('configuration tests', () => {
 
   test('getConfig returns default value', () => {
     let dict = { one: 1, alpha: 'abc', nested: { deep: 'one deep', deeper: { x: 'deeper entry' } } }
-    process.env.CTEST = JSON.stringify(dict) //?
-    process.env.EASYTEST = "easy" //?
+    process.env.CTEST = JSON.stringify(dict)
+    process.env.EASYTEST = "easy"
 
     expect(getConfig('qwertyasdf', 'defval')).toBe('defval')
     expect(getConfig('maxCas:qwertyasdf')).toBeUndefined()

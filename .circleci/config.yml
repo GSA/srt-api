@@ -11,6 +11,7 @@ jobs:
         environment:
           NODE_ENV: circleci
           CC_TEST_REPORTER_ID: b0a733c16dd63abc6cb21bf9956550d57e05724bc92e58892b306af99963a261
+          JWT_SECRET: abc123
 
       - image: circleci/postgres:9.6.8
         environment:
@@ -63,6 +64,7 @@ jobs:
       - run: gzip -d srt-database.sql.gz
       - run: export PGPASSWORD=srtpass && psql -h "localhost"  srt circleci < srt-database.sql
       - run: ./node_modules/.bin/sequelize --config ./server/config/dbConfig.js db:migrate
+      - run: node ./server/loadPredictions.js
 
       - run:
          name: Run the Tests
