@@ -52,7 +52,8 @@ describe('Prediction History', () => {
         let pdate = p.date.toISOString().split('T')[0]
 
         expect(last).toBe(pdate)
-        expect(history.slice(-1)[0].value).toBe(p.predictions.value)
+        let color = history.slice(-1)[0].value
+        expect(color).toBeOneOf(['red', 'green', 'black'])
       })
   })
 

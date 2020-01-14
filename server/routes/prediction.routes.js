@@ -93,59 +93,77 @@ const Op = require('sequelize').Op
 function makeOnePrediction (notice) {
   let o = {} // Object.assign({}, template);
 
-  o.id = notice.id
-  o.title = (notice.notice_data && notice.notice_data.subject) ? notice.notice_data.subject : 'title not available'
-  o.url = (notice.notice_data !== undefined) ? notice.notice_data.url : ''
-  o.agency = notice.agency
-  o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0
-  o.solNum = notice.solicitation_number
-  o.noticeType = notice.notice_type
-  o.date = notice.date
-  o.office = (notice.notice_data !== undefined) ? notice.notice_data.office : ''
-  o.predictions = {
-    value: (notice.na_flag) ? 'black' : (notice.compliant === 1) ? 'green' : 'red',
-    history: [{
-      date: notice.date,
-      value: (notice.compliant === 1) ? 'green' : 'red'
-    }]
-  }
-  o.na_flag = notice.na_flag
-  if (o.na_flag) {
-    o.reviewRec = "Not Applicable"
-  } else {
-    o.reviewRec = (notice.compliant === 1) ? 'Compliant' : 'Non-compliant (Action Required)'
-  }
-  o.eitLikelihood = {
-    naics: notice.naics,
-    value: 'Yes'
-  }
-  o.undetermined = 0 // (getRandomInt(0, 2) == 0);
-  o.action = notice.action
-  o.actionStatus = (o.action != null) ? o.action.actionStatus : ''
-  o.actionDate = (o.action != null) ? o.action.actionDate : ''
-  o.feedback = notice.feedback ? notice.feedback : []
-  o.history = notice.history ? notice.history : []
-
-  let email = ''
-  if (notice.notice_data && notice.notice_data.emails && notice.notice_data.emails.length) {
-    if (config.spamProtect) {
-      notice.notice_data.emails = notice.notice_data.emails.map(e => e + '.nospam')
+  try {
+    o.id = notice.id
+    o.title = (notice.notice_data && notice.notice_data.subject) ? notice.notice_data.subject : 'title not available'
+    o.url = (notice.notice_data !== undefined) ? notice.notice_data.url : ''
+    o.agency = notice.agency
+    o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0
+    o.solNum = notice.solicitation_number
+    o.noticeType = notice.notice_type
+    o.date = notice.date
+    o.office = (notice.notice_data !== undefined) ? notice.notice_data.office : ''
+    o.predictions = {
+      value: (notice.na_flag) ? 'black' : (notice.compliant === 1) ? 'green' : 'red',
+      history: [{
+        date: notice.date,
+        value: (notice.compliant === 1) ? 'green' : 'red'
+      }]
     }
-    email = notice.notice_data.emails.join(', ')
+    o.na_flag = notice.na_flag
+    if (o.na_flag) {
+      o.reviewRec = "Not Applicable"
+    } else {
+      o.reviewRec = (notice.compliant === 1) ? 'Compliant' : 'Non-compliant (Action Required)'
+    }
+    o.eitLikelihood = {
+      naics: notice.naics,
+      value: 'Yes'
+    }
+    o.undetermined = 0 // (getRandomInt(0, 2) == 0);
+
+    if (notice.action) {
+      o.action = notice.action
+      if (!Array.isArray(o.action)) {
+        o.action = [o.action]
+      }
+    } else {
+      o.action = [{ date: o.date, user: "", action: "Record Created", status: "complete" }]
+    }
+
+    if (o.action != null && (Array.isArray(o.action))) {
+      let a = o.action[o.action.length -1]
+      o.actionStatus = a.action
+      o.actionDate = a.date
+    } else {
+      o.actionStatus = o.actionDate = ''
+    }
+
+    o.feedback = notice.feedback ? notice.feedback : []
+    o.history = notice.history ? notice.history : []
+
+    let email = ''
+    if (notice.notice_data && notice.notice_data.emails && notice.notice_data.emails.length) {
+      if (config.spamProtect) {
+        notice.notice_data.emails = notice.notice_data.emails.map(e => e + '.nospam')
+      }
+      email = notice.notice_data.emails.join(', ')
+    }
+
+    o.contactInfo = {
+      contact: (notice.notice_data) ? notice.notice_data.contact : '',
+      name: 'Contact Name',
+      position: 'Position',
+      email: email
+
+    }
+
+    o.parseStatus = (notice.attachment_json !== undefined && notice.attachment_json != null) ? notice.attachment_json : []
+
+    o.searchText = [o.solNum, o.noticeType, o.title, o.date, o.reviewRec, o.actionStatus, o.actionDate, o.agency, o.office].join(' ').toLowerCase()
+  } catch (e) {
+    logger.log("error", "Error building a prediction object", {tag: "MakeOnePrediction", error: e})
   }
-
-  o.contactInfo = {
-    contact: (notice.notice_data) ? notice.notice_data.contact : '',
-    name: 'Contact Name',
-    position: 'Position',
-    email: email
-
-  }
-
-  o.parseStatus = (notice.attachment_json !== undefined && notice.attachment_json != null) ? notice.attachment_json : []
-
-  o.searchText = [o.solNum, o.noticeType, o.title, o.date, o.reviewRec, o.actionStatus, o.actionDate, o.agency, o.office].join(' ').toLowerCase()
-
   return o
 }
 

@@ -496,9 +496,6 @@ describe('prediction tests', () => {
 
     let result = predictionRoutes.mergePredictions([p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12])
     let predictions = {}
-    for (r of result) {
-      console.log(r.solNum)
-    }
     expect(result.length).toBe(7)
 
     for (let r of result) {

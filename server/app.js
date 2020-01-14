@@ -155,7 +155,6 @@ module.exports = function (db, cas) {
   app.post('/api/user/updateUserInfo', token(), userRoutes.update)
   app.post('/api/user/update', token(), userRoutes.update)
   app.post('/api/user/updatePassword', token(), userRoutes.updatePassword)
-  app.post('/api/user/getCurrentUser', token(), userRoutes.getCurrentUser)
   app.post('/api/user/getUserInfo', token(), userRoutes.getUserInfo)
   app.get('/api/user/masquerade', token(), admin_only(), userRoutes.masquerade)
   app.get('/api/version', versionRoutes.version)

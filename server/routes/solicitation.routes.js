@@ -4,6 +4,7 @@ const logger = require('../config/winston')
 // noinspection JSUnresolvedVariable
 const Notice = require('../models').notice
 const predictionRoute = require('../routes/prediction.routes')
+const userRoutes = require('../routes/user.routes')
 const authRoutes = require('../routes/auth.routes')
 
 
@@ -94,7 +95,24 @@ module.exports = function (db) {
             return res.status(401).send({ msg: 'Not authorized' })
           }
 
+          if (notice.na_flag != req.body.solicitation.na_flag) {
+            if ( ! Array.isArray(notice.action)) {
+              notice.action = []
+            }
+            let new_action = JSON.parse(JSON.stringify(notice.action))
+            let user_info = userRoutes.whoAmI(req)
+            new_action.push({
+              action: (req.body.solicitation.na_flag) ? "Solicitation marked not applicable" : "Not applicable status removed" ,
+              status: "complete",
+              date: new Date(),
+              user: user_info.email
+            })
+            notice.action = new_action
+          }
+
           notice.na_flag = req.body.solicitation.na_flag
+
+
 
           return notice.save()
             .then( (n) => {
@@ -147,12 +165,19 @@ module.exports = function (db) {
 
           notice.history = req.body.history
           notice.feedback = req.body.feedback
-          if (status.length > 1) {
-            notice.action = {
-              actionStatus: status[status.length - 1]['status'],
-              actionDate: status[status.length - 1]['date']
-            }
+          notice.action = req.body.action
+          if (! Array.isArray(notice.action)){
+            notice.action = []
           }
+          let user_info = userRoutes.whoAmI(req)
+          let now = new Date()
+          notice.action.push({
+            action: "Record updated",
+            status: "complete",
+            date: now,
+            user: user_info.email
+          })
+
           // noinspection JSUnresolvedFunction
           return notice.save()
             .then((doc) => {

@@ -44,7 +44,7 @@ describe('solicitation tests', () => {
 
         let word1 = randomWords.wordList[Math.floor(Math.random() * randomWords.wordList.length)]
         let word2 = randomWords.wordList[Math.floor(Math.random() * randomWords.wordList.length)]
-        let actionDate = (new Date()).toLocaleString()
+        let actionDate = new Date().toLocaleString()
 
         return request(app)
           .post('/api/solicitation')
@@ -86,9 +86,16 @@ describe('solicitation tests', () => {
           )
           .then((res) => {
             // noinspection JSUnresolvedVariable
+            res.body.action
             expect(res.statusCode).toBe(200)
             expect(res.body.feedback[0].questionID).toBe('1')
-            expect(res.body.action.actionDate).toBe(actionDate)
+
+            // Get the action date but strip off the seconds to avoid
+            let res_action_date_seconds = new Date(new Date (res.body.action[ res.body.action.length-1 ].date).toLocaleString()).getTime() //?
+            action_date_seconds = new Date(actionDate).getTime()  //?
+
+            expect(res_action_date_seconds).toBeGreaterThan(action_date_seconds - 100)
+            expect(res_action_date_seconds).toBeLessThan(action_date_seconds + 100)
             expect(res.body.history[0].user).toBe(word1)
             return expect(res.body.history[1].user).toBe(word2)
           })
