@@ -430,8 +430,11 @@ async function updatePredictionTable  () {
     if (outdatedPredictions.length == 0) {
       outdatedPredictions = await getOutdatedPrediction()
     }
+    if ((actualCount % 100) == 0) {
+      logger.log("debug", `Updated ${actualCount} prediction records.`)
+    }
   }
-  logger.log("info", `Updated ${actualCount} prediction records`)
+  logger.log("debug", `Updated ${actualCount} prediction records`)
   return actualCount
 }
 

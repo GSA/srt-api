@@ -4,7 +4,7 @@
   "description": "Web services to see 508 compliance predictions for solicitations posted to FBO",
   "main": "index.js",
   "scripts": {
-    "start": "node_modules/.bin/sequelize db:migrate && node server/server.js",
+    "start": "node_modules/.bin/sequelize db:migrate && node server/loadPredictions.js && node server/server.js",
     "dev": "export JWT_SECRET=abc123 && export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock && node_modules/.bin/sequelize db:migrate && node server/loadPredictions.js && node --max-old-space-size=256 server/server.js",
     "dev-monitor": "export JWT_SECRET=abc123 && export NODE_ENV=development && export MAIL_ENGINE=nodemailer-mock && node_modules/.bin/sequelize db:migrate && node server/loadPredictions.js && nodemon node --max-old-space-size=256 server/server.js",
     "old-test": "export NODE_ENV=test || SET NODE_ENV=test && mocha server/**/*.test.js",
