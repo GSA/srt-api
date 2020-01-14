@@ -95,28 +95,6 @@ describe('User API Routes', () => {
       })
   })
 
-  test('/api/user/getCurrentUser', async () => {
-    return request(app)
-      .post('/api/user/getCurrentUser')
-      .send({})
-      .set('Authorization', `Bearer ${token}`)
-      .then((res) => {
-        // noinspection JSUnresolvedVariable,JSUnresolvedFunction
-        expect(res.statusCode).toBe(200)
-
-        return expect(res.body.creationDate).toMatch(/[0-9]+-[0-9]+-[0-9]+/)
-      })
-      .then(() => {
-        return request(app)
-          .post('/api/user/getCurrentUser')
-          .send({})
-        // .set('Authorization', `Bearer ${token}`)  // no token for this test!
-          .then((res) => {
-            // noinspection JSUnresolvedVariable
-            expect(res.statusCode).toBe(401)
-          })
-      })
-  })
 
   test('/api/user/updatePassword', async () => {
     await request(app)

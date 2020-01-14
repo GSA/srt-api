@@ -195,32 +195,6 @@ module.exports = {
       })
   },
 
-  /**
-     * Legacy code - Get the create Date.   (this was the orig. comment. No idea what is going on here!)
-     */
-  getCurrentUser: function (req, res) {
-    if (!req.headers['authorization']) {
-      return res.status(404).send('No authorization token provided')
-    }
-
-    let token = req.headers['authorization'].split(' ')[1]
-    // noinspection JSUnresolvedVariable
-    let current = jwt.decode(token).user
-    return User.findByPk(current.id)
-      .then(user => {
-        let date = user.creationDate
-        if ( date.match(/^[0-9]+$/)) { // if it's a numeric timestamp
-          let d = new Date(parseInt(date))
-          date = (d.getMonth()+1) + "-" + d.getDate() + "-" + d.getFullYear()
-        }
-        return res.status(200).send({ creationDate: date })
-      })
-      .catch(e => {
-        logger.log('error', 'error in: getCurrentUser', {error: e, tag: 'getCurrentUser'})
-        return res.status(500).send(e)
-      })
-  },
-
 
   /**
    * Send back a new token for a different user type and agency
