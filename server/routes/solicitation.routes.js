@@ -4,8 +4,10 @@ const logger = require('../config/winston')
 // noinspection JSUnresolvedVariable
 const Notice = require('../models').notice
 const predictionRoute = require('../routes/prediction.routes')
-const userRoutes = require('../routes/user.routes')
 const authRoutes = require('../routes/auth.routes')
+const cloneDeep = require('clone-deep')
+const {getConfig} = require('../config/configuration')
+const { formatDateAsString } = require('../shared/time')
 
 
 
@@ -13,7 +15,48 @@ const authRoutes = require('../routes/auth.routes')
  * API routes related to solicitations
  */
 
-module.exports = function (db) {
+module.exports = function (db, userRoutes) {
+
+  function auditSolicitationChange (notice_orig, notice_updated, req) {
+    let actions = cloneDeep(notice_orig.action)
+    let user_info = userRoutes.whoAmI(req)
+
+
+    if (notice_orig.history && notice_updated.history) {
+      let orig_hist_len = notice_orig.history.length
+      let up_hist_len = notice_updated.history.length
+
+      if (up_hist_len > orig_hist_len) {
+        if (notice_updated.history[up_hist_len - 1].action == getConfig('constants:EMAIL_ACTION')) {
+          actions.push({
+            "action": getConfig('constants:EMAIL_ACTION'),
+            "date": formatDateAsString(new Date()),
+            "status": getConfig('constants:EMAIL_ACTION'),
+            "user": userRoutes.whoAmI(req)
+          })
+        }
+      }
+    }
+
+    console.log ("original feedback:")
+    console.log(notice_orig.feedback)
+    console.log ("updated feedback:")
+    console.log(notice_updated.feedback)
+
+    if (notice_updated.feedback &&
+      ( ( !notice_orig.feedback ) || notice_orig.feedback.length != notice_updated.feedback.length) ) {
+      console.log("PUSH ACTION")
+      actions.push({
+        "action": getConfig('constants:FEEDBACK_ACTION'),
+        "date": formatDateAsString(new Date()),
+        "status": getConfig('constants:FEEDBACK_ACTION'),
+        "user": userRoutes.whoAmI(req)
+      })
+    }
+
+    return actions;
+  }
+
   return {
 
     // app.get('/solicitation/:id', (req, res) => {
@@ -132,6 +175,9 @@ module.exports = function (db) {
         })
     },
 
+    auditSolicitationChange: auditSolicitationChange,
+
+
     /**
          * <b> POST /api/solicitation </b><br><br>
          *
@@ -163,25 +209,19 @@ module.exports = function (db) {
             return res.status(404).send({ msg: 'solicitation not found' })
           }
 
-          notice.history = req.body.history
-          notice.feedback = req.body.feedback
-          notice.action = req.body.action
-          if (! Array.isArray(notice.action)){
+          // first do the audit
+          if (! Array.isArray(notice.action, req.body)){
             notice.action = []
           }
-          let user_info = userRoutes.whoAmI(req)
-          let now = new Date()
-          notice.action.push({
-            action: "Record updated",
-            status: "complete",
-            date: now,
-            user: user_info.email
-          })
+          notice.action = auditSolicitationChange(notice, req.body, req)
+
+          //now that audit is done, we can update.
+          notice.history = req.body.history
+          notice.feedback = cloneDeep(req.body.feedback)
 
           // noinspection JSUnresolvedFunction
           return notice.save()
             .then((doc) => {
-              // logger.log("error", predictionRoute.makeOnePrediction(doc) , {tag:"notice"})
               return res.status(200).send(predictionRoute.makeOnePrediction(doc))
             })
             .catch((e) => {
@@ -190,6 +230,7 @@ module.exports = function (db) {
             })
         })
         .catch((e) => {
+          e//?
           logger.log('error', 'error in: postSolicitation - error during find', { error:e, tag: 'postSolicitation - error during find' })
           res.status(400).send({ msg: 'error updating solicitation' })
         })

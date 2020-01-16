@@ -131,7 +131,7 @@ function makeOnePrediction (notice) {
       o.action = [{ date: o.date, user: "", action: "Record Created", status: "complete" }]
     }
 
-    if (o.action != null && (Array.isArray(o.action))) {
+    if (o.action != null && (Array.isArray(o.action)) && o.action.length > 0) {
       let a = o.action[o.action.length -1]
       o.actionStatus = a.action
       o.actionDate = a.date
@@ -162,6 +162,7 @@ function makeOnePrediction (notice) {
 
     o.searchText = [o.solNum, o.noticeType, o.title, o.date, o.reviewRec, o.actionStatus, o.actionDate, o.agency, o.office].join(' ').toLowerCase()
   } catch (e) {
+    e//?
     logger.log("error", "Error building a prediction object", {tag: "MakeOnePrediction", error: e})
   }
   return o

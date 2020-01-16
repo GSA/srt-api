@@ -856,7 +856,7 @@ describe('prediction tests', () => {
     // not perfect, but generally totalCount should be nearly as many as the number of notice rows
     expect(Number.parseInt(totalCount)).toBeGreaterThan(non_compliant.length/3)
 
-  })
+  }, 30000)
 
   test("prediction column filter", async () => {
     // pick a word out of the titles.
