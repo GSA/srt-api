@@ -3,6 +3,7 @@ const mockToken = require('./mocktoken')
 const mocks = require('./mocks')
 const db = require('../models/index')
 const {common} = require('../config/config.js')
+const userRoutes = require('../routes/user.routes')
 const solicitationRoutes = require('../routes/solicitation.routes')
 // noinspection JSUnresolvedVariable
 const Notice = require('../models').notice
@@ -33,7 +34,7 @@ describe('solicitation tests', async () => {
     let rows = await db.sequelize.query('select solicitation_number from notice order by solicitation_number desc limit 1')
     let solNum = rows[0][0].solicitation_number
     expect(solNum).toBeDefined()
-    let solRoute = solicitationRoutes(db)
+    let solRoute = solicitationRoutes(db, userRoutes)
 
     // set it to true
     let res = mocks.mockResponse()
@@ -57,7 +58,7 @@ describe('solicitation tests', async () => {
   test('Update Not Applicable with bad sol num', async () => {
     let res = mocks.mockResponse();
     let req = mocks.mockRequest({ solicitation: { solNum: 'fake number', na_flag: true } }, {'authorization': `bearer ${adminToken}`})
-    let solRoute = solicitationRoutes(db)
+    let solRoute = solicitationRoutes(db, userRoutes)
     await solRoute.update(req, res)
     expect(res.status.mock.calls[0][0]).toBe(404)
   })
@@ -70,7 +71,7 @@ describe('solicitation tests', async () => {
 
     let res = mocks.mockResponse();
     let req = mocks.mockRequest({ solicitation: { solNum: solNum, na_flag: true } }, {'authorization': `bearer ${adminToken}`})
-    let solRoute = solicitationRoutes(db)
+    let solRoute = solicitationRoutes(db, userRoutes)
     await solRoute.update(req, res)
     expect(res.status.mock.calls[0][0]).toBe(200)
   })
@@ -84,7 +85,7 @@ describe('solicitation tests', async () => {
 
     let res = mocks.mockResponse();
     let req = mocks.mockRequest({ solicitation: { solNum: solNum, na_flag: true } }, {'authorization': `bearer ${coordinatorToken}`})
-    let solRoute = solicitationRoutes(db)
+    let solRoute = solicitationRoutes(db, userRoutes)
     await solRoute.update(req, res)
     expect(res.status.mock.calls[0][0]).toBe(200)
   })
@@ -98,7 +99,7 @@ describe('solicitation tests', async () => {
 
     let res = mocks.mockResponse();
     let req = mocks.mockRequest({ solicitation: { solNum: solNum, na_flag: true } }, {'authorization': `bearer ${coordinatorToken}`})
-    let solRoute = solicitationRoutes(db)
+    let solRoute = solicitationRoutes(db, userRoutes)
     await solRoute.update(req, res)
     expect(res.status.mock.calls[0][0]).toBe(401)
   })
@@ -106,7 +107,7 @@ describe('solicitation tests', async () => {
   test('Solicitation updates rejected from people without a ticket', async () => {
     let res = mocks.mockResponse();
     let req = mocks.mockRequest({ solicitation: { solNum: '1234', na_flag: true } })
-    let solRoute = solicitationRoutes(db)
+    let solRoute = solicitationRoutes(db, userRoutes)
     await solRoute.update(req, res)
     expect(res.status.mock.calls[0][0]).toBe(401)
 

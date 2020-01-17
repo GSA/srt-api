@@ -81,7 +81,11 @@ module.exports = {
       "https://srt-client-dev.app.cloud.gov",
       "https://srt-client-staging.app.cloud.gov",
       "https://srt-client-prod.app.cloud.gov",
-    ]
+    ],
+    "constants": {
+      "EMAIL_ACTION": "sent email to POC",
+      "FEEDBACK_ACTION": "prediction feedback provided"
+    }
   },
   development: {
     "emailFrom": "crowley+srt@tcg.com",

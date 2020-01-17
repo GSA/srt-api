@@ -55,7 +55,7 @@ describe('Prediction History', () => {
         let color = history.slice(-1)[0].value
         expect(color).toBeOneOf(['red', 'green', 'black'])
       })
-  })
+  }, 10000)
 
   test('notices merge history correctly', () => {
     let solArray = predictionRoutes.mergePredictions([

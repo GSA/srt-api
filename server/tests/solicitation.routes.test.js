@@ -6,9 +6,16 @@ const User = require('../models').User
 const db = require('../models/index')
 const {common} = require('../config/config.js')
 const configuration = require('../config/configuration')
+const {getConfig} = require('../config/configuration')
+let solicitationRoutes = null
+const predictionRoutes = require('../routes/prediction.routes')
+const Prediction = require('../models').Prediction
+
+const cloneDeep = require('clone-deep')
 
 const randomWords = require('random-words')
 
+const { formatDateAsString } = require('../shared/time')
 const { userAcceptedCASData } = require('./test.data')
 
 let myUser = {}
@@ -21,6 +28,8 @@ describe('solicitation tests', () => {
   beforeAll(() => {
     process.env.MAIL_ENGINE = 'nodemailer-mock'
     app = require('../app')() // don't load the app till the mock is configured
+
+    solicitationRoutes = require('../routes/solicitation.routes')( db, { whoAmI: () => myUser.email })
 
     myUser = Object.assign({}, userAcceptedCASData)
     delete myUser.id
@@ -36,15 +45,41 @@ describe('solicitation tests', () => {
       .then( () => { app.db.close(); })
   })
 
-  test('solicitation post', () => {
-    return db.sequelize.query('select count(*), solicitation_number from notice group by solicitation_number having count(*) > 5 limit 1')
-      .then((rows) => {
+  test('solicitation post', async () => {
+
+    predictionRoutes.updatePredictionTable()
+
+    return db.sequelize.query('select count(*), solicitation_number from (select * from notice where history is not null) notice where history is not null group by solicitation_number having count(*) > 5 limit 1')
+      .then( async (result) => {
+
+        rows = await db.sequelize.query(`select * from notice where history is not null and  solicitation_number = '${result[0][0].solicitation_number}' order by feedback `)
         let noticeNum = rows[0][0].solicitation_number
         expect(noticeNum).toBeDefined()
 
         let word1 = randomWords.wordList[Math.floor(Math.random() * randomWords.wordList.length)]
         let word2 = randomWords.wordList[Math.floor(Math.random() * randomWords.wordList.length)]
         let actionDate = new Date().toLocaleString()
+
+        let history = cloneDeep(rows[0][0].history)
+        while (history.length < 2) {
+          history.push({ action: 'fake history' })
+        }
+        history.push ({
+          'date': actionDate,
+          'action': 'again reviewed solicitation action requested summary',
+          'user': word2,
+          'status': 'submitted'
+        })
+        let feedback = cloneDeep(rows[0][0].feedback)
+        if ( (! Array.isArray(feedback)) ){
+          feedback = []
+        }
+        feedback.push(    {
+            'questionID': feedback.length + 1,
+            'question': 'Is this an acceptable solicitation?',
+            'answer': 'Yes'
+          }
+        )
 
         return request(app)
           .post('/api/solicitation')
@@ -54,50 +89,20 @@ describe('solicitation tests', () => {
               'solNum': noticeNum,
               'actionStatus': 'reviewed solicitation action requested summary',
               'actionDate': actionDate,
-              'history': [
-                {
-                  'date': '03/03/2018',
-                  'action': 'sending',
-                  'user': word1,
-                  'status': 'submitted'
-                },
-                {
-                  'date': actionDate,
-                  'action': 'reviewed solicitation action requested summary',
-                  'user': word2,
-                  'status': 'submitted'
-                },
-                {
-                  'date': '2/1/2019',
-                  'action': 'again reviewed solicitation action requested summary',
-                  'user': word1,
-                  'status': ''
-                }
-
-              ],
-              'feedback': [
-                {
-                  'questionID': '1',
-                  'question': 'Is this a good solicitation?',
-                  'answer': 'Yes'
-                }
-              ]
+              'history': history,
+              'feedback': feedback
             }
           )
           .then((res) => {
             // noinspection JSUnresolvedVariable
-            res.body.action
             expect(res.statusCode).toBe(200)
-            expect(res.body.feedback[0].questionID).toBe('1')
+
+            expect(res.body.feedback[ res.body.feedback.length - 1].questionID).toBe(res.body.feedback.length)
+            expect (res.body.actionStatus).toBe(getConfig("constants:FEEDBACK_ACTION"))
 
             // Get the action date but strip off the seconds to avoid
-            let res_action_date_seconds = new Date(new Date (res.body.action[ res.body.action.length-1 ].date).toLocaleString()).getTime() //?
-            action_date_seconds = new Date(actionDate).getTime()  //?
-
-            expect(res_action_date_seconds).toBeGreaterThan(action_date_seconds - 100)
-            expect(res_action_date_seconds).toBeLessThan(action_date_seconds + 100)
-            expect(res.body.history[0].user).toBe(word1)
-            return expect(res.body.history[1].user).toBe(word2)
+            let res_action_date_seconds = new Date(new Date (res.body.action[ res.body.action.length-1 ].date).toLocaleString()).getTime()
+            return expect(res.body.history[ res.body.history.length-1 ].user).toBe(word2)
           })
           .then(() => {
             // make sure that we actually updated the correct one. Should be the latest
@@ -108,7 +113,7 @@ describe('solicitation tests', () => {
               .then((rows) => {
                 let hist = rows[0][0].history
                 expect(hist.length).toBeGreaterThan(2)
-                return expect(hist[2].action).toMatch(/again reviewed solicitation/)
+                return expect(hist[ hist.length-1 ].action).toMatch(/again reviewed solicitation/)
               })
           })
       })
@@ -288,6 +293,81 @@ describe('solicitation tests', () => {
               })
           })
       })
+  })
+
+  test('Solicitation audit', () => {
+    mock_notice = {
+        "action": [{ "action": "Record Created", "date": "2019-03-29T08:05:31.307Z", "status": "complete", "user": "" },
+                   { "action": "Solicitation marked not applicable", "date": "2020-01-16T13:07:53.575Z", "status": "complete" },
+                  ],
+        "actionDate": "2020-01-16T18:12:34.000Z",
+        "actionStatus": "Record updated",
+        "agency": "Department of the Navy",
+        "contactInfo": { "contact": "BERNIE CAGUIAT 8316566948", "email": "", "name": "Contact Name", "position": "Position" },
+        "createdAt": "2020-01-16T18:13:41.875Z",
+        "date": "2019-03-29T12:05:31.000Z",
+        "eitLikelihood": { "value": "Yes" },
+        "feedback": [],
+        "history": [{
+                      "action": "reviewed solicitation action requested summary",
+                      "date": "1/14/2020",
+                      "status": "",
+                      "user": "MAX CAS Test User"
+                    }, {
+                      "action": "sent email to POC",
+                      "date": "1/15/2020",
+                      "status": "Email Sent to POC",
+                       "user": "MAX CAS Test User"
+                    }
+         ],
+        "id": 7057,
+        "na_flag": true,
+        "noticeType": "COMBINE",
+        "numDocs": 0,
+        "office": "Naval Education and Training Command",
+        "parseStatus": [],
+        "predictions": { "history": [{ "date": "2019-03-29T08:05:31.307Z", "value": "red" }], "value": "black" },
+        "reviewRec": "Not Applicable",
+        "searchText": "n6227119q1075 combine 70--ecp model 205 controls executive for windows 10 software license and maintenance fri mar 29 2019 04:05:31 gmt-0400 (edt) not applicable record updated 2020-01-16t13:12:34.360z department of the navy naval education and training command",
+        "solNum": "N6227119Q1075",
+        "title": "70--ECP Model 205 Controls Executive for Windows 10 Software License and Maintenance",
+        "undetermined": false,
+        "updatedAt": "2020-01-16T18:13:41.875Z",
+        "url": "https://www.fbo.gov/notices/dc4237c5d3da6f60db3d5de14b8c14b8"
+      }
+
+    let updated_notice = cloneDeep(mock_notice, true)
+
+    let actions = solicitationRoutes.auditSolicitationChange(mock_notice, updated_notice, null)
+    expect(actions.length).toBe(2)
+
+    updated_notice = cloneDeep(mock_notice, true)
+    updated_notice.history.push(  {
+      "action": getConfig('constants:EMAIL_ACTION'),
+      "date": "1/16/2020",
+      "status": "Email Sent to POC",
+      "user": "MAX CAS Test User"
+    })
+
+    actions = solicitationRoutes.auditSolicitationChange(mock_notice, updated_notice, null)
+    let datestr = formatDateAsString(new Date())
+    expect(actions.length).toBeGreaterThan(2)
+    actions //?
+    expect(actions[actions.length-1].action).toBe(getConfig("constants:EMAIL_ACTION"))
+    expect(actions[actions.length-1].date).toBe(datestr)
+    expect(actions[actions.length-1].user).toBe(myUser.email)
+
+
+    updated_notice = cloneDeep(mock_notice, true)
+    updated_notice.feedback = [1,2,3]
+
+    actions = solicitationRoutes.auditSolicitationChange(mock_notice, updated_notice, null)
+    expect(actions.length).toBeGreaterThan(2)
+    expect(actions[actions.length-1].action).toBe(getConfig("constants:FEEDBACK_ACTION"))
+    expect(actions[actions.length-1].date).toBe(datestr)
+    expect(actions[actions.length-1].user).toBe(myUser.email)
+
+
   })
 
 }) // end describe

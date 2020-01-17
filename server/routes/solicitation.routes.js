@@ -4,8 +4,10 @@ const logger = require('../config/winston')
 // noinspection JSUnresolvedVariable
 const Notice = require('../models').notice
 const predictionRoute = require('../routes/prediction.routes')
-const userRoutes = require('../routes/user.routes')
 const authRoutes = require('../routes/auth.routes')
+const cloneDeep = require('clone-deep')
+const {getConfig} = require('../config/configuration')
+const { formatDateAsString } = require('../shared/time')
 
 
 
@@ -13,7 +15,42 @@ const authRoutes = require('../routes/auth.routes')
  * API routes related to solicitations
  */
 
-module.exports = function (db) {
+module.exports = function (db, userRoutes) {
+
+  function buildAction(req, action_string) {
+    return {
+      "action": action_string,
+      "date": formatDateAsString(new Date()),
+      "status": action_string,
+      "user": userRoutes.whoAmI(req)
+    }
+  }
+
+  function auditSolicitationChange (notice_orig, notice_updated, req) {
+    let actions = notice_orig.action
+    let user_info = userRoutes.whoAmI(req)
+
+
+    if (notice_orig.history && notice_updated.history) {
+      let orig_hist_len = notice_orig.history.length
+      let up_hist_len = notice_updated.history.length
+
+      if (up_hist_len > orig_hist_len) {
+        if (notice_updated.history[up_hist_len - 1].action == getConfig('constants:EMAIL_ACTION')) {
+          actions.push(buildAction(req, getConfig('constants:EMAIL_ACTION')))
+        }
+      }
+    }
+
+    if (notice_updated.feedback &&
+      ( ( !notice_orig.feedback ) || notice_orig.feedback.length != notice_updated.feedback.length) ) {
+      actions.push(buildAction(req, getConfig('constants:FEEDBACK_ACTION')))
+    }
+
+
+    return actions;
+  }
+
   return {
 
     // app.get('/solicitation/:id', (req, res) => {
@@ -51,7 +88,6 @@ module.exports = function (db) {
             })
         })
         .catch((e) => {
-          e //?
           logger.log('error', 'error in: solicitation get', { error:e, tag: 'solicitation get' })
           return res.status(500).send('Error finding solicitation')
         })
@@ -126,11 +162,14 @@ module.exports = function (db) {
               return res.status(200).send(predictionRoute.makeOnePrediction(n))
             })
             .catch (error => {
-              console.log(error)
+              logger.log("error", "Error in solicitation update", {tag: 'solicitation update', error: error})
             })
 
         })
     },
+
+    auditSolicitationChange: auditSolicitationChange,
+
 
     /**
          * <b> POST /api/solicitation </b><br><br>
@@ -163,25 +202,20 @@ module.exports = function (db) {
             return res.status(404).send({ msg: 'solicitation not found' })
           }
 
-          notice.history = req.body.history
-          notice.feedback = req.body.feedback
-          notice.action = req.body.action
-          if (! Array.isArray(notice.action)){
+          // first do the audit
+          if (! Array.isArray(notice.action, req.body)){
             notice.action = []
           }
-          let user_info = userRoutes.whoAmI(req)
-          let now = new Date()
-          notice.action.push({
-            action: "Record updated",
-            status: "complete",
-            date: now,
-            user: user_info.email
-          })
+          notice.action = auditSolicitationChange(notice, req.body, req)
+
+          //now that audit is done, we can update.
+          notice.history = req.body.history
+          notice.feedback = cloneDeep(req.body.feedback)
+
 
           // noinspection JSUnresolvedFunction
           return notice.save()
             .then((doc) => {
-              // logger.log("error", predictionRoute.makeOnePrediction(doc) , {tag:"notice"})
               return res.status(200).send(predictionRoute.makeOnePrediction(doc))
             })
             .catch((e) => {

@@ -15,7 +15,7 @@ const {getConfig} = require('./config/configuration')
 const logger = require('./config/winston')
 
 if (! jwtSecret) {
-  console.log("No JWT secret defined.  Be sure to set JWT_SECRET in the environment before running startup")
+  console.log("No JWT secret defined.  Be sure to set JWT_SECRET in the environment before running startup") // allowed output
   process.exit(1)
 }
 
@@ -45,7 +45,7 @@ module.exports = function (db, cas) {
   let agencyRoutes = require('./routes/agency.routes')
   let predictionRoutes = require('./routes/prediction.routes')
   let analyticsRoutes = require('./routes/analytics.routes')
-  let solicitationRoutes = require('./routes/solicitation.routes')(db)
+  let solicitationRoutes = require('./routes/solicitation.routes')(db, userRoutes)
   let surveyRoutes = require('./routes/survey.routes')
   let versionRoutes = require('./routes/version.routes')()
   let noticeTypeRoutes = require('./routes/noticeType.routes')
@@ -53,18 +53,16 @@ module.exports = function (db, cas) {
   app.use(bodyParser.json())
 
   // setup CORS
-  let corsOptions = {
-    origin: function (origin, callback) {
-      // logger.log('info', `Request origin: ${origin}`, {tag: 'CORS'});
-      if (origin === undefined || common.CORSWhitelist.indexOf(origin) !== -1) {
-        callback(null, true)
-      } else {
-        logger.log('warning', 'Request from origin ' + origin + ' not allowed by CORS.', { tag: 'CORS'})
-        callback(new Error('Not allowed by CORS'))
-      }
+  function corsTest (origin, callback) {
+    if (origin === undefined || common.CORSWhitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      logger.log('warning', 'Request from origin ' + origin + ' not allowed by CORS.', { tag: 'CORS' })
+      callback(new Error('Not allowed by CORS'))
     }
   }
-  app.use(cors(corsOptions));
+  app.corsTest = corsTest
+  app.use(cors({ origin: corsTest }));
 
   if (env === 'development' || env === 'sqlite') {
     expressWinston.requestWhitelist.push('body')
