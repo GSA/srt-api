@@ -70,7 +70,7 @@
     "supertest-session": "^4.0.0"
   },
   "engines": {
-    "node": "8.16.2",
+    "node": "12.14.1",
     "npm": "3.10.3"
   },
   "nodemonConfig": {
