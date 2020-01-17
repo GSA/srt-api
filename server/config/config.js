@@ -174,7 +174,8 @@ module.exports = {
       "is_dev_mode" : false,
       "dev_mode_user" : "",
       "renew" : true,
-      "renew_query_parameter_name" : "bypassMaxsso"
+      "renew_query_parameter_name" : "bypassMaxsso",
+      "password-whitelist": [ "samira.isber@gsa.gov", "albert.crowley@gsa.gov" ]
     }
   },
   "cloudstaging": {
