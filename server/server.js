@@ -5,7 +5,7 @@ const app = require('./app')()
 const port = config.srt_server.port
 
 app.listen(port, '0.0.0.0',() => {
-  console.log(`Started up at port ${port}`)
+  console.log(`Started up at port ${port}`) // allowed output
 })
 
 module.exports = app

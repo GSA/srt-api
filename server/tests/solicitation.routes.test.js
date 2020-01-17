@@ -45,7 +45,7 @@ describe('solicitation tests', () => {
       .then( () => { app.db.close(); })
   })
 
-  test.only('solicitation post', async () => {
+  test('solicitation post', async () => {
 
     predictionRoutes.updatePredictionTable()
 
@@ -60,7 +60,7 @@ describe('solicitation tests', () => {
         let word2 = randomWords.wordList[Math.floor(Math.random() * randomWords.wordList.length)]
         let actionDate = new Date().toLocaleString()
 
-        let history = rows[0][0].history
+        let history = cloneDeep(rows[0][0].history)
         while (history.length < 2) {
           history.push({ action: 'fake history' })
         }
@@ -70,7 +70,7 @@ describe('solicitation tests', () => {
           'user': word2,
           'status': 'submitted'
         })
-        let feedback = rows[0][0].feedback
+        let feedback = cloneDeep(rows[0][0].feedback)
         if ( (! Array.isArray(feedback)) ){
           feedback = []
         }
@@ -80,10 +80,6 @@ describe('solicitation tests', () => {
             'answer': 'Yes'
           }
         )
-        console.log(noticeNum)
-        console.log(actionDate)
-        console.log(history)
-        console.log(feedback)
 
         return request(app)
           .post('/api/solicitation')
@@ -102,17 +98,10 @@ describe('solicitation tests', () => {
             expect(res.statusCode).toBe(200)
 
             expect(res.body.feedback[ res.body.feedback.length - 1].questionID).toBe(res.body.feedback.length)
-            console.log(res.body.actionStatus)
-            console.log(res.body.action)
-            console.log(res.body)
             expect (res.body.actionStatus).toBe(getConfig("constants:FEEDBACK_ACTION"))
 
             // Get the action date but strip off the seconds to avoid
             let res_action_date_seconds = new Date(new Date (res.body.action[ res.body.action.length-1 ].date).toLocaleString()).getTime()
-            // action_date_seconds = new Date(actionDate).getTime()  //?
-            //
-            // expect(res_action_date_seconds).toBeGreaterThan(action_date_seconds - 100)
-            // expect(res_action_date_seconds).toBeLessThan(action_date_seconds + 100)
             return expect(res.body.history[ res.body.history.length-1 ].user).toBe(word2)
           })
           .then(() => {
@@ -362,20 +351,21 @@ describe('solicitation tests', () => {
 
     actions = solicitationRoutes.auditSolicitationChange(mock_notice, updated_notice, null)
     let datestr = formatDateAsString(new Date())
-    expect(actions.length).toBe(3)
-    expect(actions[2].action).toBe(getConfig("constants:EMAIL_ACTION"))
-    expect(actions[2].date).toBe(datestr)
-    expect(actions[2].user).toBe(myUser.email)
+    expect(actions.length).toBeGreaterThan(2)
+    actions //?
+    expect(actions[actions.length-1].action).toBe(getConfig("constants:EMAIL_ACTION"))
+    expect(actions[actions.length-1].date).toBe(datestr)
+    expect(actions[actions.length-1].user).toBe(myUser.email)
 
 
     updated_notice = cloneDeep(mock_notice, true)
     updated_notice.feedback = [1,2,3]
 
     actions = solicitationRoutes.auditSolicitationChange(mock_notice, updated_notice, null)
-    expect(actions.length).toBe(3)
-    expect(actions[2].action).toBe(getConfig("constants:FEEDBACK_ACTION"))
-    expect(actions[2].date).toBe(datestr)
-    expect(actions[2].user).toBe(myUser.email)
+    expect(actions.length).toBeGreaterThan(2)
+    expect(actions[actions.length-1].action).toBe(getConfig("constants:FEEDBACK_ACTION"))
+    expect(actions[actions.length-1].date).toBe(datestr)
+    expect(actions[actions.length-1].user).toBe(myUser.email)
 
 
   })

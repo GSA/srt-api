@@ -15,7 +15,7 @@ const {getConfig} = require('./config/configuration')
 const logger = require('./config/winston')
 
 if (! jwtSecret) {
-  console.log("No JWT secret defined.  Be sure to set JWT_SECRET in the environment before running startup")
+  console.log("No JWT secret defined.  Be sure to set JWT_SECRET in the environment before running startup") // allowed output
   process.exit(1)
 }
 

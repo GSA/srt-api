@@ -17,8 +17,17 @@ const { formatDateAsString } = require('../shared/time')
 
 module.exports = function (db, userRoutes) {
 
+  function buildAction(req, action_string) {
+    return {
+      "action": action_string,
+      "date": formatDateAsString(new Date()),
+      "status": action_string,
+      "user": userRoutes.whoAmI(req)
+    }
+  }
+
   function auditSolicitationChange (notice_orig, notice_updated, req) {
-    let actions = cloneDeep(notice_orig.action)
+    let actions = notice_orig.action
     let user_info = userRoutes.whoAmI(req)
 
 
@@ -28,31 +37,16 @@ module.exports = function (db, userRoutes) {
 
       if (up_hist_len > orig_hist_len) {
         if (notice_updated.history[up_hist_len - 1].action == getConfig('constants:EMAIL_ACTION')) {
-          actions.push({
-            "action": getConfig('constants:EMAIL_ACTION'),
-            "date": formatDateAsString(new Date()),
-            "status": getConfig('constants:EMAIL_ACTION'),
-            "user": userRoutes.whoAmI(req)
-          })
+          actions.push(buildAction(req, getConfig('constants:EMAIL_ACTION')))
         }
       }
     }
 
-    console.log ("original feedback:")
-    console.log(notice_orig.feedback)
-    console.log ("updated feedback:")
-    console.log(notice_updated.feedback)
-
     if (notice_updated.feedback &&
       ( ( !notice_orig.feedback ) || notice_orig.feedback.length != notice_updated.feedback.length) ) {
-      console.log("PUSH ACTION")
-      actions.push({
-        "action": getConfig('constants:FEEDBACK_ACTION'),
-        "date": formatDateAsString(new Date()),
-        "status": getConfig('constants:FEEDBACK_ACTION'),
-        "user": userRoutes.whoAmI(req)
-      })
+      actions.push(buildAction(req, getConfig('constants:FEEDBACK_ACTION')))
     }
+
 
     return actions;
   }
@@ -169,7 +163,7 @@ module.exports = function (db, userRoutes) {
               return res.status(200).send(predictionRoute.makeOnePrediction(n))
             })
             .catch (error => {
-              console.log(error)
+              logger.log("error", "Error in solicitation update", {tag: 'solicitation update', error: error})
             })
 
         })
@@ -219,12 +213,14 @@ module.exports = function (db, userRoutes) {
           notice.history = req.body.history
           notice.feedback = cloneDeep(req.body.feedback)
 
+
           // noinspection JSUnresolvedFunction
           return notice.save()
             .then((doc) => {
               return res.status(200).send(predictionRoute.makeOnePrediction(doc))
             })
             .catch((e) => {
+              e //?
               logger.log('error', 'error in: postSolicitation - error on save', { error:e, tag: 'postSolicitation - error on save' })
               res.status(400).send({ msg: 'error updating solicitation' })
             })

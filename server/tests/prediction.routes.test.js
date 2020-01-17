@@ -627,10 +627,6 @@ describe('prediction tests', () => {
     // expect(predictions0.length).toBe(15);
     let pred59 = predictions0[4]
 
-    for (let i=0; i< predictions0.length; i++){
-      console.log(predictions0[i].solNum)
-    }
-
     // get rows 59 and 60
     event.first = 59
     event.rows = 2
@@ -664,8 +660,6 @@ describe('prediction tests', () => {
     let predictions3 = res.send.mock.calls[3][0].predictions
     let pred59clone3 = predictions3[0]
     expect(predictions3.length).toBe(100)
-    pred59clone1.solNum //?
-    pred59clone3.solNum //?
     // we changed the sort so they should not be equal anymore
     expect(pred59clone2.solNum != pred59clone3.solNum).toBeTruthy()
 
@@ -777,7 +771,6 @@ describe('prediction tests', () => {
       for (let i = 0; i < 90; i += 32) {
         let order = await predictionRoutes.getPredictions({ first: i, rows: 7, sortField: field })
 
-        console.log (`comparing ${i} `)
         // check that first = x is the same as the xth item when starting at 0
         expect(order.predictions[0].solNum).toBe(order1.predictions[i].solNum)
 
@@ -807,7 +800,7 @@ describe('prediction tests', () => {
     }
 
     if (! found ) {
-      console.log (`didn't find '${word}' in results`)
+      console.log (`didn't find '${word}' in results`)  // allowed output
     }
 
     expect(found).toBeTruthy()
@@ -833,7 +826,6 @@ describe('prediction tests', () => {
         word = word || p[x.field].match(x.regex)  // pick out a word from the field
       }
       word = word[0] // grab the first match string
-      word //?
       await globalFilterTest(word)
     }
 
@@ -843,7 +835,6 @@ describe('prediction tests', () => {
         word = word || p[x.field].match(x.regex)  // pick out a word from the field
       }
       word = word[0].toLowerCase() // grab the first match string
-      console.log(`testing ${x.field}`)
 
       await globalFilterTest(word)
     }
@@ -885,7 +876,6 @@ describe('prediction tests', () => {
 
       let allMatch = true
       for (p of preds) {
-        p[field] //?
         allMatch = p[field] == word
         if ( ! allMatch) {
           break;
@@ -893,7 +883,7 @@ describe('prediction tests', () => {
       }
 
       if ( ! allMatch ) {
-        console.log (`Found a record that didn't match '${word}' in results for field ${field}`)
+        console.log (`Found a record that didn't match '${word}' in results for field ${field}`) // allowed output
       }
 
       expect(allMatch).toBeTrue()
