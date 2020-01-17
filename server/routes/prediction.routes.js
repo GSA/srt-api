@@ -162,7 +162,6 @@ function makeOnePrediction (notice) {
 
     o.searchText = [o.solNum, o.noticeType, o.title, o.date, o.reviewRec, o.actionStatus, o.actionDate, o.agency, o.office].join(' ').toLowerCase()
   } catch (e) {
-    e//?
     logger.log("error", "Error building a prediction object", {tag: "MakeOnePrediction", error: e})
   }
   return o
@@ -277,65 +276,83 @@ function normalizeMatchFilter(filter, field){
 /** @namespace filter.numDocs */
 async function getPredictions (filter) {
 
+  try {
 
-  await updatePredictionTable()
+    await updatePredictionTable()
 
-  let attributes = {
-    offset: filter.first,
-    limit:filter.rows
-  }
+    let attributes = {
+      offset: filter.first,
+      limit: filter.rows
+    }
 
-  // filter out rows
-  if (filter.globalFilter) {
-    if (attributes.where === undefined) { attributes.where = {} }
-    attributes.where.searchText = { [Op.like]: `%${filter.globalFilter.toLowerCase()}%` }
-  }
-  for (let f of ['office', 'agency', 'title', 'solNum', 'reviewRec' ]) {
-    normalizeMatchFilter(filter, f)
-  }
+    // filter out rows
+    if (filter.globalFilter) {
+      if (attributes.where === undefined) {
+        attributes.where = {}
+      }
+      attributes.where.searchText = { [Op.like]: `%${filter.globalFilter.toLowerCase()}%` }
+    }
+    for (let f of ['office', 'agency', 'title', 'solNum', 'reviewRec']) {
+      normalizeMatchFilter(filter, f)
+    }
 
-  // process PrimeNG filters: filter.filters = { field: { value: 'x', matchMode: 'equals' } }
-  if (filter.filters) {
-    for (f in filter.filters) {
-      if (filter.filters[f].matchMode == 'equals') {
-        if (attributes.where === undefined) { attributes.where = {} }
-        attributes.where[f] = filter.filters[f].value
+    // process PrimeNG filters: filter.filters = { field: { value: 'x', matchMode: 'equals' } }
+    if (filter.filters) {
+      for (let f in filter.filters) {
+        if (filter.filters[f].matchMode == 'equals') {
+          if (attributes.where === undefined) {
+            attributes.where = {}
+          }
+          attributes.where[f] = filter.filters[f].value
+        }
       }
     }
-  }
 
 
-  // process dates
-  if (filter.startDate) {
-    if (attributes.where === undefined) { attributes.where = {} }
-    attributes.where.date =  { [Op.gt] : filter.startDate }
-  }
-  if (filter.endDate) {
-    if (attributes.where === undefined) { attributes.where = {} }
-    attributes.where.date = (attributes.where.date) ?
-      Object.assign(attributes.where.date, { [Op.lt] : filter.endDate }) :
-      { [Op.lt] : filter.endDate }
-  }
-
-  // set order
-  attributes.order = []
-  if (filter.sortField !== 'unsorted' && filter.sortField){
-    filter.sortField
-    attributes.order.push([filter.sortField ] )
-    if (filter.sortOrder && filter.sortOrder < 0 ) {
-      attributes.order[0].push('DESC')
+    // process dates
+    if (filter.startDate) {
+      if (attributes.where === undefined) {
+        attributes.where = {}
+      }
+      attributes.where.date = { [Op.gt]: filter.startDate }
     }
-  }
-  attributes.order.push( [ 'id' ] ) // always end with an order by id to keep the ordering deterministic
+    if (filter.endDate) {
+      if (attributes.where === undefined) {
+        attributes.where = {}
+      }
+      attributes.where.date = (attributes.where.date) ?
+        Object.assign(attributes.where.date, { [Op.lt]: filter.endDate }) :
+        { [Op.lt]: filter.endDate }
+    }
 
-  let preds = await Prediction.findAll( attributes )
-  let count = await Prediction.findAndCountAll( attributes )
+    // set order
+    attributes.order = []
+    if (filter.sortField !== 'unsorted' && filter.sortField) {
+      filter.sortField
+      attributes.order.push([filter.sortField])
+      if (filter.sortOrder && filter.sortOrder < 0) {
+        attributes.order[0].push('DESC')
+      }
+    }
+    attributes.order.push(['id']) // always end with an order by id to keep the ordering deterministic
 
-  return {
-    predictions: preds,
-    first: filter.first,
-    rows: Math.min(filter.rows,preds.length),
-    totalCount: count.count
+    let preds = await Prediction.findAll(attributes)
+    let count = await Prediction.findAndCountAll(attributes)
+
+    return {
+      predictions: preds,
+      first: filter.first,
+      rows: Math.min(filter.rows, preds.length),
+      totalCount: count.count
+    }
+  } catch (e) {
+    logger.log("error", "Error in getPredictions", {tag: "getPredictions", error: e})
+    return {
+      predictions: [],
+      first: 0,
+      rows: 0,
+      totalCount: 0
+    }
   }
 }
 
@@ -400,7 +417,6 @@ module.exports = {
       })
       .catch(e => {
         logger.log('error', 'error in: predictionFilter', { error:e, tag: 'predictionFilter' })
-        e //?
         return res.status(500).send(data)
       })
   },
@@ -424,7 +440,6 @@ async function updatePredictionTable  () {
       await Prediction.destroy({ where: { solNum: pred.solNum } }) // delete any outdated prediction
       await Prediction.create(pred);
     } catch(e) {
-      e //?
       logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', error: e})
     }
 
@@ -467,11 +482,9 @@ function getOutdatedPrediction() {
       for (let i = 0; i < notices.length; i++) {
         data[i] =cloneDeep(makeOnePrediction(notices[i]))
       }
-      let merged = mergePredictions(data)
-      return merged
+      return mergePredictions(data)
     })
     .catch(e => {
-      e //?
       logger.log('error', 'error in: getOutdatedPrediction', { error:e, tag: 'getOutdatedPrediction', sql: sql })
       return null
     })

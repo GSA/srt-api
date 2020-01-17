@@ -88,7 +88,6 @@ module.exports = function (db, userRoutes) {
             })
         })
         .catch((e) => {
-          e //?
           logger.log('error', 'error in: solicitation get', { error:e, tag: 'solicitation get' })
           return res.status(500).send('Error finding solicitation')
         })
@@ -220,13 +219,11 @@ module.exports = function (db, userRoutes) {
               return res.status(200).send(predictionRoute.makeOnePrediction(doc))
             })
             .catch((e) => {
-              e //?
               logger.log('error', 'error in: postSolicitation - error on save', { error:e, tag: 'postSolicitation - error on save' })
               res.status(400).send({ msg: 'error updating solicitation' })
             })
         })
         .catch((e) => {
-          e//?
           logger.log('error', 'error in: postSolicitation - error during find', { error:e, tag: 'postSolicitation - error during find' })
           res.status(400).send({ msg: 'error updating solicitation' })
         })

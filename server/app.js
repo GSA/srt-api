@@ -53,18 +53,16 @@ module.exports = function (db, cas) {
   app.use(bodyParser.json())
 
   // setup CORS
-  let corsOptions = {
-    origin: function (origin, callback) {
-      // logger.log('info', `Request origin: ${origin}`, {tag: 'CORS'});
-      if (origin === undefined || common.CORSWhitelist.indexOf(origin) !== -1) {
-        callback(null, true)
-      } else {
-        logger.log('warning', 'Request from origin ' + origin + ' not allowed by CORS.', { tag: 'CORS'})
-        callback(new Error('Not allowed by CORS'))
-      }
+  function corsTest (origin, callback) {
+    if (origin === undefined || common.CORSWhitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      logger.log('warning', 'Request from origin ' + origin + ' not allowed by CORS.', { tag: 'CORS' })
+      callback(new Error('Not allowed by CORS'))
     }
   }
-  app.use(cors(corsOptions));
+  app.corsTest = corsTest
+  app.use(cors({ origin: corsTest }));
 
   if (env === 'development' || env === 'sqlite') {
     expressWinston.requestWhitelist.push('body')

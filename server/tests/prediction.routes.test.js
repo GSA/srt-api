@@ -6,8 +6,6 @@ const User = require('../models').User
 // noinspection JSUnresolvedVariable
 const Notice = require('../models').notice
 // noinspection JSUnresolvedVariable
-const NoticeType = require('../models').notice
-// noinspection JSUnresolvedVariable
 const Attachment = require('../models').attachment
 const env = process.env.NODE_ENV || 'development'
 const db = require('../models/index')
@@ -175,28 +173,6 @@ describe('prediction tests', () => {
         expect(res.body.predictions.length).toBeDefined()
 
         expect(res.body.rows.toString()).toBe(row_count.toString())
-
-        // test for no duplicate solNumbers
-        let solNumList = {}
-        for (let p of res.body.predictions) {
-          expect(solNumList[p.solNum]).toBeUndefined()
-          solNumList[p.solNum] = true
-        }
-
-        return expect(res.body.predictions[0].title).toBeDefined()
-      })
-  }, timeout)
-
-  test('Test that all predictions with the same notice number are merged', () => {
-    return request(app)
-      .post('/api/predictions/filter')
-      .set('Authorization', `Bearer ${token}`)
-      .send()
-      .then((res) => {
-        // noinspection JSUnresolvedVariable
-        expect(res.statusCode).toBe(200)
-
-        expect(res.body.predictions.length).toBeDefined()
 
         // test for no duplicate solNumbers
         let solNumList = {}
@@ -661,7 +637,7 @@ describe('prediction tests', () => {
     let pred59clone3 = predictions3[0]
     expect(predictions3.length).toBe(100)
     // we changed the sort so they should not be equal anymore
-    expect(pred59clone2.solNum != pred59clone3.solNum).toBeTruthy()
+    expect(pred59clone2.solNum !== pred59clone3.solNum).toBeTruthy()
 
     event.sortOrder = -1
     req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
@@ -671,16 +647,17 @@ describe('prediction tests', () => {
     let pred59clone4 = predictions4[0]
     expect(predictions4.length).toBe(100)
     // we changed the sort direction so they should not be equal anymore
-    expect(pred59clone3.solNum != pred59clone4.solNum).toBeTruthy()
+    expect(pred59clone3.solNum !== pred59clone4.solNum).toBeTruthy()
 
   })
 
   function compare (a,b) {
     let sort = undefined
-    if (typeof (a) == 'string') {
+    if (typeof (a) === 'string') {
       sort = a.localeCompare(b)
-    } if (typeof (a.getTime) == 'function' ) {
-      if (a.getTime() == b.getTime()) {
+    }
+    if (typeof (a.getTime) === 'function' ) {
+      if (a.getTime() === b.getTime()) {
         sort = 0
       } else {
         sort = (a.getTime() < b.getTime()) ? -1 : 1
@@ -885,14 +862,22 @@ describe('prediction tests', () => {
       if ( ! allMatch ) {
         console.log (`Found a record that didn't match '${word}' in results for field ${field}`) // allowed output
       }
-
       expect(allMatch).toBeTrue()
-
-
     }
-
-
   }, 30000)
+
+  test("Prediction filter call with no results", async () => {
+    let predictions_err = await predictionRoutes.getPredictions({ 'agency': 'No Agency Here', first: -1000 })
+    expect(predictions_err.predictions.length).toBe(0)
+    expect(predictions_err.first).toBe(0)
+    expect(predictions_err.rows).toBe(0)
+    expect(predictions_err.totalCount).toBe(0)
+
+
+    let {predictions} = await predictionRoutes.getPredictions({ 'agency': 'No Agency Here' })
+    expect(predictions.length).toBe(0)
+  })
+
 
   test("PrimeNG prediction dropdown filter", async () => {
 

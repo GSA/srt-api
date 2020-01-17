@@ -6,13 +6,11 @@ const Sequelize = require('sequelize')
  * Prediction routes
  */
 const logger = require('../config/winston')
-const db = require('../models/index')
 /**
  * @typedef {Object} SqlString
  * @property {function} escape
  */
 const env = process.env.NODE_ENV || 'development'
-const config = require('../config/config.js')[env]
 
 module.exports = {
   getNoticeTypes : function(req, res) {
@@ -29,7 +27,6 @@ module.exports = {
         return res.status(200).send(typeArray)
       })
       .catch( e => {
-        e //?
         logger.log("error", "getNoticeTypes exception", {tag:"getNoticeTypes", error:e})
         return res.status(500).send("Server error")
       })

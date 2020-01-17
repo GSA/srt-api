@@ -1,7 +1,6 @@
 /** @module MasqueradeRoutes */
 const authRoutes = require('../routes/auth.routes')
 const jwt = require('jsonwebtoken')
-const bcrypt = require('bcryptjs')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
 const logger = require('../config/winston')
@@ -9,29 +8,6 @@ const {common} = require('../config/config.js')
 const {getConfig} = require('../config/configuration')
 
 
-
-/**
- *
- * Helper function to save an updated user password
- *
- * @param {User} user Sequelize User record
- * @param {string} unencryptedPassword New password for the User
- * @return {Promise}
- */
-/** @namespace user.password */
-/** @namespace user.tempPassword */
-/** @namespace user.save */
-let performUpdatePassword = function (user, unencryptedPassword) {
-  logger.log('info', 'Updating password for user ' + user.email, { tag: 'performUpdatePassword' })
-
-  user.password = bcrypt.hashSync(unencryptedPassword, 10)
-  user.tempPassword = ''
-  return user.save()
-    .catch(e => {
-      logger.log('error', 'error in: performUpdatePassword', { error:e, tag: 'performUpdatePassword' })
-      throw e
-    })
-}
 
 /**
  * Returns the email associated with the current request, or anonymous if user not logged in
@@ -138,11 +114,6 @@ module.exports = {
     return res.status(200).send({})
   },
 
-  /**
-     * exported here for use in unit tests
-     *
-     */
-  performUpdatePassword: performUpdatePassword,
 
   /**
      * <b>POST /api/user/updatePassword</b><br><br>
