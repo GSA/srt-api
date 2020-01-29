@@ -64,7 +64,7 @@ module.exports = function (db, cas) {
   app.corsTest = corsTest
   app.use(cors({ origin: corsTest }));
 
-  if (env === 'development' || env === 'sqlite') {
+  if (env === 'development') {
     expressWinston.requestWhitelist.push('body')
   }
 
