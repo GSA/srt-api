@@ -101,6 +101,10 @@ function makeOnePrediction (notice) {
     o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0
     o.solNum = notice.solicitation_number
     o.noticeType = notice.notice_type
+    if ( ! o.noticeType) {
+      o.noticeType = 'Unknown'
+      logger.log ("error", `Solicitation ${o.solNum} did not have a notice type`, {tag: "makeOnePrediction", notice: notice})
+    }
     o.date = notice.date
     o.office = (notice.notice_data !== undefined) ? notice.notice_data.office : ''
     o.predictions = {
@@ -443,9 +447,11 @@ async function updatePredictionTable  () {
       logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', error: e})
     }
 
+    // we only get 1000 at a time so check to see if there are more when we run out of the current batch
     if (outdatedPredictions.length == 0) {
       outdatedPredictions = await getOutdatedPrediction()
     }
+
     if ((actualCount % 100) == 0) {
       logger.log("debug", `Updated ${actualCount} prediction records.`)
     }
