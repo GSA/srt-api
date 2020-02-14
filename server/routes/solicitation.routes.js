@@ -88,6 +88,7 @@ module.exports = function (db, userRoutes) {
             })
         })
         .catch((e) => {
+          e //?
           logger.log('error', 'error in: solicitation get', { error:e, tag: 'solicitation get' })
           return res.status(500).send('Error finding solicitation')
         })

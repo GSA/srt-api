@@ -4,7 +4,7 @@ const mockToken = require('./mocktoken')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
 const db = require('../models/index')
-const {common} = require('../config/config.js')
+const {common, config_keys} = require('../config/config.js')
 const configuration = require('../config/configuration')
 const {getConfig} = require('../config/configuration')
 let solicitationRoutes = null
@@ -23,9 +23,10 @@ myUser.firstName = 'sol-beforeAllUser'
 myUser.email = 'crowley+sol@tcg.com'
 delete myUser.id
 let token = {}
+let sample_sol_num = ''
 
 describe('solicitation tests', () => {
-  beforeAll(() => {
+  beforeAll( async () => {
     process.env.MAIL_ENGINE = 'nodemailer-mock'
     app = require('../app')() // don't load the app till the mock is configured
 
@@ -33,11 +34,20 @@ describe('solicitation tests', () => {
 
     myUser = Object.assign({}, userAcceptedCASData)
     delete myUser.id
-    return User.create({ myUser: myUser })
-      .then(async (user) => {
-        myUser.id = user.id
-        token = await mockToken(myUser, common['jwtSecret'])
-      })
+    user = await User.create({ myUser: myUser })
+    myUser.id = user.id
+    token = await mockToken(myUser, common['jwtSecret'])
+
+    let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",")
+
+    let sql = `select solicitation_number 
+                from notice
+                join notice_type on notice.notice_type_id = notice_type.id
+                where notice_type.notice_type in (${allowed_types})
+                order by notice.id desc
+                limit 1`
+    let rows = await db.sequelize.query(sql)
+    sample_sol_num = rows[0][0].solicitation_number
   })
 
   afterAll(() => {
@@ -120,7 +130,8 @@ describe('solicitation tests', () => {
   })
 
   test('solicitation get', () => {
-    return db.sequelize.query('select id, solicitation_number from notice order by date desc, solicitation_number desc limit 1')
+
+    return db.sequelize.query(`select id, solicitation_number from notice where  notice.solicitation_number = '${sample_sol_num}'`)
       .then((rows) => {
         let id = rows[0][0].id
         let solNum = rows[0][0].solicitation_number
@@ -255,15 +266,24 @@ describe('solicitation tests', () => {
       })
   })
 
+
   test('Test attachment filenames', () => {
 
     let limit = configuration.getConfig('SolicitationCountLimit', '2000000000')
-    let sql = `select  n.solicitation_number, count(*) as c                                                                        \n` +
-      `from (select solicitation_number, attachment.* from attachment join notice on attachment.notice_id = notice.id) attachment  \n` +
-      `join (select solicitation_number, min(date) as d from notice group by solicitation_number order by d desc limit ${limit}) n     \n` +
-      `            on attachment.solicitation_number = n.solicitation_number                                                       \n` +
-      `group by n.solicitation_number                                                                                              \n` +
-      `having count(*) > 2`
+    let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",") //?
+    let sql = `select  n.solicitation_number, count(*) as c
+               from ( 
+                     select solicitation_number, attachment.* 
+                     from attachment 
+                     join notice on attachment.notice_id = notice.id 
+                     join notice_type nt on notice.notice_type_id = nt.id 
+                     where nt.notice_type in (${allowed_types})
+                    ) attachment  
+               join (select solicitation_number, min(date) as d from notice group by solicitation_number order by d desc limit ${limit}) n 
+                     on attachment.solicitation_number = n.solicitation_number
+               group by n.solicitation_number
+               having count(*) > 2`
+
 
     return db.sequelize.query(sql)
       .then((rows) => {
@@ -272,7 +292,7 @@ describe('solicitation tests', () => {
           .then(files => {
             return db.sequelize.query(`select id from notice where solicitation_number = '${solNum}' limit 1`)
               .then(rows => {
-                let noticeId = rows[0][0].id
+                let noticeId = rows[0][0].id //?
                 return request(app)
                   .get('/api/solicitation/' + noticeId)
                   .set('Authorization', `Bearer ${token}`)

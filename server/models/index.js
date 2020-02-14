@@ -127,5 +127,6 @@ db.sequelize = sequelize
 db.Sequelize = Sequelize
 
 db['notice'].hasMany(db['attachment'], { foreignKey: 'notice_id', sourceKey: 'id' })
+db['notice'].hasOne(db['notice_type'], {foreignKey:'id', sourceKey:'notice_type_id'})
 
 module.exports = db
