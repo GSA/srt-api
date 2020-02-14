@@ -5,15 +5,18 @@ const mockToken = require('./mocktoken')
 const User = require('../models').User
 // noinspection JSUnresolvedVariable
 const Notice = require('../models').notice
+const NoticeType = require('../models').notice_type
 // noinspection JSUnresolvedVariable
+const Op = require('sequelize').Op
 const Attachment = require('../models').attachment
 const env = process.env.NODE_ENV || 'development'
 const db = require('../models/index')
 let predictionRoutes = require('../routes/prediction.routes')
 let randomWords = require('random-words')
-const {common} = require('../config/config.js')
+const {common, config_keys} = require('../config/config.js')
 const timeout = 10000 // set to 10 seconds because some of these tests are slow.
 const mocks = require('./mocks')
+const configuration = require('../config/configuration')
 
 
 const { userAcceptedCASData } = require('./test.data')
@@ -24,6 +27,7 @@ myUser.email = 'crowley+pred@tcg.com'
 myUser.maxId = 'PRT001'
 delete myUser.id
 let token = {}
+let sample_sol_num = ''
 
 let predictionTemplate = {
   solNum: '1234',
@@ -87,18 +91,28 @@ let predictionTemplate = {
 }
 
 describe('prediction tests', () => {
-  beforeAll(() => {
+  beforeAll( async () => {
     jest.setTimeout(10000) // some of these tests are slow
     process.env.MAIL_ENGINE = 'nodemailer-mock'
     app = require('../app')() // don't load the app till the mock is configured
 
     myUser = Object.assign({}, userAcceptedCASData)
     delete myUser.id
-    return User.create(myUser)
-      .then(async (user) => {
-        myUser.id = user.id
-        token = await mockToken(myUser, common['jwtSecret'])
-      })
+    user = await  User.create(myUser)
+    myUser.id = user.id
+    token = await mockToken(myUser, common['jwtSecret'])
+
+    let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",")
+    let sql = `select solicitation_number 
+                from notice
+                join notice_type on notice.notice_type_id = notice_type.id
+                where notice_type.notice_type in (${allowed_types}) and
+                      notice_data->>'office' is not null
+                order by notice.id desc
+                limit 1`
+    let rows = await db.sequelize.query(sql)
+    sample_sol_num = rows[0][0].solicitation_number
+
   })
 
   afterAll(() => {
@@ -161,7 +175,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Test that all predictions with the same notice number are merged', () => {
-    let row_count = 1001
+    let row_count = 1000
     let filter = {rows: row_count, first:0}
     return request(app)
       .post('/api/predictions/filter')
@@ -172,7 +186,7 @@ describe('prediction tests', () => {
         expect(res.statusCode).toBe(200)
         expect(res.body.predictions.length).toBeDefined()
 
-        expect(res.body.rows.toString()).toBe(row_count.toString())
+        expect(res.body.rows).toBeGreaterThan(50)
 
         // test for no duplicate solNumbers
         let solNumList = {}
@@ -208,7 +222,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Filter predictions to only return a certain office', () => {
-    return db.sequelize.query("select notice_data->>'office' as office from notice where notice_data->>'office' is not null order by date desc limit 1;")
+    return db.sequelize.query(`select notice_data->>'office' as office from notice where solicitation_number = '${sample_sol_num}' limit 1;`)
       .then((rows) => {
         let office = rows[0][0].office
 
@@ -244,7 +258,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Filter predictions on multiple dimensions', () => {
-    return db.sequelize.query('select agency from notice where agency is not null limit 1;')
+    return db.sequelize.query(`select agency from notice where solicitation_number = '${sample_sol_num}'  limit 1;`)
       .then((rows) => {
         let agency = rows[0][0].agency
         return request(app)
@@ -351,7 +365,7 @@ describe('prediction tests', () => {
     let year = date.getFullYear()
     let month = date.getMonth() + 1
     let day = date.getDate()
-    let dayPlus = day + 1
+    let dayPlus = day + 2  // account for rounding on the db side might
     let start = `${month}/${day}/${year}`
     let end = `${month}/${dayPlus}/${year}`
 
@@ -366,6 +380,8 @@ describe('prediction tests', () => {
     expect(res.statusCode).toBe(200)
     expect(res.body.predictions.length).toBeGreaterThan(1)
     for (let i = 0; i < res.body.predictions.length; i++) {
+      res.body.predictions[i].date
+      new Date(year, month - 1, dayPlus)
       expect(new Date(res.body.predictions[i].date) > new Date(year, month - 1, day)).toBeTruthy() // don't forget months are 0 indexed!
       expect(new Date(res.body.predictions[i].date) < new Date(year, month - 1, dayPlus)).toBeTruthy()
     }
@@ -616,26 +632,27 @@ describe('prediction tests', () => {
     expect(pred59.solNum).toBe(pred59clone1.solNum)
 
     event.first = 59
-    event.rows = 100
+    event.rows = 1
     event.sortOrder = -1
     req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[2][0]).toBe(200);
     let predictions2 = res.send.mock.calls[2][0].predictions
     let pred59clone2 = predictions2[0]
-    expect(predictions2.length).toBe(100)
+    expect(predictions2.length).toBe(1)
     expect(pred59clone1.solNum).toBe(pred59clone2.solNum)
 
 
     event.sortField = 'reviewRec'
     event.sortOrder = 1
     event.first = 0
+    event.rows = 60
     req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[3][0]).toBe(200);
     let predictions3 = res.send.mock.calls[3][0].predictions
     let pred59clone3 = predictions3[0]
-    expect(predictions3.length).toBe(100)
+    expect(predictions3.length).toBe(60)
     // we changed the sort so they should not be equal anymore
     expect(pred59clone2.solNum !== pred59clone3.solNum).toBeTruthy()
 
@@ -645,7 +662,7 @@ describe('prediction tests', () => {
     expect(res.status.mock.calls[4][0]).toBe(200);
     let predictions4 = res.send.mock.calls[4][0].predictions
     let pred59clone4 = predictions4[0]
-    expect(predictions4.length).toBe(100)
+    expect(predictions4.length).toBe(60)
     // we changed the sort direction so they should not be equal anymore
     expect(pred59clone3.solNum !== pred59clone4.solNum).toBeTruthy()
 
@@ -743,11 +760,12 @@ describe('prediction tests', () => {
   test("paging no duplicates", async () => {
 
     for (field of ['agency', 'date', 'solNum']) {
-      let order1 = await predictionRoutes.getPredictions({ first: 0, rows: 100, sortField: field })
+      let order1 = await predictionRoutes.getPredictions({ first: 0, rows: 50, sortField: field })
       expect(order1.predictions[0]).toBeTruthy()
-      for (let i = 0; i < 90; i += 32) {
+      for (let i = 0; i < 50; i += 10) {
         let order = await predictionRoutes.getPredictions({ first: i, rows: 7, sortField: field })
 
+        i //?
         // check that first = x is the same as the xth item when starting at 0
         expect(order.predictions[0].solNum).toBe(order1.predictions[i].solNum)
 
@@ -786,7 +804,7 @@ describe('prediction tests', () => {
 
   test("prediction global filter", async () => {
     // pick a word out of the titles.
-    let {predictions} = await predictionRoutes.getPredictions({ first: 333, rows: 200 })
+    let {predictions} = await predictionRoutes.getPredictions({ first: 33, rows: 200 })
 
     const data = [
       {field:'title', regex: /[a-zA-Z]+/},
@@ -806,6 +824,7 @@ describe('prediction tests', () => {
       await globalFilterTest(word)
     }
 
+
     for (x of data ) {
       let word = null
       for (p of predictions) {
@@ -819,7 +838,19 @@ describe('prediction tests', () => {
     // non-compliant search term acts strange
     const filter = { first: 0, rows: 20000, globalFilter: 'non-compliant' }
     let {totalCount: totalCount} = await predictionRoutes.getPredictions(filter)
-    let non_compliant = await Notice.findAll({where : {compliant:0}})
+    let non_compliant = await Notice.findAll(
+      {
+        where: { compliant: 0 },
+        include: {
+          model: NoticeType,
+          where: {
+            notice_type: {
+              [Op.in]: configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation'])
+            }
+          }
+        }
+      })
+
 
     // not perfect, but generally totalCount should be nearly as many as the number of notice rows
     expect(Number.parseInt(totalCount)).toBeGreaterThan(non_compliant.length/3)
@@ -881,7 +912,7 @@ describe('prediction tests', () => {
 
   test("PrimeNG prediction dropdown filter", async () => {
 
-    let {predictions: samples} = await predictionRoutes.getPredictions({ first: 333, rows: 1 })
+    let {predictions: samples} = await predictionRoutes.getPredictions({ first: 27, rows: 1 })
 
     let filter =
       {
