@@ -151,7 +151,7 @@ describe('solicitation tests', () => {
             return expect(res.body.agency).toBeDefined()
           })
       })
-  })
+  }, 60000)
 
   test('sending an non-existing ID to get solicitation', () => {
     return db.sequelize.query('select id from notice order by id desc limit 1')
@@ -313,7 +313,7 @@ describe('solicitation tests', () => {
               })
           })
       })
-  })
+  }, 60000)
 
   test('Solicitation audit', () => {
     mock_notice = {
