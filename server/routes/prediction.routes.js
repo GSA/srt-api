@@ -13,6 +13,7 @@ const db = require('../models/index')
 const SqlString = require('sequelize/lib/sql-string')
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
+const configuration = require('../config/configuration')
 const cloneDeep = require('clone-deep')
 const Op = require('sequelize').Op
 
@@ -156,8 +157,8 @@ function makeOnePrediction (notice) {
 
     o.contactInfo = {
       contact: (notice.notice_data) ? notice.notice_data.contact : '',
-      name: 'Contact Name',
-      position: 'Position',
+      name: '',
+      position: '',
       email: email
 
     }
@@ -282,11 +283,18 @@ async function getPredictions (filter) {
 
   try {
 
+    logger.debug("Entering getPredictions")
     await updatePredictionTable()
 
     let attributes = {
       offset: filter.first,
       limit: filter.rows
+    }
+
+    attributes.where = {
+      noticeType: {
+        [Op.in]: configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation'])
+      }
     }
 
     // filter out rows
@@ -299,6 +307,9 @@ async function getPredictions (filter) {
     for (let f of ['office', 'agency', 'title', 'solNum', 'reviewRec']) {
       normalizeMatchFilter(filter, f)
     }
+
+    logger.debug("set the prediction filter where clause.", {tag: getPredictions, where: attributes.where.noticeType})
+
 
     // process PrimeNG filters: filter.filters = { field: { value: 'x', matchMode: 'equals' } }
     if (filter.filters) {
@@ -430,8 +441,11 @@ module.exports = {
 
 async function updatePredictionTable  () {
 
+  logger.debug("starting updatePredictionTable")
+
   let actualCount = 0
   let outdatedPredictions = await getOutdatedPrediction()
+  logger.debug(`there are outdated ${outdatedPredictions.length} predictions to update`)
   while (outdatedPredictions && outdatedPredictions.length > 0) {
     actualCount ++
     let pred = outdatedPredictions.pop()
@@ -440,6 +454,7 @@ async function updatePredictionTable  () {
 
     // TODO: fix race condition
     try {
+      logger.log("info", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
       delete (pred.id) // remove the id since that should be auto-increment
       await Prediction.destroy({ where: { solNum: pred.solNum } }) // delete any outdated prediction
       await Prediction.create(pred);

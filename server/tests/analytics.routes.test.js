@@ -39,5 +39,5 @@ describe('Analytics routes tests', () => {
         expect(res.body.TopSRTActionChart.determinedICT).toBeGreaterThan(2)
         return expect(res.body.TopAgenciesChart).toBeDefined()
       })
-  }, 10000)
+  } )
 })
