@@ -9,5 +9,6 @@ let predictionRoutes = require('./routes/prediction.routes')
 predictionRoutes.updatePredictionTable()
   .then( () => {
     // process.exit(0)
+    console.log ("loadPredications.js complete")
   })
 

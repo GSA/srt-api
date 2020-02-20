@@ -1,6 +1,9 @@
 
 
 module.exports = {
+  config_keys: {
+    VISIBLE_NOTICE_TYPES: "VisibleNoticeTypes"
+  },
   common: {
     "jwtSecret" : process.env.JWT_SECRET,
     "sessionLength" : "12h",  // 12 hours
@@ -85,7 +88,8 @@ module.exports = {
     "constants": {
       "EMAIL_ACTION": "sent email to POC",
       "FEEDBACK_ACTION": "prediction feedback provided"
-    }
+    },
+    VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation']
   },
   development: {
     "emailFrom": "crowley+srt@tcg.com",

@@ -4,6 +4,8 @@ const User = require('../models').User
 const db = require('../models/index')
 let predictionRoutes = require('../routes/prediction.routes')
 let testSolNum = null
+const configuration = require('../config/configuration')
+const {config_keys} = require('../config/config')
 
 let n1 = {
   date: '2019-01-10T00:01:00.000Z',
@@ -20,13 +22,21 @@ let n3 = {
 
 
 describe('Prediction History', () => {
-  beforeAll(() => {
+  beforeAll( async () => {
     process.env.MAIL_ENGINE = 'nodemailer-mock'
     app = require('../app')() // don't load the app till the mock is configured
-    return db.sequelize.query("select solicitation_number from notice order by date desc limit 1;")
-      .then( (rows) => {
-        testSolNum = rows[0][0]['solicitation_number']
-      })
+
+    let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",")
+    let sql = `select solicitation_number 
+                from notice
+                join notice_type on notice.notice_type_id = notice_type.id
+                where notice_type.notice_type in (${allowed_types}) 
+                order by notice.id desc
+                limit 1`
+    let rows = await db.sequelize.query(sql)
+    testSolNum = rows[0][0].solicitation_number
+
+
   })
 
   afterAll(() => {
