@@ -28,23 +28,26 @@ module.exports = function (db, userRoutes) {
 
   function auditSolicitationChange (notice_orig, notice_updated, req) {
     let actions = notice_orig.action
-    let user_info = userRoutes.whoAmI(req)
 
+    try {
+      if (notice_orig.history && notice_updated.history) {
+        let orig_hist_len = notice_orig.history.length
+        let up_hist_len = notice_updated.history.length
 
-    if (notice_orig.history && notice_updated.history) {
-      let orig_hist_len = notice_orig.history.length
-      let up_hist_len = notice_updated.history.length
-
-      if (up_hist_len > orig_hist_len) {
-        if (notice_updated.history[up_hist_len - 1].action == getConfig('constants:EMAIL_ACTION')) {
-          actions.push(buildAction(req, getConfig('constants:EMAIL_ACTION')))
+        if (up_hist_len > orig_hist_len) {
+          if (notice_updated.history[up_hist_len - 1].action === getConfig('constants:EMAIL_ACTION')) {
+            actions.push(buildAction(req, getConfig('constants:EMAIL_ACTION')))
+          }
         }
       }
-    }
 
-    if (notice_updated.feedback &&
-      ( ( !notice_orig.feedback ) || notice_orig.feedback.length != notice_updated.feedback.length) ) {
-      actions.push(buildAction(req, getConfig('constants:FEEDBACK_ACTION')))
+      if (Array.isArray(notice_updated.feedback) && notice_updated.feedback.length > 0 &&
+          (Array.isArray(notice_orig) === false || notice_orig.feedback.length !== notice_updated.feedback.length)) {
+          logger.log("debug", "Set feedback action to " + getConfig('constants:FEEDBACK_ACTION'), { tag: "auditSolicitationChange", notice_updated: notice_updated, notice_orig: notice_orig })
+          actions.push(buildAction(req, getConfig('constants:FEEDBACK_ACTION')))
+      }
+    } catch (e) {
+      logger.log ("error", "Caught an error trying to audit a solicitation change", {tag: "auditSolicitationChange", error: e.message} )
     }
 
 
@@ -132,7 +135,7 @@ module.exports = function (db, userRoutes) {
             return res.status(401).send({ msg: 'Not authorized' })
           }
 
-          if (notice.na_flag != req.body.solicitation.na_flag) {
+          if (notice.na_flag !== req.body.solicitation.na_flag) {
             if ( ! Array.isArray(notice.action)) {
               notice.action = []
             }
@@ -186,9 +189,6 @@ module.exports = function (db, userRoutes) {
          * @return {Promise}
          */
     postSolicitation: function (req, res) {
-      let status = req.body.history.filter(function (e) {
-        return e['status'] !== ''
-      })
 
       return Notice.findAll({
         where: { solicitation_number: req.body.solNum.toString() },
