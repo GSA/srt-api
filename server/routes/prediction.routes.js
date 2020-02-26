@@ -299,9 +299,6 @@ async function getPredictions (filter) {
 
     // filter out rows
     if (filter.globalFilter) {
-      if (attributes.where === undefined) {
-        attributes.where = {}
-      }
       attributes.where.searchText = { [Op.like]: `%${filter.globalFilter.toLowerCase()}%` }
     }
     for (let f of ['office', 'agency', 'title', 'solNum', 'reviewRec']) {
@@ -315,9 +312,6 @@ async function getPredictions (filter) {
     if (filter.filters) {
       for (let f in filter.filters) {
         if (filter.filters[f].matchMode == 'equals') {
-          if (attributes.where === undefined) {
-            attributes.where = {}
-          }
           attributes.where[f] = filter.filters[f].value
         }
       }
@@ -325,20 +319,25 @@ async function getPredictions (filter) {
 
 
     // process dates
+
+    // make sure anything we return is past the date cuttoff
+    attributes.where.date = { [Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
+
     if (filter.startDate) {
-      if (attributes.where === undefined) {
-        attributes.where = {}
+      // double check they aren't asking for data from before the cutoff
+      start = Date.parse(filter.startDate)
+      cutoff = Date.parse(configuration.getConfig("minPredictionCutoffDate"))
+      if (start > cutoff) {
+        attributes.where.date = { [Op.gt]: filter.startDate }
       }
-      attributes.where.date = { [Op.gt]: filter.startDate }
     }
+
     if (filter.endDate) {
-      if (attributes.where === undefined) {
-        attributes.where = {}
-      }
       attributes.where.date = (attributes.where.date) ?
         Object.assign(attributes.where.date, { [Op.lt]: filter.endDate }) :
         { [Op.lt]: filter.endDate }
     }
+
 
     // set order
     attributes.order = []

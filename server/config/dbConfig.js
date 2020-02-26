@@ -10,6 +10,13 @@ let dbConfig = {
     "port": 5432,
     "dialect": "postgres",
     "logging": false,
+    "pool": {
+      max: 95,
+      min: 0,
+      acquire: 20000,
+      idle: 20000,
+      evict: 10000
+    }
   },
   "circle": {
     "username": "circleci",

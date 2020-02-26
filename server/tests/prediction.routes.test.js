@@ -92,6 +92,8 @@ let predictionTemplate = {
 
 describe('prediction tests', () => {
   beforeAll( async () => {
+
+
     jest.setTimeout(10000) // some of these tests are slow
     process.env.MAIL_ENGINE = 'nodemailer-mock'
     app = require('../app')() // don't load the app till the mock is configured
@@ -103,7 +105,7 @@ describe('prediction tests', () => {
     token = await mockToken(myUser, common['jwtSecret'])
 
     let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",")
-    let sql = `select solicitation_number 
+    let sql = `select solicitation_number
                 from notice
                 join notice_type on notice.notice_type_id = notice_type.id
                 where notice_type.notice_type in (${allowed_types}) and
@@ -934,5 +936,59 @@ describe('prediction tests', () => {
 
   })
 
+  test("Prediction cut off date", async () => {
+    // set a default really far in the past
+    process.env.minPredictionCutoffDate = "1972-08-01T11:59:53.000Z"
+
+    // grab the oldest prediction
+    let {predictions: preds_old, totalCount: totalCount} =
+      await predictionRoutes.getPredictions({ rows: 1, sortField: "date", sortOrder: 1 })
+    let oldest = Date.parse(preds_old[0].date)
+    expect(totalCount).toBeGreaterThan(50)
+
+    // grab the newest prediction
+    let {predictions: preds_new} =
+      await predictionRoutes.getPredictions({ rows: 1, sortField: "date", sortOrder: -1 })
+    let newest = Date.parse(preds_new[0].date)
+
+    // pick a date in the middle of the two extremes
+    let middle = new Date(0)
+    middle.setUTCSeconds( ((oldest + newest) / 2) / 1000 )
+    process.env.minPredictionCutoffDate = middle.toISOString() //?
+
+    console.log (process.env.minPredictionCutoffDate)
+
+
+    // Now that we have a new date cutoff, run the search again....but expect that we get fewer results
+    let {predictions: preds_middle, totalCount: middleCount} =
+      await predictionRoutes.getPredictions({ rows: 10, sortField: "date", sortOrder: 1 })
+
+    expect(middleCount).toBeLessThan(totalCount)
+
+    for (p of preds_middle) {
+      expect(p.date.getTime()).toBeGreaterThan(middle.getTime())
+    }
+  })
+
+  test("User can't override the prediction cut off date", async () => {
+    // grab the oldest prediction
+    let {predictions: preds, totalCount: totalCount} =
+      await predictionRoutes.getPredictions({ rows: 1, sortField: "date", sortOrder: 1 })
+    let pred = Date.parse(preds[0].date)
+
+
+    pred //?
+
+    // try to set the start date far in the past
+    let {predictions: preds_older, totalCount: olderCount} =
+      await predictionRoutes.getPredictions({ rows: 1, "startDate": "1972-01-01T00:00:00.000Z", sortField: "date", sortOrder: 1 })
+    let oldest = Date.parse(preds_older[0].date)
+
+    // we shouldn't be able to get anything older than the un-filtered results just
+    // by asking so the dates should be the same
+
+    expect(pred).toBe(oldest)
+
+  })
 
 })
