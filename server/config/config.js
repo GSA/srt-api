@@ -86,10 +86,11 @@ module.exports = {
       "https://srt-client-prod.app.cloud.gov",
     ],
     "constants": {
-      "EMAIL_ACTION": "sent email to POC",
-      "FEEDBACK_ACTION": "prediction feedback provided"
+      "EMAIL_ACTION": "Sent email to POC",
+      "FEEDBACK_ACTION": "Prediction feedback provided"
     },
-    VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation']
+    VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation'],
+    "minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z"
   },
   development: {
     "emailFrom": "crowley+srt@tcg.com",
