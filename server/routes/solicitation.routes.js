@@ -27,7 +27,7 @@ module.exports = function (db, userRoutes) {
   }
 
   function auditSolicitationChange (notice_orig, notice_updated, req) {
-    let actions = notice_orig.action
+    let actions = cloneDeep(notice_orig.action,true)
 
     try {
       if (notice_orig.history && notice_updated.history) {
@@ -46,6 +46,17 @@ module.exports = function (db, userRoutes) {
           logger.log("debug", "Set feedback action to " + getConfig('constants:FEEDBACK_ACTION'), { tag: "auditSolicitationChange", notice_updated: notice_updated, notice_orig: notice_orig })
           actions.push(buildAction(req, getConfig('constants:FEEDBACK_ACTION')))
       }
+
+      // na_flag may sometimes be undefined. For those cases we need a || construct to
+      // set it to false so we can make a fair comparison
+      if( (notice_orig.na_flag || false) !== (notice_updated.na_flag || false)) {
+        if (notice_updated.na_flag) {
+          actions.push(buildAction(req, getConfig('constants:NA_ACTION')))
+        } else {
+          actions.push(buildAction(req, getConfig('constants:UNDO_NA_ACTION')))
+        }
+      }
+
     } catch (e) {
       logger.log ("error", "Caught an error trying to audit a solicitation change", {tag: "auditSolicitationChange", error: e.message} )
     }
@@ -135,22 +146,14 @@ module.exports = function (db, userRoutes) {
             return res.status(401).send({ msg: 'Not authorized' })
           }
 
+          // keep a clean copy to calculate NA changes for action status
+          let original_notice = cloneDeep(notice.dataValues, true)
+
           if (notice.na_flag !== req.body.solicitation.na_flag) {
-            if ( ! Array.isArray(notice.action)) {
-              notice.action = []
-            }
-            let new_action = JSON.parse(JSON.stringify(notice.action))
-            let user_info = userRoutes.whoAmI(req)
-            new_action.push({
-              action: (req.body.solicitation.na_flag) ? "Solicitation marked not applicable" : "Not applicable status removed" ,
-              status: "complete",
-              date: new Date(),
-              user: user_info.email
-            })
-            notice.action = new_action
+            notice.na_flag = req.body.solicitation.na_flag
+            notice.action = auditSolicitationChange(original_notice, notice, req)
           }
 
-          notice.na_flag = req.body.solicitation.na_flag
 
 
 
