@@ -9,7 +9,6 @@ const configuration = require('../config/configuration')
 const {getConfig} = require('../config/configuration')
 let solicitationRoutes = null
 const predictionRoutes = require('../routes/prediction.routes')
-const Prediction = require('../models').Prediction
 
 const cloneDeep = require('clone-deep')
 
@@ -66,7 +65,6 @@ describe('solicitation tests', () => {
         let noticeNum = rows[0][0].solicitation_number
         expect(noticeNum).toBeDefined()
 
-        let word1 = randomWords.wordList[Math.floor(Math.random() * randomWords.wordList.length)]
         let word2 = randomWords.wordList[Math.floor(Math.random() * randomWords.wordList.length)]
         let actionDate = new Date().toLocaleString()
 
@@ -110,8 +108,6 @@ describe('solicitation tests', () => {
             expect(res.body.feedback[ res.body.feedback.length - 1].questionID).toBe(res.body.feedback.length)
             expect (res.body.actionStatus).toBe(getConfig("constants:FEEDBACK_ACTION"))
 
-            // Get the action date but strip off the seconds to avoid
-            let res_action_date_seconds = new Date(new Date (res.body.action[ res.body.action.length-1 ].date).toLocaleString()).getTime()
             return expect(res.body.history[ res.body.history.length-1 ].user).toBe(word2)
           })
           .then(() => {
@@ -317,7 +313,7 @@ describe('solicitation tests', () => {
 
   test('Solicitation audit', () => {
     mock_notice = {
-        "action": [{ "action": "Record Created", "date": "2019-03-29T08:05:31.307Z", "status": "complete", "user": "" },
+        "action": [{ "action": "Solicitation Posted", "date": "2019-03-29T08:05:31.307Z", "status": "complete", "user": "" },
                    { "action": "Solicitation marked not applicable", "date": "2020-01-16T13:07:53.575Z", "status": "complete" },
                   ],
         "actionDate": "2020-01-16T18:12:34.000Z",

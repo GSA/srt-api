@@ -87,7 +87,8 @@ module.exports = {
     ],
     "constants": {
       "EMAIL_ACTION": "Sent email to POC",
-      "FEEDBACK_ACTION": "Prediction feedback provided"
+      "FEEDBACK_ACTION": "Prediction feedback provided",
+      "CREATED_ACTION": "Solicitation Posted"
     },
     VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation'],
     "minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z"

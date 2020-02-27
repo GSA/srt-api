@@ -133,7 +133,7 @@ function makeOnePrediction (notice) {
         o.action = [o.action]
       }
     } else {
-      o.action = [{ date: o.date, user: "", action: "Record Created", status: "complete" }]
+      o.action = [{ date: o.date, user: "", action: configuration.getConfig("constants:CREATED_ACTION"), status: "complete" }]
     }
 
     if (o.action != null && (Array.isArray(o.action)) && o.action.length > 0) {
@@ -455,7 +455,7 @@ async function updatePredictionTable  () {
 
     // TODO: fix race condition
     try {
-      logger.log("info", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
+      logger.log("debug", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
       delete (pred.id) // remove the id since that should be auto-increment
       await Prediction.destroy({ where: { solNum: pred.solNum } }) // delete any outdated prediction
       await Prediction.create(pred);
@@ -469,10 +469,10 @@ async function updatePredictionTable  () {
     }
 
     if ((actualCount % 100) === 0) {
-      logger.log("debug", `Updated ${actualCount} prediction records.`)
+      logger.log("info", `Updated ${actualCount} prediction records.`)
     }
   }
-  logger.log("debug", `Updated ${actualCount} prediction records`)
+  logger.log("info", `Updated ${actualCount} prediction records`)
   return actualCount
 }
 
