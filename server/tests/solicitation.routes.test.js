@@ -313,8 +313,8 @@ describe('solicitation tests', () => {
 
   test('Solicitation audit', () => {
     mock_notice = {
-        "action": [{ "action": "Solicitation Posted", "date": "2019-03-29T08:05:31.307Z", "status": "complete", "user": "" },
-                   { "action": "Solicitation marked not applicable", "date": "2020-01-16T13:07:53.575Z", "status": "complete" },
+        "action": [{ "action": "fake action", "date": "2019-03-29T08:05:31.307Z", "status": "complete", "user": "" },
+                   { "action": "fake action 2", "date": "2020-01-16T13:07:53.575Z", "status": "complete" },
                   ],
         "actionDate": "2020-01-16T18:12:34.000Z",
         "actionStatus": "Record updated",
@@ -365,24 +365,39 @@ describe('solicitation tests', () => {
       "user": "MAX CAS Test User"
     })
 
+    // test email
     actions = solicitationRoutes.auditSolicitationChange(mock_notice, updated_notice, null)
     let datestr = formatDateAsString(new Date())
     expect(actions.length).toBeGreaterThan(2)
-    actions //?
     expect(actions[actions.length-1].action).toBe(getConfig("constants:EMAIL_ACTION"))
     expect(actions[actions.length-1].date).toBe(datestr)
     expect(actions[actions.length-1].user).toBe(myUser.email)
 
 
+    // test feedback
     updated_notice = cloneDeep(mock_notice, true)
     updated_notice.feedback = [1,2,3]
-
     actions = solicitationRoutes.auditSolicitationChange(mock_notice, updated_notice, null)
     expect(actions.length).toBeGreaterThan(2)
     expect(actions[actions.length-1].action).toBe(getConfig("constants:FEEDBACK_ACTION"))
     expect(actions[actions.length-1].date).toBe(datestr)
     expect(actions[actions.length-1].user).toBe(myUser.email)
 
+    // test NA
+    na_false = cloneDeep(mock_notice, true)
+    na_false['na_flag'] = false
+    na_true = cloneDeep(mock_notice, true)
+    na_true['na_flag'] = true
+    actions = solicitationRoutes.auditSolicitationChange(na_false, na_true, null)
+    expect(actions[actions.length-1].action).toBe(getConfig("constants:NA_ACTION"))
+    expect(actions[actions.length-1].date).toBe(datestr)
+    expect(actions[actions.length-1].user).toBe(myUser.email)
+
+    // test undo NA
+    actions = solicitationRoutes.auditSolicitationChange(na_true, na_false, null)
+    expect(actions[actions.length-1].action).toBe(getConfig("constants:UNDO_NA_ACTION"))
+    expect(actions[actions.length-1].date).toBe(datestr)
+    expect(actions[actions.length-1].user).toBe(myUser.email)
 
   })
 
