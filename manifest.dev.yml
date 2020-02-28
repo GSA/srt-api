@@ -1,7 +1,7 @@
 ---
 applications:
 - name: srt-server
-  command: node server/server.js
+  command: node server/loadPredictions.js && node server/server.js
   memory: 256M
   disk_quota: 512M
 #  health-check-type: process # don't re-enable....move to port 8080 if you have problems
