@@ -446,6 +446,7 @@ module.exports = {
   roleNameToCASGroup   : roleNameToCASGroup,
   createOrUpdateMAXUser: createOrUpdateMAXUser,
   userInfoFromReq      : userInfoFromReq,
+  isGSAAdmin           : isGSAAdmin,
   passwordOnlyWhitelist: userOnPasswordOnlyWhitelist,
 
   roles : roles,

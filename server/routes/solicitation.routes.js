@@ -92,7 +92,8 @@ module.exports = function (db, userRoutes) {
           if ( ! notice ) {  // no notice found with that ID
             return res.status(404).send({})
           }
-          return predictionRoute.getPredictions({ solNum: notice.solicitation_number })
+          let user = authRoutes.userInfoFromReq(req)
+          return predictionRoute.getPredictions({ solNum: notice.solicitation_number }, user)
             .then(result => {
               // we should only have one 'prediction' since they will all merge by solicitation number
               // but for consistency we should set the ID number to the one requested rather than to

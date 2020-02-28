@@ -26,6 +26,9 @@ module.exports = {
       headers: headers
     }
   },
-  mockResponse : mockResponse
+  mockResponse : mockResponse,
+
+  mockAdminUser : { agency: 'General Services Administration', userRole: 'Administrator'},
+  mockDoDUser : { agency: 'DEPT OF DEFENSE', userRole: 'Administrator'}
 
 }

@@ -6,6 +6,7 @@ let predictionRoutes = require('../routes/prediction.routes')
 let testSolNum = null
 const configuration = require('../config/configuration')
 const {config_keys} = require('../config/config')
+const mocks = require('./mocks')
 
 let n1 = {
   date: '2019-01-10T00:01:00.000Z',
@@ -45,7 +46,7 @@ describe('Prediction History', () => {
   })
 
   test('Solicitations have a prediction history element', () => {
-    return predictionRoutes.getPredictions({'solNum' : testSolNum} )
+    return predictionRoutes.getPredictions({'solNum' : testSolNum}, mocks.mockAdminUser )
       .then( result => {
         let predictions = result.predictions
         let p = predictions[0]

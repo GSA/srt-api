@@ -762,10 +762,10 @@ describe('prediction tests', () => {
   test("paging no duplicates", async () => {
 
     for (field of ['agency', 'date', 'solNum']) {
-      let order1 = await predictionRoutes.getPredictions({ first: 0, rows: 50, sortField: field })
+      let order1 = await predictionRoutes.getPredictions({ first: 0, rows: 50, sortField: field }, mocks.mockAdminUser)
       expect(order1.predictions[0]).toBeTruthy()
       for (let i = 0; i < 50; i += 10) {
-        let order = await predictionRoutes.getPredictions({ first: i, rows: 7, sortField: field })
+        let order = await predictionRoutes.getPredictions({ first: i, rows: 7, sortField: field }, mocks.mockAdminUser)
 
         i //?
         // check that first = x is the same as the xth item when starting at 0
@@ -781,7 +781,7 @@ describe('prediction tests', () => {
 
   async function globalFilterTest(word){
     const filter = { first: 0, rows: 20000, globalFilter: word }
-    let {predictions} = await predictionRoutes.getPredictions(filter)
+    let {predictions} = await predictionRoutes.getPredictions(filter, mocks.mockAdminUser)
 
     let found = false
     for (p of predictions) {
@@ -806,7 +806,7 @@ describe('prediction tests', () => {
 
   test("prediction global filter", async () => {
     // pick a word out of the titles.
-    let {predictions} = await predictionRoutes.getPredictions({ first: 33, rows: 200 })
+    let {predictions} = await predictionRoutes.getPredictions({ first: 33, rows: 200 }, mocks.mockAdminUser)
 
     const data = [
       {field:'title', regex: /[a-zA-Z]+/},
@@ -839,7 +839,7 @@ describe('prediction tests', () => {
 
     // non-compliant search term acts strange
     const filter = { first: 0, rows: 20000, globalFilter: 'non-compliant' }
-    let {totalCount: totalCount} = await predictionRoutes.getPredictions(filter)
+    let {totalCount: totalCount} = await predictionRoutes.getPredictions(filter, mocks.mockAdminUser)
     let non_compliant = await Notice.findAll(
       {
         where: { compliant: 0 },
@@ -861,7 +861,7 @@ describe('prediction tests', () => {
 
   test("prediction column filter", async () => {
     // pick a word out of the titles.
-    let {predictions: samples} = await predictionRoutes.getPredictions({ first: 333, rows: 1 })
+    let {predictions: samples} = await predictionRoutes.getPredictions({ first: 333, rows: 1 }, mocks.mockAdminUser)
 
     const data = [
       {field:'noticeType', value: 'Combined Synopsis/Solicitation'},
@@ -882,7 +882,7 @@ describe('prediction tests', () => {
         "filters": { [field]: { "value": word, "matchMode": "equals" } },
         "globalFilter": null
       }
-      let {predictions: preds} = await predictionRoutes.getPredictions(filter)
+      let {predictions: preds} = await predictionRoutes.getPredictions(filter, mocks.mockAdminUser)
 
       let allMatch = true
       for (p of preds) {
@@ -900,21 +900,21 @@ describe('prediction tests', () => {
   }, 30000)
 
   test("Prediction filter call with no results", async () => {
-    let predictions_err = await predictionRoutes.getPredictions({ 'agency': 'No Agency Here', first: -1000 })
+    let predictions_err = await predictionRoutes.getPredictions({ 'agency': 'No Agency Here', first: -1000 }, mocks.mockAdminUser)
     expect(predictions_err.predictions.length).toBe(0)
     expect(predictions_err.first).toBe(0)
     expect(predictions_err.rows).toBe(0)
     expect(predictions_err.totalCount).toBe(0)
 
 
-    let {predictions} = await predictionRoutes.getPredictions({ 'agency': 'No Agency Here' })
+    let {predictions} = await predictionRoutes.getPredictions({ 'agency': 'No Agency Here' }, mocks.mockAdminUser)
     expect(predictions.length).toBe(0)
   })
 
 
   test("PrimeNG prediction dropdown filter", async () => {
 
-    let {predictions: samples} = await predictionRoutes.getPredictions({ first: 27, rows: 1 })
+    let {predictions: samples} = await predictionRoutes.getPredictions({ first: 27, rows: 1 }, mocks.mockAdminUser)
 
     let filter =
       {
@@ -926,7 +926,7 @@ describe('prediction tests', () => {
         }, "first": 0, "globalFilter": null, "rows": 15, "sortField": "noticeType", "sortOrder": -1
       }
 
-    let {predictions: preds} = await predictionRoutes.getPredictions(filter)
+    let {predictions: preds} = await predictionRoutes.getPredictions(filter, mocks.mockAdminUser)
 
 
     expect(preds.length).toBeGreaterThan(0)
@@ -942,13 +942,13 @@ describe('prediction tests', () => {
 
     // grab the oldest prediction
     let {predictions: preds_old, totalCount: totalCount} =
-      await predictionRoutes.getPredictions({ rows: 1, sortField: "date", sortOrder: 1 })
+      await predictionRoutes.getPredictions({ rows: 1, sortField: "date", sortOrder: 1 }, mocks.mockAdminUser)
     let oldest = Date.parse(preds_old[0].date)
     expect(totalCount).toBeGreaterThan(50)
 
     // grab the newest prediction
     let {predictions: preds_new} =
-      await predictionRoutes.getPredictions({ rows: 1, sortField: "date", sortOrder: -1 })
+      await predictionRoutes.getPredictions({ rows: 1, sortField: "date", sortOrder: -1 }, mocks.mockAdminUser)
     let newest = Date.parse(preds_new[0].date)
 
     // pick a date in the middle of the two extremes
@@ -961,7 +961,7 @@ describe('prediction tests', () => {
 
     // Now that we have a new date cutoff, run the search again....but expect that we get fewer results
     let {predictions: preds_middle, totalCount: middleCount} =
-      await predictionRoutes.getPredictions({ rows: 10, sortField: "date", sortOrder: 1 })
+      await predictionRoutes.getPredictions({ rows: 10, sortField: "date", sortOrder: 1 }, mocks.mockAdminUser)
 
     expect(middleCount).toBeLessThan(totalCount)
 
@@ -973,7 +973,7 @@ describe('prediction tests', () => {
   test("User can't override the prediction cut off date", async () => {
     // grab the oldest prediction
     let {predictions: preds, totalCount: totalCount} =
-      await predictionRoutes.getPredictions({ rows: 1, sortField: "date", sortOrder: 1 })
+      await predictionRoutes.getPredictions({ rows: 1, sortField: "date", sortOrder: 1 }, mocks.mockAdminUser)
     let pred = Date.parse(preds[0].date)
 
 
@@ -981,13 +981,24 @@ describe('prediction tests', () => {
 
     // try to set the start date far in the past
     let {predictions: preds_older, totalCount: olderCount} =
-      await predictionRoutes.getPredictions({ rows: 1, "startDate": "1972-01-01T00:00:00.000Z", sortField: "date", sortOrder: 1 })
+      await predictionRoutes.getPredictions({ rows: 1, "startDate": "1972-01-01T00:00:00.000Z", sortField: "date", sortOrder: 1 }, mocks.mockAdminUser)
     let oldest = Date.parse(preds_older[0].date)
 
     // we shouldn't be able to get anything older than the un-filtered results just
     // by asking so the dates should be the same
 
     expect(pred).toBe(oldest)
+
+  })
+
+  test("Regular users only see their own agency predictions", async () => {
+
+    let {totalCount} = await predictionRoutes.getPredictions({}, mocks.mockAdminUser)
+    expect(totalCount).toBeGreaterThan(1)
+
+    let {totalCount: dodCount} = await predictionRoutes.getPredictions({}, mocks.mockDoDUser)
+    expect(dodCount).toBeGreaterThan(1)
+    expect(dodCount).toBeLessThan(totalCount)
 
   })
 

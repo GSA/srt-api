@@ -16,6 +16,7 @@ const config = require('../config/config.js')[env]
 const configuration = require('../config/configuration')
 const cloneDeep = require('clone-deep')
 const Op = require('sequelize').Op
+const authRoutes = require('./auth.routes')
 
 /**
  * PredictionFilter
@@ -279,9 +280,13 @@ function normalizeMatchFilter(filter, field){
  * @return {Promise<Array(Prediction)>} All predictions that match the filter
  */
 /** @namespace filter.numDocs */
-async function getPredictions (filter) {
+async function getPredictions (filter, user) {
 
   try {
+
+    if ( user === undefined || user.agency === undefined || user.userRole === undefined ) {
+      return []
+    }
 
     logger.debug("Entering getPredictions")
     await updatePredictionTable()
@@ -291,9 +296,11 @@ async function getPredictions (filter) {
       limit: filter.rows
     }
 
+    // filter to allowed notice types
+    let types = configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation'])
     attributes.where = {
       noticeType: {
-        [Op.in]: configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation'])
+        [Op.in]: types
       }
     }
 
@@ -304,8 +311,6 @@ async function getPredictions (filter) {
     for (let f of ['office', 'agency', 'title', 'solNum', 'reviewRec']) {
       normalizeMatchFilter(filter, f)
     }
-
-    logger.debug("set the prediction filter where clause.", {tag: getPredictions, where: attributes.where.noticeType})
 
 
     // process PrimeNG filters: filter.filters = { field: { value: 'x', matchMode: 'equals' } }
@@ -338,6 +343,13 @@ async function getPredictions (filter) {
         { [Op.lt]: filter.endDate }
     }
 
+    // finally, put in an agency filter if this user isn't an admin
+    // want to do it last so it overrides any possible agency setting in the supplied filter
+    if ( ! authRoutes.isGSAAdmin(user.agency, user.userRole)) {
+      attributes.where.agency  = {
+        [Op.eq] : (user && user.agency) ? user.agency : ''
+      }
+    }
 
     // set order
     attributes.order = []
@@ -351,7 +363,6 @@ async function getPredictions (filter) {
 
     // always end with date sort to keep the newest first (all else being equal)
     attributes.order.push(['date', 'DESC'])
-
     let preds = await Prediction.findAll(attributes)
     let count = await Prediction.findAndCountAll(attributes)
 
@@ -423,8 +434,9 @@ module.exports = {
     // if there isn't any bounding on the result count, limit it to the first 100
     req.body.first = (req.body.first !== undefined) ? req.body.first : 0
     req.body.rows = (req.body.rows !== undefined) ? req.body.rows : 100
+    let user = authRoutes.userInfoFromReq(req)
 
-    return getPredictions(req.body)
+    return getPredictions(req.body, user)
       .then((predictions) => {
         if (predictions == null) {
           return res.status(500).send({})

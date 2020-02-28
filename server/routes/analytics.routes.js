@@ -2,6 +2,7 @@
 
 const logger = require('../config/winston')
 const predictionRoutes = require('./prediction.routes')
+const authRoutes = require('./auth.routes')
 
 /**
  * Defines the functions used to process the various analytics related API routes.
@@ -90,8 +91,9 @@ module.exports = {
       params.first = 0
       params.rows = Number.MAX_SAFE_INTEGER
       params.sortField = 'unsorted' // set to unsorted so we get all results at once.
+      let user = authRoutes.userInfoFromReq(req)
 
-      return predictionRoutes.getPredictions(params)
+      return predictionRoutes.getPredictions(params, user)
         .then((result) => {
           let predictions = result.predictions
           let data = {
