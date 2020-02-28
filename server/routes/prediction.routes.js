@@ -127,7 +127,7 @@ function makeOnePrediction (notice) {
     }
     o.undetermined = 0 // (getRandomInt(0, 2) == 0);
 
-    if (notice.action) {
+    if (Array.isArray(notice.action) && notice.action.length > 0) {
       o.action = notice.action
       if (!Array.isArray(o.action)) {
         o.action = [o.action]
