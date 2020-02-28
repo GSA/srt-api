@@ -232,14 +232,17 @@ function roleNameToCASGroup (roleName) {
  * @return {String}
  */
 function translateCASAgencyName(cas_agency) {
-  let agencyLookupDictionary = {}
-  if (process.env.AGENCY_LOOKUP) {
+  let agencyLookupDictionary = getConfig("AGENCY_LOOKUP", {})
+
+  // special case for config lookups - if we got this from the environment it's going to be a string
+  if (typeof(agencyLookupDictionary) === 'string') {
     try {
-      agencyLookupDictionary = JSON.parse(process.env.AGENCY_LOOKUP)
+      agencyLookupDictionary = JSON.parse(agencyLookupDictionary)
     } catch(e) {
-      logger.log("error", "Error parsing AGENCY_LOOKUP. Should be JSON", {tag: "traslate CAS", AGENCY_LOOKUP: process.env.AGENCY_LOOKUP})
+      logger.log("error", "Error parsing AGENCY_LOOKUP. Should be JSON", {tag: "traslate CAS", AGENCY_LOOKUP: agencyLookupDictionary})
     }
   }
+
   return getConfig(cas_agency, cas_agency, agencyLookupDictionary)
 }
 
@@ -448,6 +451,7 @@ module.exports = {
   userInfoFromReq      : userInfoFromReq,
   isGSAAdmin           : isGSAAdmin,
   passwordOnlyWhitelist: userOnPasswordOnlyWhitelist,
+  translateCASAgencyName: translateCASAgencyName,
 
   roles : roles,
   roleKeys : roleKeys,

@@ -211,12 +211,11 @@ describe('JWT Tests', () => {
   })
 
   test('Dynamic agency name mapping', async () => {
-    process.env.AGENCY_LOOKUP = '{"GSA" : "General Services Administraiton", "Nat Inst Health":  "National Institutes of Health"}'
     let session = {
       cas_userinfo :{
         "max-id": "Z77",
         "samlauthenticationstatementauthmethod" : getConfig('PIVLoginCheckRegex'),
-        "org-agency-name" : "Nat Inst Health"
+        "org-agency-name" : "Department of Health and Human Services"
       }
     }
     let res = mocks.mockResponse()
@@ -229,8 +228,21 @@ describe('JWT Tests', () => {
 
     let matches = locationRedirect.match('token=({[^}]+})')
     let userTokenData = JSON.parse(matches[1])
-    expect(userTokenData.agency).toBe("National Institutes of Health")
+    expect(userTokenData.agency).toBe("HEALTH AND HUMAN SERVICES, DEPARTMENT OF")
     let decoded = jwt.decode(userTokenData.token)
-    expect(decoded.user.agency).toBe("National Institutes of Health")
+    expect(decoded.user.agency).toBe("HEALTH AND HUMAN SERVICES, DEPARTMENT OF")
+
+    // test the mapping directly
+    let ssa = authRoutes.translateCASAgencyName("Social Security Administration")
+    expect(ssa).toBe("SOCIAL SECURITY ADMINISTRATION")
+    let treasury = authRoutes.translateCASAgencyName("Department of the Treasury")
+    expect(treasury).toBe("TREASURY, DEPARTMENT OF THE")
+
+    // test the env var override
+    process.env.AGENCY_LOOKUP = '{"DoE" : "Department of Energy", "Nat Inst Health":  "National Institutes of Health"}'
+    let energy = authRoutes.translateCASAgencyName("DoE")
+    expect(energy).toBe("Department of Energy")
+    delete process.env.AGENCY_LOOKUP
+
   })
 })

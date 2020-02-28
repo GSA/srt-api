@@ -8,6 +8,7 @@ const solicitationRoutes = require('../routes/solicitation.routes')
 // noinspection JSUnresolvedVariable
 const Notice = require('../models').notice
 const { adminCASData, coordinatorCASData } = require('./test.data')
+const authRoutes = require('../routes/auth.routes')
 
 let myUser = {}
 myUser.firstName = 'sol-beforeAllUser'
@@ -78,7 +79,8 @@ describe('solicitation tests', async () => {
 
   // noinspection DuplicatedCode
   test('Agency User can update Not Applicable for any solicitations in their agency', async () => {
-    let sql = `select solicitation_number from notice where agency = '${coordinatorCASData["org-agency-name"]}' order by solicitation_number desc limit 1`
+    let dbName = authRoutes.translateCASAgencyName(coordinatorCASData["org-agency-name"]) //?
+    let sql = `select solicitation_number from notice where agency = '${dbName}' order by solicitation_number desc limit 1`
     let rows = await db.sequelize.query(sql)
     let solNum = rows[0][0].solicitation_number
     expect(solNum).toBeDefined()
