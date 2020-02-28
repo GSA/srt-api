@@ -181,7 +181,7 @@ module.exports = {
     }
 
     let decoded = jwt.decode(req.headers['authorization'].split(' ')[1])      /** @namespace decoded.user*/
-    decoded.user.agency = req.query.agency
+    decoded.user.agency = authRoutes.translateCASAgencyName(req.query.agency)
     decoded.user.userRole = req.query.role
     decoded.user.grouplist = authRoutes.roleNameToCASGroup(req.query.role)
     decoded.user.firstName = decoded.user.firstName + " M"
