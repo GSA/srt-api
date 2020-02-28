@@ -6,7 +6,9 @@ const port = config.srt_server.port
 
 let predictionRoutes = require('./routes/prediction.routes')
 
-predictionRoutes.updatePredictionTable()
+let clearAfterDate = (process.argv.length > 2 && process.argv[2] === '--fast') ? false : '1990-01-01'
+
+predictionRoutes.updatePredictionTable(clearAfterDate)
   .then( () => {
     // process.exit(0)
     console.log ("loadPredications.js complete")

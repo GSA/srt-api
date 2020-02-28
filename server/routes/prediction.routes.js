@@ -127,7 +127,7 @@ function makeOnePrediction (notice) {
     }
     o.undetermined = 0 // (getRandomInt(0, 2) == 0);
 
-    if (notice.action) {
+    if (Array.isArray(notice.action) && notice.action.length > 0) {
       o.action = notice.action
       if (!Array.isArray(o.action)) {
         o.action = [o.action]
@@ -440,22 +440,27 @@ module.exports = {
 }
 
 
-async function updatePredictionTable  () {
+async function updatePredictionTable  (clearAllAfterDate) {
 
-  logger.debug("starting updatePredictionTable")
+  logger.debug(`starting updatePredictionTable. Clear all after date set to ${clearAllAfterDate}`, {tag: "updatePredictionTable"})
+
+  if (clearAllAfterDate) {
+    let sql = `delete from "Predictions" where "updatedAt" > '${clearAllAfterDate}' `
+    logger.debug(`Clearing all predictions after ${clearAllAfterDate}`, {tag: "updatePredictionTable", sql: sql})
+    await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
+  }
 
   let actualCount = 0
   let outdatedPredictions = await getOutdatedPrediction()
-  logger.debug(`there are outdated ${outdatedPredictions.length} predictions to update`)
+  logger.debug(`there are ${outdatedPredictions.length} outdated predictions to update`)
   while (outdatedPredictions && outdatedPredictions.length > 0) {
     actualCount ++
     let pred = outdatedPredictions.pop()
     pred.actionDate = makeDate(pred.actionDate)
     pred.date = makeDate(pred.date)
 
-    // TODO: fix race condition
     try {
-      logger.log("debug", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
+      // logger.log("debug", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
       delete (pred.id) // remove the id since that should be auto-increment
       await Prediction.destroy({ where: { solNum: pred.solNum } }) // delete any outdated prediction
       await Prediction.create(pred);

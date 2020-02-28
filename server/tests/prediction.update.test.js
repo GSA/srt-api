@@ -47,4 +47,23 @@ describe('Prediction Update Test', () => {
 
   }, 30000)
 
+  // skip this test. It can't be run in parallel with others and isn't terribly important
+  test.skip('optional wipe of prediction table during update', async () => {
+    // initial update
+    await predictionRoutes.updatePredictionTable()
+
+    let updateCount = await predictionRoutes.updatePredictionTable()
+    expect(updateCount).toBe(0)
+
+    updateCount = await predictionRoutes.updatePredictionTable('2222-01-01')
+    expect(updateCount).toBe(0)
+
+    updateCount = await predictionRoutes.updatePredictionTable('1999-01-01')
+    expect(updateCount).toBeGreaterThan(50)
+
+    updateCount = await predictionRoutes.updatePredictionTable()
+    expect(updateCount).toBe(0)
+
+  }, 60000)
+
 })
