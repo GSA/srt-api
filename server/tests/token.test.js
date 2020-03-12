@@ -244,5 +244,12 @@ describe('JWT Tests', () => {
     expect(energy).toBe("Department of Energy")
     delete process.env.AGENCY_LOOKUP
 
+    // test the env var override
+    process.env.AGENCY_LOOKUP = '{ "Department of Agriculture" : "AGRICULTURE, DEPARTMENT OF", "Department of Commerce": "COMMERCE, DEPARTMENT OF", "Department of Education" : "Department of Education", "Department of Health and Human Services" : "HEALTH AND HUMAN SERVICES, DEPARTMENT OF", "Department of Homeland Security": "HOMELAND SECURITY, DEPARTMENT OF", "Department of Housing and Urban Development" : "Department of Housing and Urban Development", "Department of Justice" : "JUSTICE, DEPARTMENT OF", "Department of Labor" : "LABOR, DEPARTMENT OF", "Department of State" : "STATE, DEPARTMENT OF", "Department of the Interior": "INTERIOR, DEPARTMENT OF THE", "Department of the Treasury": "TREASURY, DEPARTMENT OF THE", "Department of Transportation" : "TRANSPORTATION, DEPARTMENT OF", "Environmental Protection Agency" : "ENVIRONMENTAL PROTECTION AGENCY", "Executive Office of the President" : "Executive Office of the President", "International Assistance Programs" : "AGENCY FOR INTERNATIONAL DEVELOPMENT", "National Aeronautics and Space Administration" : "NATIONAL AERONAUTICS AND SPACE ADMINISTRATION", "National Science Foundation" : "National Science Foundation", "Nuclear Regulatory Commission" : "Nuclear Regulatory Commission", "Office of Personnel Management" : "OFFICE OF PERSONNEL MANAGEMENT", "Small Business Administration" : "Small Business Administration", "Social Security Administration" : "SOCIAL SECURITY ADMINISTRATION", "General Services Administration": "GENERAL SERVICES ADMINISTRATION" }'
+    let gsa = authRoutes.translateCASAgencyName("General Services Administration")
+    expect(gsa).toBe("GENERAL SERVICES ADMINISTRATION")
+    delete process.env.AGENCY_LOOKUP
+
+
   })
 })
