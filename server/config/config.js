@@ -113,8 +113,8 @@ module.exports = {
       "Nuclear Regulatory Commission" :	"Nuclear Regulatory Commission",
       "Office of Personnel Management" :	"OFFICE OF PERSONNEL MANAGEMENT",
       "Small Business Administration" :	"Small Business Administration",
-      "Social Security Administration" :	"SOCIAL SECURITY ADMINISTRATION"
-
+      "Social Security Administration" :	"SOCIAL SECURITY ADMINISTRATION",
+      "General Services Administration": "GENERAL SERVICES ADMINISTRATION"
     },
     VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation'],
     "minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z"

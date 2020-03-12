@@ -321,7 +321,7 @@ async function tokenJsonFromCasInfo (cas_userinfo, secret, expireTime, sessionSt
  * @return {boolean}
  */
 function isGSAAdmin(agency, role) {
-  return  agency === 'General Services Administration' &&
+  return  agency && agency.toLowerCase() === 'general services administration' &&
     (role === roles[ADMIN_ROLE].name || role === roles[PROGRAM_MANAGER_ROLE].name)
 }
 

@@ -18,4 +18,11 @@ ignore:
     - winston > async > lodash:
         reason: None given
         expires: '2019-08-02T13:10:53.461Z'
+  SNYK-JS-MINIMIST-559764:
+    - multer > mkdirp > minimist:
+        reason: no fix available
+        expires: '2020-04-11T19:27:49.529Z'
+    - sequelize-cli > js-beautify > mkdirp > minimist:
+        reason: no fix available
+        expires: '2020-04-11T19:27:49.529Z'
 patch: {}
