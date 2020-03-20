@@ -80,6 +80,7 @@ module.exports = function (db, cas) {
       winston.format.timestamp(),
       winston.format.json()
     ),
+    winstonInstance: logger,
     meta: true,
     // msg: "HTTP {{req.method}} {{req.url}} ",
     msg: function (req, res) {
