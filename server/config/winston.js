@@ -1,5 +1,10 @@
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
+const Postgres = require('@albertcrowley/winston-pg-native')
+
+const dbConfig = require('../config/dbConfig')[env]
+let connectionString = 'postgres://' + dbConfig.username + ':' + dbConfig.password + '@' + dbConfig.host + ':' + dbConfig.port + '/' + dbConfig.database
+
 
 let winston = require('winston')
 let options = {
@@ -22,6 +27,14 @@ let options = {
     }
   }
 }
+
+options.transports.push(
+  new Postgres({
+    connectionString,
+    level: 'info',
+    tableName: 'winston_logs'
+  })
+)
 
 if (config['logStdOut'] ) {
   options.transports.push(
