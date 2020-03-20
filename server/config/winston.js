@@ -23,9 +23,37 @@ let options = {
   }
 }
 
-// Don't log to stdout when running tests
-if (config['logStdOut'] /*& process.env.JEST_WORKER_ID == undefined */ ) {
-  options.transports.push(new winston.transports.Console({ level: 'debug', json: true, colorize: false }))
+if (config['logStdOut'] ) {
+  options.transports.push(
+    new winston.transports.Console(
+      {
+        level: 'debug',
+        json: true,
+        colorize: false,
+
+        // format this for cloud.gov log aggrigator (timestamp, level, message only)
+        format: winston.format.printf( (info) => {
+          let loggable = {
+            timestamp: info.timestamp,
+            message: info.message,
+            level: info.level
+          }
+
+          // Check to see if this is a HTTP request log....if so, remove the bearer token
+          if (info.meta && info.meta.req && info.meta.req.headers && info.meta.req.headers.authorization) {
+            delete info.meta.req.headers.authorization
+          }
+
+          // add extra data to the end of the message
+          for (let i in info) {
+            if ( ! ['timestamp', 'level', 'message'].includes(i) ) {
+              let value =  (typeof(info[i]) == 'string') ? info[i] : JSON.stringify(info[i])
+              loggable.message += ` [ ${i} : ${value} ]`
+            }
+          }
+          return JSON.stringify(loggable)
+        })
+      }))
 }
 
 let logger = winston.createLogger(options)
