@@ -36,6 +36,7 @@ options.transports.push(
   })
 )
 
+
 if (config['logStdOut'] ) {
   options.transports.push(
     new winston.transports.Console(
