@@ -114,6 +114,11 @@ module.exports = function (db, cas) {
     }
   }))
 
+  app.use((req,res,next)=>{
+    res.set('Cache-Control', 'no-store')
+    next()
+  })
+
   // The server is usually behind a proxy.
   // Setting trust proxy signals that the connection is essentially https even though the actual local protocol
   // is http.  Modules like express-session will work with this setting

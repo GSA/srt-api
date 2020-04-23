@@ -99,12 +99,13 @@ module.exports = function (db, userRoutes) {
               // but for consistency we should set the ID number to the one requested rather than to
               // a pseudo-random choice
               result.predictions[0].id = parseInt(req.params.id)
+
               return res.status(200).send(result.predictions[0])
             })
         })
         .catch((e) => {
           e //?
-          logger.log('error', 'error in: solicitation get', { error:e, tag: 'solicitation get' })
+          logger.log('error', 'error in: solicitation get', { error:e.message, tag: 'solicitation get' })
           return res.status(500).send('Error finding solicitation')
         })
     },
