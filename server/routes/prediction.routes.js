@@ -283,6 +283,7 @@ function normalizeMatchFilter(filter, field){
 async function getPredictions (filter, user) {
 
   try {
+    user //?
 
     if ( user === undefined || user.agency === undefined || user.userRole === undefined ) {
       return []
