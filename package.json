@@ -18,7 +18,9 @@
     "startdb": "export CRYPTIFY=Blue-Cast-1-Heavy-Bird && mkdir -p docker/sql && rm -f docker/sql/srt-database-export* && cp srt-db.crypt docker/sql/srt-database-export.sql.gz && cd docker/sql && ../.././node_modules/.bin/cryptify -c aes-256-cbc -p ${CRYPTIFY} -d srt-database-export.sql.gz && gzip -d srt-database-export.sql.gz && cd .. && ./run-pg.sh && cd .. && sleep 5 && node_modules/.bin/sequelize db:migrate ",
     "loaddbbackup": "export PGHOST=localhost && export PGDATABASE=srt && export PGUSER=circleci && export PGPASSWORD=srtpass && zcat dbbackup.sql.gz | psql && node_modules/.bin/sequelize db:migrate ",
     "killIdle": "ps -eaf | grep idle | grep -v grep | grep -v 4801 | grep -o \"^[0-9]*[^0-9]*[0-9]*\" | grep -o \"[0-9]*$\" | sudo xargs kill -9 ",
-    "doc": "node_modules/.bin/jsdoc  -d docs -R ./README.md -r server/routes server/models"
+    "doc": "node_modules/.bin/jsdoc  -d docs -R ./README.md -r server/routes server/models",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "author": "TCG",
   "license": "ISC",
@@ -46,7 +48,8 @@
     "sequelize": "^5.21.7",
     "sequelize-cli": "^5.5.1",
     "umzug": "^2.3.0",
-    "winston": "^3.2.1"
+    "winston": "^3.2.1",
+    "snyk": "^1.286.1"
   },
   "devDependencies": {
     "cryptify": "^3.0.3",
@@ -67,7 +70,6 @@
     "nodemailer-mock": "^1.5.1",
     "sequelize-auto-v2": "^0.5",
     "sinon": "^7.5.0",
-    "snyk": "^1.309.0",
     "supertest": "^4.0.2",
     "supertest-session": "^4.0.0"
   },
@@ -81,6 +83,7 @@
       "*.test.js",
       "winston.log.json"
     ],
-    "delay": "2200"
-  }
+    "delay": 2200
+  },
+  "snyk": true
 }
