@@ -49,6 +49,7 @@ module.exports = function (db, cas) {
   let surveyRoutes = require('./routes/survey.routes')
   let versionRoutes = require('./routes/version.routes')()
   let noticeTypeRoutes = require('./routes/noticeType.routes')
+  let adminReportRoutes = require('./routes/admin.report.routes')
 
   app.use(bodyParser.json())
 
@@ -164,6 +165,7 @@ module.exports = function (db, cas) {
   app.get('/api/version', versionRoutes.version)
   app.get('/api/noticeTypes', token(), noticeTypeRoutes.getNoticeTypes)
 
+  app.get('/api/reports/login', token(), admin_only(), adminReportRoutes.userLogin)
 
 
 

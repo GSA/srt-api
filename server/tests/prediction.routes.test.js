@@ -767,7 +767,6 @@ describe('prediction tests', () => {
       for (let i = 0; i < 50; i += 10) {
         let order = await predictionRoutes.getPredictions({ first: i, rows: 7, sortField: field }, mocks.mockAdminUser)
 
-        i //?
         // check that first = x is the same as the xth item when starting at 0
         expect(order.predictions[0].solNum).toBe(order1.predictions[i].solNum)
 
