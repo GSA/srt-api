@@ -11,6 +11,10 @@ module.exports = function (wallaby) {
       'server/tests/**/*test.js'
     ],
 
+    workers: {
+      recycle: true
+    },
+
     env: {
       type: 'node',
       params: {
