@@ -261,7 +261,12 @@ module.exports = function (db, userRoutes) {
         order = ' order by date desc ' // take the one with the most recent date
       }
       if (req.body['$where'] && req.body['$where'].match(/this.feedback.length.?>.?0/i)) {
-        where.push(` jsonb_array_length(feedback) > 0 `)
+        where.push(` jsonb_array_length(
+                        case
+                          when jsonb_typeof(feedback) = 'array' then feedback
+                          else '[]'::jsonb
+                        end
+                     ) > 0 `)
       }
 
       let whereStr = where.join(' AND ')

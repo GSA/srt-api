@@ -166,6 +166,7 @@ module.exports = function (db, cas) {
   app.get('/api/noticeTypes', token(), noticeTypeRoutes.getNoticeTypes)
 
   app.get('/api/reports/login', token(), admin_only(), adminReportRoutes.userLogin)
+  app.get('/api/reports/feedback', token(), admin_only(), adminReportRoutes.feedback)
 
 
 
