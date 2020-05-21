@@ -1,6 +1,6 @@
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config')[env]
-const {common,config_keys} = require('../config/config.js')
+const {common} = require('../config/config.js')
 
 /**
  * True if the input string is valid JSON
@@ -59,7 +59,7 @@ function lookup(key, defaultValue, extraDictionary) {
  * @param {Object} customDictionary
  * @return {string|*}
  */
-function getConfig(key, defaultValue, customDictionary) {
+function getConfig(key, defaultValue, customDictionary = null) {
   if (typeof key !== "string") {
     return defaultValue
   }
