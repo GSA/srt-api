@@ -127,14 +127,8 @@ workflows:
       - build
       - hold:
           requires:
-            -build
+            - build
           type: approval
-          filters:
-            branches:
-              only:
-                - staging
-                - prod
-
       - deploy:
           requires:
             - hold
