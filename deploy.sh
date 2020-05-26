@@ -2,8 +2,8 @@
 
 POSITIONAL=()
 TEMP_DIR="/tmp"
-SERVER_REPO="git@github.com:GSA/srt-api.git"
-CLIENT_REPO="git@github.com:GSA/srt-ui.git"
+SERVER_REPO="git@github.com:albertcrowley/srt-api.git"
+CLIENT_REPO="git@github.com:albertcrowley/srt-ui.git"
 TIME_STR=`date +%Y-%m-%d.%H.%M.%S`
 CWD=`pwd`
 RECLONE=true
@@ -16,7 +16,7 @@ DEPLOYAPI=true
 function read_args() {
     while [[ $# -gt 0 ]]
     do
-        key="$1"
+        key="$1"/
 
         case $key in
             --verbose)
