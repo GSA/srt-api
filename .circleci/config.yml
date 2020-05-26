@@ -112,7 +112,7 @@ workflows:
       - build
       - deploy:
           requires:
-            - hold
+            - build
           filters:
             branches:
               only: cd
