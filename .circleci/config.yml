@@ -124,13 +124,7 @@ workflows:
 
   build-wait-deploy:
     jobs:
-      - build:
-          filters:
-            branches:
-              only:
-                - staging
-                - prod
-
+      - build
       - hold:
           requires:
             -build
