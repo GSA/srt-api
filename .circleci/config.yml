@@ -114,16 +114,14 @@ workflows:
   build-and-deploy:
     jobs:
       - build
-      - deploy:
+
+      - deploy-dev:
           requires:
             - build
           filters:
             branches:
               only: dev
 
-
-  build-wait-deploy:
-    jobs:
       - hold:
           requires:
             - build
