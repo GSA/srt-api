@@ -96,7 +96,7 @@ jobs:
             pwd
             rm -f manifest.yml
             cp manifest.dev.yml manifest.yml
-            echo "${CIRCLE_BUILD_NUM}" > server/version.json
+            echo "{ \"version\" : \"circle-${CIRCLE_BUILD_NUM}\", \"build_data\" :  \"`date`\"} " > server/version.json
 
             # Documentation for service accounts here: https://cloud.gov/docs/services/cloud-gov-service-account/
 
@@ -116,4 +116,4 @@ workflows:
             - build
           filters:
             branches:
-              only: cd
+              only: dev
