@@ -124,7 +124,6 @@ workflows:
 
   build-wait-deploy:
     jobs:
-      - build
       - hold:
           requires:
             - build
