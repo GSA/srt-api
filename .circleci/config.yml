@@ -3,6 +3,42 @@
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
 #
 version: 2
+
+
+
+# Create a YAML alias for the deploy step so we can reuse it later
+deploy-core: &deploy-core
+  docker:
+    - image: circleci/node:12
+  working_directory: ~/repo
+  steps:
+    - checkout
+    - run:
+        name: Download CF CLI
+        command: |
+          curl -v -L -o cf-cli_amd64.deb 'https://cli.run.pivotal.io/stable?release=debian64&source=github'
+          sudo dpkg -i cf-cli_amd64.deb
+          cf -v
+
+    - run:
+        name: Build and deploy API
+        command: |
+          pwd
+          export SPACE="$CIRCLE_BRANCH"
+          rm -f manifest.yml
+          cp manifest.${SPACE}.yml manifest.yml
+          echo "{ \"version\" : \"circle-${CIRCLE_BUILD_NUM}\", \"build_data\" :  \"`date`\"} " > server/version.json
+
+          # Documentation for service accounts here: https://cloud.gov/docs/services/cloud-gov-service-account/
+
+          export UNAME_VAR=CF_USERNAME_${SPACE}
+          export PWD_VAR=CF_PASSWORD_${SPACE}
+
+          echo "Target is ${SPACE}"
+          cf login -a https://api.fr.cloud.gov -u ${!UNAME_VAR} -p ${!PWD_VAR} -o gsa-ogp-srt -s ${SPACE}
+          cf push srt-server-${SPACE}
+
+
 jobs:
   build:
     docker:
@@ -77,37 +113,14 @@ jobs:
               ./cc-test-reporter after-build --coverage-input-type lcov --exit-code $?
 
 
+
+
+
+  deploy-dev:
+    <<: *deploy-core
+
   deploy:
-    docker:
-      - image: circleci/node:12
-    working_directory: ~/repo
-    steps:
-      - checkout
-      - run:
-          name: Download CF CLI
-          command: |
-            curl -v -L -o cf-cli_amd64.deb 'https://cli.run.pivotal.io/stable?release=debian64&source=github'
-            sudo dpkg -i cf-cli_amd64.deb
-            cf -v
-
-      - run:
-          name: Build and deploy API
-          command: |
-            pwd
-            export SPACE="$CIRCLE_BRANCH"
-            rm -f manifest.yml
-            cp manifest.${SPACE}.yml manifest.yml
-            echo "{ \"version\" : \"circle-${CIRCLE_BUILD_NUM}\", \"build_data\" :  \"`date`\"} " > server/version.json
-
-            # Documentation for service accounts here: https://cloud.gov/docs/services/cloud-gov-service-account/
-
-            export UNAME_VAR=CF_USERNAME_${SPACE}
-            export PWD_VAR=CF_PASSWORD_${SPACE}
-
-            echo "Target is ${SPACE}"
-            cf login -a https://api.fr.cloud.gov -u ${!UNAME_VAR} -p ${!PWD_VAR} -o gsa-ogp-srt -s ${SPACE}
-            cf push srt-server-${SPACE}
-
+    <<: *deploy-core
 
 workflows:
   version: 2
@@ -126,6 +139,11 @@ workflows:
           requires:
             - build
           type: approval
+          filters:
+            branches:
+              only:
+                - staging
+                - prod
       - deploy:
           requires:
             - hold
