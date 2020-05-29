@@ -25,6 +25,15 @@ deploy-core: &deploy-core
         command: |
           pwd
           export SPACE="$CIRCLE_BRANCH"
+          case $SPACE in
+            dev | staging | prod)
+              echo "Using SPACE $SPACE"
+              ;;
+            *)
+              SPACE="dev"
+              echo "setting SPACE to $SPACE"
+          esac
+
           rm -f manifest.yml
           cp manifest.${SPACE}.yml manifest.yml
           echo "{ \"version\" : \"circle-${CIRCLE_BUILD_NUM}\", \"build_data\" :  \"`date`\"} " > server/version.json
@@ -40,7 +49,7 @@ deploy-core: &deploy-core
 
 
 jobs:
-  build:
+  test:
     docker:
       # specify the version you desire here
       - image: circleci/node:12
@@ -124,20 +133,22 @@ jobs:
 
 workflows:
   version: 2
-  build-and-deploy:
+  test-and-deploy:
     jobs:
-      - build
+      - test
 
       - deploy-dev:
           requires:
-            - build
+            - test
           filters:
             branches:
-              only: dev
+              only:
+                - dev
+                - agency-name-sync
 
       - hold:
           requires:
-            - build
+            - test
           type: approval
           filters:
             branches:
