@@ -29,6 +29,6 @@ module.exports = {
   mockResponse : mockResponse,
 
   mockAdminUser : { agency: 'General Services Administration', userRole: 'Administrator'},
-  mockDoDUser : { agency: 'DEPT OF DEFENSE', userRole: 'Administrator'}
+  mockDoDUser : { agency: 'Department of Defense', userRole: 'Administrator'}
 
 }
