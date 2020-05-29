@@ -1,5 +1,3 @@
-
-
 module.exports = {
   config_keys: {
     VISIBLE_NOTICE_TYPES: "VisibleNoticeTypes"
@@ -93,28 +91,41 @@ module.exports = {
       "UNDO_NA_ACTION": "Not applicable status removed"
     },
     AGENCY_LOOKUP: {
-      "Department of Agriculture" :	"AGRICULTURE, DEPARTMENT OF",
-      "Department of Commerce":	"COMMERCE, DEPARTMENT OF",
-      "Department of Education" :	"Department of Education",
-      "Department of Health and Human Services" : "HEALTH AND HUMAN SERVICES, DEPARTMENT OF",
-      "Department of Homeland Security":	"HOMELAND SECURITY, DEPARTMENT OF",
-      "Department of Housing and Urban Development" :	"Department of Housing and Urban Development",
-      "Department of Justice" :	"JUSTICE, DEPARTMENT OF",
-      "Department of Labor" :	"LABOR, DEPARTMENT OF",
-      "Department of State" :	"STATE, DEPARTMENT OF",
-      "Department of the Interior":	"INTERIOR, DEPARTMENT OF THE",
-      "Department of the Treasury":	"TREASURY, DEPARTMENT OF THE",
-      "Department of Transportation" :	"TRANSPORTATION, DEPARTMENT OF",
-      "Environmental Protection Agency" :	"ENVIRONMENTAL PROTECTION AGENCY",
-      "Executive Office of the President" :	"Executive Office of the President",
-      "International Assistance Programs" :	"AGENCY FOR INTERNATIONAL DEVELOPMENT",
-      "National Aeronautics and Space Administration" :	"NATIONAL AERONAUTICS AND SPACE ADMINISTRATION",
-      "National Science Foundation" :	"National Science Foundation",
-      "Nuclear Regulatory Commission" :	"Nuclear Regulatory Commission",
-      "Office of Personnel Management" :	"OFFICE OF PERSONNEL MANAGEMENT",
-      "Small Business Administration" :	"Small Business Administration",
-      "Social Security Administration" :	"SOCIAL SECURITY ADMINISTRATION",
-      "General Services Administration": "GENERAL SERVICES ADMINISTRATION"
+      "Department of Test": "TEST, DEPARTMENT OF"
+    },
+    AGENCY_MAP: {
+      "AGRICULTURE, DEPARTMENT OF":"Department of Agriculture",
+      "COMMERCE, DEPARTMENT OF":"Department of Commerce",
+      "DEPT OF DEFENSE":"Department of Defense",
+      "DEPARTMENT OF DEFENSE":"Department of Defense",
+      "Defense Logistics Agency":"Department of Defense",
+      "Other Defense Agencies":"Department of Defense",
+      "Defense Information Systems Agency":"Department of Defense",
+      "EDUCATION, DEPARTMENT OF":"Department of Education",
+      "HEALTH AND HUMAN SERVICES, DEPARTMENT OF":"Department of Health and Human Services",
+      "HOMELAND SECURITY, DEPARTMENT OF":"Department of Homeland Security",
+      "HOUSING AND URBAN DEVELOPMENT, DEPARTMENT OF":"Department of Housing and Urban Development",
+      "JUSTICE, DEPARTMENT OF":"Department of Justice",
+      "LABOR, DEPARTMENT OF":"Department of Labor",
+      "STATE, DEPARTMENT OF":"Department of State",
+      "INTERIOR, DEPARTMENT OF THE":"Department of the Interior",
+      "TREASURY, DEPARTMENT OF THE":"Department of the Treasury",
+      "TRANSPORTATION, DEPARTMENT OF":"Department of Transportation",
+      "ENVIRONMENTAL PROTECTION AGENCY":"Environmental Protection Agency",
+      "EXECUTIVE OFFICE OF THE PRESIDENT":"Executive Office of the President",
+      "GENERAL SERVICES ADMINISTRATION":"General Services Administration",
+      "AGENCY FOR INTERNATIONAL DEVELOPMENT":"Agency for International Development",
+      "NATIONAL AERONAUTICS AND SPACE ADMINISTRATION":"National Aeronautics and Space Administration",
+      "NATIONAL SCIENCE FOUNDATION":"National Science Foundation",
+      "NUCLEAR REGULATORY COMMISSION":"Nuclear Regulatory Commission",
+      "OFFICE OF PERSONNEL MANAGEMENT":"Office of Personnel Management",
+      "SMALL BUSINESS ADMINISTRATION":"Small Business Administration",
+      "SOCIAL SECURITY ADMINISTRATION":"Social Security Administration",
+      "LIBRARY OF CONGRESS": "Library of Congress",
+      "VETERANS AFFAIRS, DEPARTMENT OF": "Department of Veterans Affairs",
+      "NATIONAL ARCHIVES AND RECORDS ADMINISTRATION": "National Archives and Records Administration",
+      "ENERGY, DEPARTMENT OF":"Department of Energy",
+      "MILLENNIUM CHALLENGE CORPORATION":"Millennium Challenge Corporation"
     },
     VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation'],
     "minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z"

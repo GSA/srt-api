@@ -1,4 +1,6 @@
 /** @module PredictionRoutes */
+// noinspection JSUnresolvedVariable
+/** @type {Prediction} **/
 const Prediction = require('../models').Prediction
 
 /**
@@ -99,7 +101,7 @@ function makeOnePrediction (notice) {
     o.id = notice.id
     o.title = (notice.notice_data && notice.notice_data.subject) ? notice.notice_data.subject : 'title not available'
     o.url = (notice.notice_data !== undefined) ? notice.notice_data.url : ''
-    o.agency = notice.agency
+    o.agency = mapAgency(notice.agency)
     o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0
     o.solNum = notice.solicitation_number
     o.noticeType = notice.notice_type
@@ -150,6 +152,7 @@ function makeOnePrediction (notice) {
 
     let email = ''
     if (notice.notice_data && notice.notice_data.emails && notice.notice_data.emails.length) {
+      // noinspection JSUnresolvedVariable
       if (config.spamProtect) {
         notice.notice_data.emails = notice.notice_data.emails.map(e => e + '.nospam')
       }
@@ -283,8 +286,6 @@ function normalizeMatchFilter(filter, field){
 async function getPredictions (filter, user) {
 
   try {
-    user //?
-
     if ( user === undefined || user.agency === undefined || user.userRole === undefined ) {
       return []
     }
@@ -364,7 +365,9 @@ async function getPredictions (filter, user) {
 
     // always end with date sort to keep the newest first (all else being equal)
     attributes.order.push(['date', 'DESC'])
+    // noinspection JSUnresolvedFunction
     let preds = await Prediction.findAll(attributes)
+    // noinspection JSUnresolvedFunction
     let count = await Prediction.findAndCountAll(attributes)
 
     return {
@@ -384,6 +387,11 @@ async function getPredictions (filter, user) {
   }
 }
 
+function mapAgency(agency) {
+  const key = "AGENCY_MAP:" + agency //?
+  return (configuration.getConfig(key, null)) ? configuration.getConfig(key, null) : agency
+}
+
 /**
  * prediction routes
  */
@@ -393,13 +401,14 @@ module.exports = {
   mergePredictions: mergePredictions,
   makeOnePrediction: makeOnePrediction,
   updatePredictionTable: updatePredictionTable,
+  mapAgency: mapAgency,
 
-  /**
+/**
      * Finds all the predictions that match the filter and send them out to the response.
      *
      * @param {Object} req
      * @param {PredictionFilter} req.body
-     * @param {Response} res
+     * @param {{set: *, json: *, send: *, status: *}} res
      * @return {Promise}
      */
   predictionFilter: function (req, res) {
@@ -460,6 +469,7 @@ async function updatePredictionTable  (clearAllAfterDate) {
   if (clearAllAfterDate) {
     let sql = `delete from "Predictions" where "updatedAt" > '${clearAllAfterDate}' `
     logger.debug(`Clearing all predictions after ${clearAllAfterDate}`, {tag: "updatePredictionTable", sql: sql})
+    // noinspection JSUnresolvedFunction
     await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
   }
 
@@ -475,7 +485,9 @@ async function updatePredictionTable  (clearAllAfterDate) {
     try {
       // logger.log("debug", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
       delete (pred.id) // remove the id since that should be auto-increment
+      // noinspection JSCheckFunctionSignatures
       await Prediction.destroy({ where: { solNum: pred.solNum } }) // delete any outdated prediction
+      // noinspection JSUnresolvedFunction
       await Prediction.create(pred);
     } catch(e) {
       logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', error: e})

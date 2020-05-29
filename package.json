@@ -71,7 +71,8 @@
     "sequelize-auto-v2": "^0.5",
     "sinon": "^7.5.0",
     "supertest": "^4.0.2",
-    "supertest-session": "^4.0.0"
+    "supertest-session": "^4.0.0",
+    "acorn": "^7.2.0"
   },
   "engines": {
     "node": "12.16.3",
