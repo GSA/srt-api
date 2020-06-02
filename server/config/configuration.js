@@ -35,6 +35,7 @@ function lookup(key, defaultValue, extraDictionary) {
     extraDictionary = {}
     logger.log("warn", "got a null value for the extraDictionary parameter", {tag:'lookup', key: key, defaultValue: defaultValue})
   }
+
   if (key in extraDictionary) {
     return extraDictionary[key]
   }
