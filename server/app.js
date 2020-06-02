@@ -58,7 +58,7 @@ module.exports = function (db, cas) {
     if (origin === undefined || common.CORSWhitelist.indexOf(origin) !== -1) {
       callback(null, true)
     } else {
-      logger.log('warning', 'Request from origin ' + origin + ' not allowed by CORS.', { tag: 'CORS' })
+      logger.log('warn', 'Request from origin ' + origin + ' not allowed by CORS.', { tag: 'CORS' })
       callback(new Error('Not allowed by CORS'))
     }
   }

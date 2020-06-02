@@ -1,6 +1,7 @@
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config')[env]
 const {common} = require('../config/config.js')
+const logger = require('../config/winston')
 
 /**
  * True if the input string is valid JSON
@@ -30,6 +31,11 @@ function isJSON(s) {
  * @return {string|*}
  */
 function lookup(key, defaultValue, extraDictionary) {
+  if (extraDictionary == null) {
+    extraDictionary = {}
+    logger.log("warn", "got a null value for the extraDictionary parameter", {tag:'lookup', key: key, defaultValue: defaultValue})
+  }
+
   if (key in extraDictionary) {
     return extraDictionary[key]
   }
