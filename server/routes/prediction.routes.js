@@ -171,7 +171,7 @@ function makeOnePrediction (notice) {
 
     o.searchText = [o.solNum, o.noticeType, o.title, o.date, o.reviewRec, o.actionStatus, o.actionDate, o.agency, o.office].join(' ').toLowerCase()
   } catch (e) {
-    logger.log("error", "Error building a prediction object", {tag: "MakeOnePrediction", error: e})
+    logger.log("error", "Error building a prediction object", {tag: "MakeOnePrediction", error: e.message, trace: e.stack})
   }
   return o
 }

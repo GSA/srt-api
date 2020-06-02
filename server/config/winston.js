@@ -1,6 +1,8 @@
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
 const Postgres = require('@albertcrowley/winston-pg-native')
+const { stringify } = require('flatted/cjs');
+
 
 const dbConfig = require('../config/dbConfig')[env]
 let connectionString = 'postgres://' + dbConfig.username + ':' + dbConfig.password + '@' + dbConfig.host + ':' + dbConfig.port + '/' + dbConfig.database
@@ -61,11 +63,11 @@ if (config['logStdOut'] ) {
           // add extra data to the end of the message
           for (let i in info) {
             if ( ! ['timestamp', 'level', 'message'].includes(i) ) {
-              let value =  (typeof(info[i]) == 'string') ? info[i] : JSON.stringify(info[i])
+              let value =  (typeof(info[i]) == 'string') ? info[i] : stringify(info[i])
               loggable.message += ` [ ${i} : ${value} ]`
             }
           }
-          return JSON.stringify(loggable)
+          return stringify(loggable)
         })
       }))
 }
