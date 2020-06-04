@@ -27,14 +27,14 @@ ignore:
         expires: '2020-04-11T19:27:49.529Z'
   SNYK-JS-LODASH-567746:
     - random-words > mocha > yargs-unparser > lodash:
+        reason: Patch applied but no update available yet
+        expires: '2020-07-04T14:11:08.724Z'
+    - '@albertcrowley/winston-pg-native@github:albertcrowley/winston-pg-native#867fac4b3a49570bfd71ea80408e26a6d940cc2e > node-sql-2@0.79.0 > lodash@4.17.15':
         reason: Module patched but no full update is available yet
-        expires: '2020-06-03T17:39:30.651Z'
-    - "@albertcrowley/winston-pg-native@github:albertcrowley/winston-pg-native#867fac4b3a49570bfd71ea80408e26a6d940cc2e > node-sql-2@0.79.0 > lodash@4.17.15":
+        expires: '2020-07-04T14:11:08.724Z'
+    - '@albertcrowley/winston-pg-native@github:albertcrowley/winston-pg-native#867fac4b3a49570bfd71ea80408e26a6d940cc2e > winston@3.2.1 > async@2.6.3 > lodash@4.17.15':
         reason: Module patched but no full update is available yet
-        expires: '2020-06-03T17:39:30.651Z'
-    - "@albertcrowley/winston-pg-native@github:albertcrowley/winston-pg-native#867fac4b3a49570bfd71ea80408e26a6d940cc2e > winston@3.2.1 > async@2.6.3 > lodash@4.17.15":
-        reason: Module patched but no full update is available yet
-        expires: '2020-06-03T17:39:30.651Z'
+        expires: '2020-07-04T14:11:08.724Z'
 # patches apply the minimum changes required to fix a vulnerability
 patch:
   SNYK-JS-LODASH-567746:
@@ -96,3 +96,7 @@ patch:
         patched: '2020-05-04T17:10:28.309Z'
     - snyk > @snyk/dep-graph > graphlib > lodash:
         patched: '2020-05-04T17:10:28.309Z'
+    - random-words > mocha > yargs-unparser > lodash:
+        patched: '2020-06-04T13:46:39.807Z'
+    - random-words > mocha > yargs-unparser > lodash:
+        patched: '2020-06-04T13:59:03.984Z'
