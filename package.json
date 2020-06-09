@@ -75,8 +75,8 @@
     "acorn": "^7.2.0"
   },
   "engines": {
-    "node": "12.16.3",
-    "npm": "3.10.3"
+    "node": "^12.18.0",
+    "npm": "^3.10.3"
   },
   "nodemonConfig": {
     "verbose": false,
