@@ -1,6 +1,6 @@
 /** @module AdminReportRoutes */
 const db = require('../models/index')
-
+const {getConfig} = require('../config/configuration')
 
 module.exports = {
 
@@ -38,22 +38,27 @@ module.exports = {
   },
 
   /*
-  Gathers the feddback data and returns it as an array with one question/answer per entry
+  Gathers the feedback data and returns it as an array with one question/answer per entry
    */
   feedback : async function (req, res) {
-    const sql = `select solicitation_number, feedback from notice
+    const sql = `select  distinct single_action->>'user' as email, title,
+                                  "solNum", "Predictions".feedback, "Predictions"."title", notice.id
+                 from "Predictions"
+                      join notice on "Predictions"."solNum" = notice.solicitation_number,
+                      jsonb_array_elements("Predictions".action) single_action
                  where jsonb_array_length(
-                         case
-                           when jsonb_typeof(feedback) = 'array' then feedback
-                           else '[]'::jsonb
-                         end
-                      ) > 0`
+                               case
+                                   when jsonb_typeof("Predictions".feedback) = 'array' then "Predictions".feedback
+                                   else '[]'::jsonb
+                                   end
+                           ) > 0
+                   and single_action->>'action' = '${getConfig("constants:FEEDBACK_ACTION")}';`
 
     let rows = await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
     let result = []
     for (const r of rows) {
       for (const f of r.feedback) {
-        let o = Object.assign({}, f, {solicitation_number: r.solicitation_number})
+        let o = Object.assign({note: '', answer: '', question: '', questionID: '', solicitation_number: r.solNum, email: r.email, title: r.title, id: r.id}, f)
         result.push(o)
       }
     }
