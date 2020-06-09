@@ -41,10 +41,13 @@ module.exports = function (db, userRoutes) {
         }
       }
 
-      if (Array.isArray(notice_updated.feedback) && notice_updated.feedback.length > 0 &&
-          (Array.isArray(notice_orig) === false || notice_orig.feedback.length !== notice_updated.feedback.length)) {
+      // do we have feedback in the updated entry? If so, we may want to update the actions to say feedback added
+      if (Array.isArray(notice_updated.feedback) && notice_updated.feedback.length > 0) {
+        const orig_feedback = notice_orig.feedback || []
+        if (notice_updated.feedback.length !== orig_feedback.length) {
           logger.log("debug", "Set feedback action to " + getConfig('constants:FEEDBACK_ACTION'), { tag: "auditSolicitationChange", notice_updated: notice_updated, notice_orig: notice_orig })
           actions.push(buildAction(req, getConfig('constants:FEEDBACK_ACTION')))
+        }
       }
 
       // na_flag may sometimes be undefined. For those cases we need a || construct to
@@ -112,7 +115,7 @@ module.exports = function (db, userRoutes) {
 
 
     /**
-     * Updates some pieces of a solicitaiton.
+     * Updates some pieces of a solicitation.
      * Only changes the most recent entry in the Notice table.
      * Columns affected:
      *   na_flag
@@ -161,6 +164,7 @@ module.exports = function (db, userRoutes) {
 
           return notice.save()
             .then( (n) => {
+              // noinspection JSUnresolvedVariable
               logger.log("info",
                 `Updated Notice row for solicitation ${notice.solicitation_number}`,
                 {
@@ -209,7 +213,7 @@ module.exports = function (db, userRoutes) {
           }
 
           // first do the audit
-          if (! Array.isArray(notice.action, req.body)){
+          if (! Array.isArray(notice.action)){
             notice.action = []
           }
           notice.action = auditSolicitationChange(notice, req.body, req)
