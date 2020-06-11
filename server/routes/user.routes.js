@@ -190,7 +190,7 @@ module.exports = {
 
     let newToken = jwt.sign({user: decoded.user}, common.jwtSecret, { expiresIn: getConfig('tokenLife') })
 
-    return res.status(200).send({token: newToken, agency: req.query.agency, role: req.query.role})
+    return res.status(200).send({token: newToken, agency: decoded.user.agency, role: decoded.user.userRole})
 
 
 
