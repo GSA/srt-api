@@ -243,7 +243,7 @@ function translateCASAgencyName(cas_agency) {
     }
   }
 
-  return getConfig(cas_agency, cas_agency, agencyLookupDictionary)
+  return getConfig(cas_agency && cas_agency.toLowerCase(), cas_agency, agencyLookupDictionary)
 }
 
 /***
