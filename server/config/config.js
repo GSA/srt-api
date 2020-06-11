@@ -90,8 +90,38 @@ module.exports = {
       "NA_ACTION": "Solicitation marked not applicable",
       "UNDO_NA_ACTION": "Not applicable status removed"
     },
+    // keys for agency look should be all lower case
     AGENCY_LOOKUP: {
-      "Department of Test": "TEST, DEPARTMENT OF"
+      "department of test": "TEST, DEPARTMENT OF",
+      "department of agriculture":"Department of Agriculture",
+      "department of commerce":"Department of Commerce",
+      "department of defense":"Department of Defense",
+      "department of education":"Department of Education",
+      "department of health and human services":"Department of Health and Human Services",
+      "department of homeland security":"Department of Homeland Security",
+      "department of housing and urban development":"Department of Housing and Urban Development",
+      "department of justice":"Department of Justice",
+      "department of labor":"Department of Labor",
+      "department of state":"Department of State",
+      "department of the interior":"Department of the Interior",
+      "department of the treasury":"Department of the Treasury",
+      "department of transportation":"Department of Transportation",
+      "environmental protection agency":"Environmental Protection Agency",
+      "executive office of the president":"Executive Office of the President",
+      "general services administration":"General Services Administration",
+      "agency for international development":"Agency for International Development",
+      "national aeronautics and space administration":"National Aeronautics and Space Administration",
+      "national science foundation":"National Science Foundation",
+      "nuclear regulatory commission":"Nuclear Regulatory Commission",
+      "office of personnel management":"Office of Personnel Management",
+      "small business administration":"Small Business Administration",
+      "social security administration":"Social Security Administration",
+      "library of congress": "Library of Congress",
+      "department of veterans affairs": "Department of Veterans Affairs",
+      "national archives and records administration": "National Archives and Records Administration",
+      "department of energy":"Department of Energy",
+      "millennium challenge corporation":"Millennium Challenge Corporation"
+
     },
     AGENCY_MAP: {
       "AGRICULTURE, DEPARTMENT OF":"Department of Agriculture",
