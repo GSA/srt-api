@@ -524,7 +524,7 @@ function getOutdatedPrediction() {
                   (SELECT DISTINCT solicitation_number
                    FROM notice nn
                    LEFT JOIN "Predictions" pp on pp."solNum" = nn.solicitation_number
-                   WHERE (nn."updatedAt" > pp."updatedAt" or
+                   WHERE (COALESCE (nn."updatedAt", nn."createdAt") > pp."updatedAt" or
                          pp."updatedAt" is null) and
                          nn.solicitation_number != '' and nn.solicitation_number is not null limit 1000)`
 
