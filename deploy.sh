@@ -16,7 +16,7 @@ DEPLOYAPI=true
 function read_args() {
     while [[ $# -gt 0 ]]
     do
-        key="$1"/
+        key="$1"
 
         case $key in
             --verbose)
