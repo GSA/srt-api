@@ -5,6 +5,7 @@ const db = require('../models/index')
 const {common} = require('../config/config.js')
 const userRoutes = require('../routes/user.routes')
 const solicitationRoutes = require('../routes/solicitation.routes')
+const predictionRoutes = require('../routes/prediction.routes')
 // noinspection JSUnresolvedVariable
 const Notice = require('../models').notice
 const { adminCASData, coordinatorCASData } = require('./test.data')
@@ -32,27 +33,29 @@ describe('solicitation tests', async () => {
   })
 
   test('Update Not Applicable', async () => {
-    let rows = await db.sequelize.query('select solicitation_number from notice order by solicitation_number desc limit 1')
+    let rows = await db.sequelize.query('select solicitation_number from notice join notice_type nt on notice.notice_type_id = nt.id where nt.notice_type = \'Solicitation\' order by notice.id desc limit 1')
     let solNum = rows[0][0].solicitation_number
     expect(solNum).toBeDefined()
     let solRoute = solicitationRoutes(db, userRoutes)
 
     // set it to true
+    let user = { agency: "General Services Administration", userRole: "Administrator" }
     let res = mocks.mockResponse()
     let req = mocks.mockRequest({ solicitation: { solNum: solNum, na_flag: true } }, {'authorization': `bearer ${adminToken}`})
     await solRoute.update(req, res)
     expect(res.status.mock.calls[0][0]).toBe(200)
 
-    let updateTrue = await Notice.findOne({ where: { solicitation_number: solNum } })
-    expect(updateTrue.na_flag).toBe(true)
+    let p_true = await predictionRoutes.getPredictions({ rows: 1, filters: {"solNum": {value: solNum, matchMode: 'equals'}} }, user);
+    expect(p_true.predictions[0].na_flag).toBe(true)
 
     // now set it to false
-    res = mocks.mockResponse()
-    req = mocks.mockRequest({ solicitation: { solNum: solNum, na_flag: false } }, {'authorization': `bearer ${adminToken}`})
-    await solRoute.update(req, res)
-    expect(res.status.mock.calls[0][0]).toBe(200)
-    let updateFalse = await Notice.findOne({ where: { solicitation_number: solNum } })
-    expect(updateFalse.na_flag).toBe(false)
+    let res2 = mocks.mockResponse()
+    let req2 = mocks.mockRequest({ solicitation: { solNum: solNum, na_flag: false } }, {'authorization': `bearer ${adminToken}`})
+    await solRoute.update(req2, res2)
+    expect(res2.status.mock.calls[0][0]).toBe(200)
+
+    let p_false = await predictionRoutes.getPredictions({ rows: 1, globalFiler: solNum, atctest: 777}, user);
+    expect(p_false.predictions[0].na_flag).toBe(false)
 
   })
 
@@ -66,7 +69,7 @@ describe('solicitation tests', async () => {
 
   // noinspection DuplicatedCode
   test('GSA Admins can Update Not Applicable for any sol num', async () => {
-    let rows = await db.sequelize.query('select solicitation_number from notice order by solicitation_number desc limit 1')
+    let rows = await db.sequelize.query('select solicitation_number from notice join notice_type nt on notice.notice_type_id = nt.id where nt.notice_type = \'Solicitation\' order by notice.id desc limit 1')
     let solNum = rows[0][0].solicitation_number
     expect(solNum).toBeDefined()
 

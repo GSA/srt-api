@@ -363,8 +363,8 @@ async function getPredictions (filter, user) {
       attributes.order.push([filter.sortField, direction])
     }
 
-    // always end with date sort to keep the newest first (all else being equal)
-    attributes.order.push(['date', 'DESC'])
+    // always end with id sort to keep the newest first (all else being equal)
+    attributes.order.push(['id', 'DESC'])
     // noinspection JSUnresolvedFunction
     let preds = await Prediction.findAll(attributes)
     // noinspection JSUnresolvedFunction
@@ -389,7 +389,8 @@ async function getPredictions (filter, user) {
 
 function mapAgency(agency) {
   const key = "AGENCY_MAP:" + agency //?
-  return (configuration.getConfig(key, null)) ? configuration.getConfig(key, null) : agency
+  const mapped = configuration.getConfig(key, null)
+  return (mapped) ? mapped : agency
 }
 
 /**
@@ -502,7 +503,9 @@ async function updatePredictionTable  (clearAllAfterDate) {
       logger.log("info", `Updated ${actualCount} prediction records.`)
     }
   }
-  logger.log("info", `Updated ${actualCount} prediction records`)
+  if (actualCount > 0) {
+    logger.log("info", `Updated ${actualCount} prediction records`)
+  }
   return actualCount
 }
 
