@@ -41,18 +41,18 @@ module.exports = {
   Gathers the feedback data and returns it as an array with one question/answer per entry
    */
   feedback : async function (req, res) {
-    const sql = `select  distinct single_action->>'user' as email, title,
-                                  "solNum", "Predictions".feedback, "Predictions"."title", notice.id
+    const sql = `select  distinct single_action->>'user' as email, title, n.id as id,
+                                  "solNum", "Predictions".feedback, "Predictions"."title"
                  from "Predictions"
-                      join notice on "Predictions"."solNum" = notice.solicitation_number,
-                      jsonb_array_elements("Predictions".action) single_action
-                 where jsonb_array_length(
-                               case
-                                   when jsonb_typeof("Predictions".feedback) = 'array' then "Predictions".feedback
-                                   else '[]'::jsonb
-                                   end
-                           ) > 0
-                   and single_action->>'action' = '${getConfig("constants:FEEDBACK_ACTION")}';`
+                   join (select max(id) as id, solicitation_number 
+                          from notice group by solicitation_number) n on n.solicitation_number = "Predictions"."solNum"
+                   join notice on "Predictions"."solNum" = notice.solicitation_number, 
+                   jsonb_array_elements("Predictions".action) single_action
+                 where jsonb_array_length( case
+                                           when jsonb_typeof("Predictions".feedback) = 'array' then "Predictions".feedback
+                                           else '[]'::jsonb
+                                           end ) > 0;`
+
 
     let rows = await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
     let result = []
