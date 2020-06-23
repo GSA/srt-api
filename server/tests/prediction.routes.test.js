@@ -841,26 +841,7 @@ describe('prediction tests', () => {
       await globalFilterTest(word)
     }
 
-    // non-compliant search term acts strange
-    const filter = { first: 0, rows: 20000, globalFilter: 'non-compliant' }
-    let {totalCount: totalCount} = await predictionRoutes.getPredictions(filter, mocks.mockAdminUser)
-    // noinspection JSCheckFunctionSignatures
-    let non_compliant = await Notice.findAll(
-      {
-        where: { compliant: 0 },
-        include: {
-          model: NoticeType,
-          where: {
-            notice_type: {
-              [Op.in]: configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation'])
-            }
-          }
-        }
-      })
 
-
-    // not perfect, but generally totalCount should be nearly as many as the number of notice rows
-    expect(Number.parseInt(totalCount)).toBeGreaterThan(non_compliant.length/3)
 
   }, 30000)
 

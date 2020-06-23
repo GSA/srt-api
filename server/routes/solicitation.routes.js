@@ -29,6 +29,11 @@ module.exports = function (db, userRoutes) {
   function auditSolicitationChange (notice_orig, notice_updated, req) {
     let actions = cloneDeep(notice_orig.action,true)
 
+    if (actions === null) {
+      console.log ('null action')
+      actions = []
+    }
+
     try {
       if (notice_orig.history && notice_updated.history) {
         let orig_hist_len = notice_orig.history.length
