@@ -477,7 +477,11 @@ async function updatePredictionTable  (clearAllAfterDate) {
 
   let actualCount = 0
   let outdatedPredictions = await getOutdatedPrediction()
-  logger.debug(`there are ${outdatedPredictions.length} outdated predictions to update`)
+  let msg = (outdatedPredictions.length < 1000)
+    ? `${outdatedPredictions.length}`
+    : `${outdatedPredictions.length}+`
+    logger.debug(`there are ${msg} outdated predictions to update`)
+
   while (outdatedPredictions && outdatedPredictions.length > 0) {
     actualCount ++
     let pred = outdatedPredictions.pop()
@@ -553,7 +557,7 @@ function makeDate(x) {
   } else {
     d = new Date(x)
   }
-  const s = moment(d).format('MM/DD/YYYY H:m A')
+  const s = moment(d).format('MM/DD/YYYY HH:mm ZZ')
   return  s
 }
 

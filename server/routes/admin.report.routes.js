@@ -1,7 +1,7 @@
 /** @module AdminReportRoutes */
 const db = require('../models/index')
 const {getConfig} = require('../config/configuration')
-const {moment} = require('moment')
+const moment = require('moment')
 
 module.exports = {
 
