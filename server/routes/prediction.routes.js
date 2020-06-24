@@ -19,6 +19,7 @@ const configuration = require('../config/configuration')
 const cloneDeep = require('clone-deep')
 const Op = require('sequelize').Op
 const authRoutes = require('./auth.routes')
+const moment = require('moment')
 
 /**
  * PredictionFilter
@@ -552,6 +553,7 @@ function makeDate(x) {
   } else {
     d = new Date(x)
   }
-  return  d.toLocaleDateString() + ' ' + d.toLocaleTimeString()
+  const s = moment(d).format('MM/DD/YYYY H:m A')
+  return  s
 }
 
