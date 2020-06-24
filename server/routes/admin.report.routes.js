@@ -41,26 +41,42 @@ module.exports = {
   Gathers the feedback data and returns it as an array with one question/answer per entry
    */
   feedback : async function (req, res) {
-    const sql = `select  distinct single_action->>'user' as email, title, n.id as id,
-                                  "solNum", "Predictions".feedback, "Predictions"."title"
-                 from "Predictions"
-                   join (select max(id) as id, solicitation_number 
-                          from notice group by solicitation_number) n on n.solicitation_number = "Predictions"."solNum"
-                   join notice on "Predictions"."solNum" = notice.solicitation_number, 
-                   jsonb_array_elements("Predictions".action) single_action
-                 where jsonb_array_length( case
-                                           when jsonb_typeof("Predictions".feedback) = 'array' then "Predictions".feedback
-                                           else '[]'::jsonb
-                                           end ) > 0;`
+    const sql = `
+        select distinct single_action ->> 'user'   as email,
+                        single_action ->> 'action' as action,
+                        ( case when single_action ->> 'date' is null then ' / / ' else single_action ->> 'date' end )  as action_date,
+                        n.id                       as id,
+                        "solNum",
+                        "Predictions".feedback,
+                        "Predictions"."title"
+        from "Predictions"
+                 join (select max(id) as id, solicitation_number
+                       from notice
+                       group by solicitation_number) n
+                      on n.solicitation_number = "Predictions"."solNum"
+                 left join jsonb_array_elements("Predictions".action) single_action
+                           on single_action ->> 'action' = 'Prediction feedback provided'
+        where jsonb_array_length(case
+                                     when jsonb_typeof("Predictions".feedback) = 'array'
+                                         then "Predictions".feedback
+                                     else '[]'::jsonb
+            end) > 0
+        order by action_date desc
+    `
 
 
     let rows = await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
     let result = []
+    let solNumProcessed = new Set()
     for (const r of rows) {
-      for (const f of r.feedback) {
-        let o = Object.assign({note: '', answer: '', question: '', questionID: '', solicitation_number: r.solNum, email: r.email, title: r.title, id: r.id}, f)
-        result.push(o)
+      if ( ! solNumProcessed.has(r.solNum)) {
+        for (const f of r.feedback) {
+          let o = Object.assign({note: '', answer: '', question: '', questionID: '', date: r.action_date,
+                                       solicitation_number: r.solNum, email: r.email, title: r.title, id: r.id }, f)
+          result.push(o)
+        }
       }
+      solNumProcessed.add(r.solNum)
     }
     return res.status(200).send(result)
   }
