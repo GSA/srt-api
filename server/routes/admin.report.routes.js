@@ -1,6 +1,7 @@
 /** @module AdminReportRoutes */
 const db = require('../models/index')
 const {getConfig} = require('../config/configuration')
+const {moment} = require('moment')
 
 module.exports = {
 
@@ -14,7 +15,7 @@ module.exports = {
     let rows = await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
 
     for (let r of rows) {
-      let day = r.timestamp.toLocaleDateString()
+      let day = moment(r.timestamp).format('MM/DD/YYYY')
       dailyLogins[day] = (dailyLogins[day] || 0) + 1
     }
     return res.status(200).send(dailyLogins)
@@ -29,7 +30,7 @@ module.exports = {
     let rows = await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
 
     for (let r of rows) {
-      let day = r.timestamp.toLocaleDateString()
+      let day = moment(r.timestamp).format('MM/DD/YYYY')
       let email = r.email
       userLogins[day] = (userLogins[day]) ? userLogins[day] : {}
       userLogins[day][email] = (userLogins[day][email] || 0) + 1
