@@ -5,6 +5,7 @@ const mocks = require('./mocks')
 
 const adminReportRoutes = require('../routes/admin.report.routes')
 const authRoutes = require('../routes/auth.routes')
+const moment = require('moment')
 
 describe('Tests for admin reports and charts', () => {
 
@@ -40,7 +41,7 @@ describe('Tests for admin reports and charts', () => {
 
     expect(res.status.mock.calls[0][0]).toBe(200)
     expect(dailyLogins).toBeObject()
-    let today = new Date().toLocaleDateString()
+    let today = moment().format('MM/DD/YYYY')
     expect(dailyLogins).toContainKey(today)
     expect(dailyLogins[today]).toBeGreaterThan(2)
 
@@ -84,7 +85,7 @@ describe('Tests for admin reports and charts', () => {
 
     expect(res.status.mock.calls[0][0]).toBe(200)
     expect(userLogins).toBeObject()
-    let today = new Date().toLocaleDateString()
+    let today = moment().format('MM/DD/YYYY')
     expect(userLogins).toContainKey(today)
     expect(userLogins[today]['test@example.com']).toBe(2)
 
