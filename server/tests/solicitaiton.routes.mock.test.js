@@ -18,7 +18,7 @@ delete myUser.id
 let adminToken = ""
 let coordinatorToken = ""
 
-describe('solicitation tests', async () => {
+describe('solicitation tests',  () => {
   beforeAll(async () => {
     process.env.MAIL_ENGINE = 'nodemailer-mock'
     app = require('../app')() // don't load the app till the mock is configured
@@ -32,11 +32,13 @@ describe('solicitation tests', async () => {
     return app.db.close();
   })
 
-  test('Update Not Applicable', async () => {
+  test.only('Update Not Applicable', async () => {
     let rows = await db.sequelize.query('select solicitation_number from notice join notice_type nt on notice.notice_type_id = nt.id where nt.notice_type = \'Solicitation\' order by notice.id desc limit 1')
     let solNum = rows[0][0].solicitation_number
     expect(solNum).toBeDefined()
     let solRoute = solicitationRoutes(db, userRoutes)
+
+    await db.sequelize.query(`delete from "Predictions" where "solNum" = '${solNum}'`)
 
     // set it to true
     let user = { agency: "General Services Administration", userRole: "Administrator" }

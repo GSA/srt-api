@@ -5,6 +5,7 @@ let predictionRoutes = require('../routes/prediction.routes')
 const Notice = require('../models/index').notice
 // noinspection JSUnresolvedVariable
 const Prediction = require('../models/index').Prediction
+const moment = require('moment')
 
 describe('Prediction Update Test', () => {
   beforeAll(() => {
@@ -19,7 +20,7 @@ describe('Prediction Update Test', () => {
     await predictionRoutes.updatePredictionTable();
 
     let notices = await Notice.findAll({ limit: 1})
-    await notices[0].update ( {feedback: { test: notices[0].feedback} })
+    await notices[0].update ( {feedback: [{ date: moment().format('YYYY-MM-DD:HH:mm:ss')}] })
 
     let updated_count = await predictionRoutes.updatePredictionTable()
     expect(updated_count).toBeGreaterThan(0)

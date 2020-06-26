@@ -95,7 +95,7 @@ describe('Tests for admin reports and charts', () => {
 
 
   test('feedback report', async () => {
-
+    
     let res = mocks.mockResponse()
     let req = mocks.mockRequest({}, { 'authorization': token })
 
@@ -110,32 +110,20 @@ describe('Tests for admin reports and charts', () => {
     expect(report[0]).toContainKey("question")
     expect(report[0]).toContainKey("questionID")
 
-
-    /*
-    SKIP THIS PART OF THE TEST BECAUSE THE CANNED TEST DATA HAS OLD/BAD ENTRIES THAT FAIL THE TEST
-
-
-    // tally up all the question IDs each row has answers for
-    let answer_counts = {}
-    for (const r of report) {
-      if ( ! answer_counts[r.solicitation_number]) {
-        answer_counts[r.solicitation_number] = []
-      }
-      answer_counts[r.solicitation_number].push(r.questionID)
+    // look through all the report to see if we have data in at least one row for each important item
+    const sample = {answer:null, solicitation_number: null, question: null, questionID: null, title: null}
+    for (row of report) {
+      sample.answer = row.answer || sample.answer
+      sample.solicitation_number = row.solicitation_number || sample.solicitation_number
+      sample.question = row.question || sample.question
+      sample.questionID = row.questionID || sample.questionID
+      sample.title = row.title || sample.title
     }
-
-    for (const sol_num in answer_counts) {
-      if (sol_num !== 'N0003019Q4008') {  // test dataset has one bad record we will ignore!
-        expect(answer_counts[sol_num]).toContain(1)
-        expect(answer_counts[sol_num]).toContain(2)
-        expect(answer_counts[sol_num]).toContain(3)
-      }
-    }
-
-
-     */
-
-
+    expect (sample.answer).not.toBeNull()
+    expect (sample.solicitation_number).not.toBeNull()
+    expect (sample.question).not.toBeNull()
+    expect (sample.questionID).not.toBeNull()
+    expect (sample.title).not.toBeNull()
 
 
   })

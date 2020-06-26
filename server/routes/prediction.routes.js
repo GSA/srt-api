@@ -378,7 +378,7 @@ async function getPredictions (filter, user) {
       totalCount: count.count
     }
   } catch (e) {
-    logger.log("error", "Error in getPredictions", {tag: "getPredictions", error: e})
+    logger.log("error", "Error in getPredictions", {tag: "getPredictions", error: e, "error-message": e.message, stack: e.stack})
     return {
       predictions: [],
       first: 0,
@@ -496,7 +496,7 @@ async function updatePredictionTable  (clearAllAfterDate) {
       // noinspection JSUnresolvedFunction
       await Prediction.create(pred);
     } catch(e) {
-      logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', error: e})
+      logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', "error-message": e.message, error: e})
     }
 
     // we only get 1000 at a time so check to see if there are more when we run out of the current batch

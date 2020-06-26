@@ -577,7 +577,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Test attachment association', () => {
-    return db.sequelize.query('select notice_id from attachment limit 1', null)
+    return db.sequelize.query(`select notice_id from attachment where attachment_url is not null and attachment_url != '' limit 1`)
       .then((rows) => {
         let noticeId = rows[0][0].notice_id
         return Notice.findAll({ include: [{ model: Attachment }], where: { 'id': noticeId } })
