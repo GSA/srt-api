@@ -2,6 +2,7 @@
 const db = require('../models/index')
 const {getConfig} = require('../config/configuration')
 const moment = require('moment')
+const logger = require('../config/winston')
 
 module.exports = {
 
@@ -10,6 +11,7 @@ module.exports = {
    */
 
   dailyLogin : async function (req, res) {
+    logger.log("debug", "Running daily login report")
     let dailyLogins = {}
     let sql = `select timestamp, message, meta#>>'{cas_userinfo, email-address}' as email from winston_logs where message like '%authenticated with MAX CAS ID%'`
     let rows = await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
@@ -25,6 +27,7 @@ module.exports = {
   Returns a report of each user's last login, and logins per 7 days / 30 days / all time
    */
   userLogin : async function (req, res) {
+    logger.log("debug", "Running user login report")
     let userLogins = {}
     let sql = `select timestamp, message, meta#>>'{cas_userinfo, email-address}' as email from winston_logs where message like '%authenticated with MAX CAS ID%'`
     let rows = await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
@@ -42,44 +45,51 @@ module.exports = {
   Gathers the feedback data and returns it as an array with one question/answer per entry
    */
   feedback : async function (req, res) {
+    logger.log("debug", "Running feedback report")
     const sql = `
-        select distinct single_action ->> 'user'   as email,
-                        single_action ->> 'action' as action,
-                        ( case when single_action ->> 'date' is null then ' / / ' else single_action ->> 'date' end )  as action_date,
-                        n.id                       as id,
-                        "solNum",
-                        "Predictions".feedback,
-                        "Predictions"."title"
-        from "Predictions"
-                 join (select max(id) as id, solicitation_number
-                       from notice
-                       group by solicitation_number) n
-                      on n.solicitation_number = "Predictions"."solNum"
-                 left join jsonb_array_elements("Predictions".action) single_action
-                           on single_action ->> 'action' = 'Prediction feedback provided'
-        where jsonb_array_length(case
-                                     when jsonb_typeof("Predictions".feedback) = 'array'
-                                         then "Predictions".feedback
+        select distinct on (P."solNum", (objaction ->> 'date')::date ,(objfeedback ->> 'questionID')::int )
+            P."solNum",
+            P.title,
+            n.notice_id,                                                                                                            
+            ((objaction ->> 'user')::text)       as email,
+            CASE WHEN objaction ->> 'date' is null THEN null ELSE ((objaction ->> 'date')::date)::text END  as date,
+            objfeedback ->> 'questionID'         as questionid,
+            objfeedback ->> 'question'           As question,
+            objfeedback ->> 'answer'             As answer,
+            objfeedback ->> 'note'               as note
+        FROM Public."Predictions" P
+                 JOIN jsonb_array_elements(P."feedback") objfeedback ON true
+                 left JOIN jsonb_array_elements(P."action") objaction
+                           ON (objaction ->> 'action')::text like '%feedback%'
+                 LEFT JOIN (select max(id) as notice_id, solicitation_number from notice group by solicitation_number) n
+                           ON n.solicitation_number = P."solNum"
+        where (P.feedback::text <> '[]')
+          and jsonb_array_length(case
+                                     when jsonb_typeof(P.feedback) = 'array'
+                                         then P.feedback
                                      else '[]'::jsonb
             end) > 0
-        order by action_date desc
+        order by (objaction ->> 'date')::date desc nulls last, P."solNum", (objfeedback ->> 'questionID')::int,
+                 objaction ->> 'user'
     `
 
 
-    let rows = await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
-    let result = []
-    let solNumProcessed = new Set()
-    for (const r of rows) {
-      if ( ! solNumProcessed.has(r.solNum)) {
-        for (const f of r.feedback) {
-          let o = Object.assign({note: '', answer: '', question: '', questionID: '', date: r.action_date,
-                                       solicitation_number: r.solNum, email: r.email, title: r.title, id: r.id }, f)
-          result.push(o)
-        }
+    try {
+      let rows = await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
+      let result = []
+      for (const r of rows) {
+        result.push(
+          Object.assign({
+            note: r.note, answer: r.answer, question: r.question, questionID: r.questionid, date: r.date,
+            solicitation_number: r.solNum, email: r.email, title: r.title, id: r.notice_id,
+          }))
       }
-      solNumProcessed.add(r.solNum)
+      return res.status(200).send(result)
+    } catch (e) {
+      logger.log("error", "Error running feedback report", {tag: "feedback report", "error-message": e.message, err:e } )
+      e.message //?
+      return res.status(500).send({})
     }
-    return res.status(200).send(result)
   }
 
 

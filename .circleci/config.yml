@@ -58,13 +58,13 @@ jobs:
           CC_TEST_REPORTER_ID: b0a733c16dd63abc6cb21bf9956550d57e05724bc92e58892b306af99963a261
           JWT_SECRET: abc123
 
-      - image: circleci/postgres:12
+      - image: circleci/postgres:9
         environment:
           POSTGRES_USER: circleci
           POSTGRES_DB: srt
           POSTGRES_PASSWORD: srtpass
 
-#    parallelism: 3
+    parallelism: 3
 
     working_directory: ~/repo
 
@@ -118,7 +118,7 @@ jobs:
 #          command: npm run circleci
          command: |
               ./cc-test-reporter before-build
-              npm run circleci
+              export JWT_SECRET=123456789 && MAIL_ENGINE=nodemailer-mock && ./node_modules/.bin/snyk test &&  circleci tests glob server/tests/**/* | circleci tests split --split-by=timings | xargs -L 20 ./node_modules/.bin/jest  --detectOpenHandles --config=jest.config.js
               ./cc-test-reporter after-build --coverage-input-type lcov --exit-code $?
 
 
