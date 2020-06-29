@@ -49,6 +49,7 @@ module.exports = function (db, cas) {
   let surveyRoutes = require('./routes/survey.routes')
   let versionRoutes = require('./routes/version.routes')()
   let noticeTypeRoutes = require('./routes/noticeType.routes')
+  let adminReportRoutes = require('./routes/admin.report.routes')
 
   app.use(bodyParser.json())
 
@@ -57,7 +58,7 @@ module.exports = function (db, cas) {
     if (origin === undefined || common.CORSWhitelist.indexOf(origin) !== -1) {
       callback(null, true)
     } else {
-      logger.log('warning', 'Request from origin ' + origin + ' not allowed by CORS.', { tag: 'CORS' })
+      logger.log('warn', 'Request from origin ' + origin + ' not allowed by CORS.', { tag: 'CORS' })
       callback(new Error('Not allowed by CORS'))
     }
   }
@@ -80,6 +81,7 @@ module.exports = function (db, cas) {
       winston.format.timestamp(),
       winston.format.json()
     ),
+    winstonInstance: logger,
     meta: true,
     // msg: "HTTP {{req.method}} {{req.url}} ",
     msg: function (req, res) {
@@ -112,6 +114,11 @@ module.exports = function (db, cas) {
       }
     }
   }))
+
+  app.use((req,res,next)=>{
+    res.set('Cache-Control', 'no-store')
+    next()
+  })
 
   // The server is usually behind a proxy.
   // Setting trust proxy signals that the connection is essentially https even though the actual local protocol
@@ -158,6 +165,8 @@ module.exports = function (db, cas) {
   app.get('/api/version', versionRoutes.version)
   app.get('/api/noticeTypes', token(), noticeTypeRoutes.getNoticeTypes)
 
+  app.get('/api/reports/login', token(), admin_only(), adminReportRoutes.userLogin)
+  app.get('/api/reports/feedback', token(), admin_only(), adminReportRoutes.feedback)
 
 
 

@@ -37,7 +37,7 @@ function whoAmI (req) {
  * Verify that the given request is coming from a user authorized to masquerade as another user type.
  *
  * @param req
- * @return {{message: string, status: number}}
+ * @return {boolean}
  */
 function roleExists(req) {
   if (authRoutes.roleNameToCASGroup(req.query.role) === null) {
@@ -184,12 +184,13 @@ module.exports = {
     decoded.user.agency = authRoutes.translateCASAgencyName(req.query.agency)
     decoded.user.userRole = req.query.role
     decoded.user.grouplist = authRoutes.roleNameToCASGroup(req.query.role)
-    decoded.user.firstName = decoded.user.firstName + " M"
+    decoded.user.firstName = decoded.user.firstName + ' M'
     decoded.user.lastName = req.query.role
+    decoded.user.email = decoded.user.email + '.masq'
 
     let newToken = jwt.sign({user: decoded.user}, common.jwtSecret, { expiresIn: getConfig('tokenLife') })
 
-    return res.status(200).send({token: newToken, agency: req.query.agency, role: req.query.role})
+    return res.status(200).send({token: newToken, agency: decoded.user.agency, role: decoded.user.userRole})
 
 
 

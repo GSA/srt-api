@@ -29,6 +29,11 @@ module.exports = function (db, userRoutes) {
   function auditSolicitationChange (notice_orig, notice_updated, req) {
     let actions = cloneDeep(notice_orig.action,true)
 
+    if (actions === null) {
+      console.log ('null action')
+      actions = []
+    }
+
     try {
       if (notice_orig.history && notice_updated.history) {
         let orig_hist_len = notice_orig.history.length
@@ -41,10 +46,13 @@ module.exports = function (db, userRoutes) {
         }
       }
 
-      if (Array.isArray(notice_updated.feedback) && notice_updated.feedback.length > 0 &&
-          (Array.isArray(notice_orig) === false || notice_orig.feedback.length !== notice_updated.feedback.length)) {
+      // do we have feedback in the updated entry? If so, we may want to update the actions to say feedback added
+      if (Array.isArray(notice_updated.feedback) && notice_updated.feedback.length > 0) {
+        const orig_feedback = notice_orig.feedback || []
+        if (notice_updated.feedback.length !== orig_feedback.length) {
           logger.log("debug", "Set feedback action to " + getConfig('constants:FEEDBACK_ACTION'), { tag: "auditSolicitationChange", notice_updated: notice_updated, notice_orig: notice_orig })
           actions.push(buildAction(req, getConfig('constants:FEEDBACK_ACTION')))
+        }
       }
 
       // na_flag may sometimes be undefined. For those cases we need a || construct to
@@ -99,19 +107,20 @@ module.exports = function (db, userRoutes) {
               // but for consistency we should set the ID number to the one requested rather than to
               // a pseudo-random choice
               result.predictions[0].id = parseInt(req.params.id)
+
               return res.status(200).send(result.predictions[0])
             })
         })
         .catch((e) => {
           e //?
-          logger.log('error', 'error in: solicitation get', { error:e, tag: 'solicitation get' })
+          logger.log('error', 'error in: solicitation get', { error:e.message, tag: 'solicitation get' })
           return res.status(500).send('Error finding solicitation')
         })
     },
 
 
     /**
-     * Updates some pieces of a solicitaiton.
+     * Updates some pieces of a solicitation.
      * Only changes the most recent entry in the Notice table.
      * Columns affected:
      *   na_flag
@@ -160,6 +169,7 @@ module.exports = function (db, userRoutes) {
 
           return notice.save()
             .then( (n) => {
+              // noinspection JSUnresolvedVariable
               logger.log("info",
                 `Updated Notice row for solicitation ${notice.solicitation_number}`,
                 {
@@ -208,7 +218,7 @@ module.exports = function (db, userRoutes) {
           }
 
           // first do the audit
-          if (! Array.isArray(notice.action, req.body)){
+          if (! Array.isArray(notice.action)){
             notice.action = []
           }
           notice.action = auditSolicitationChange(notice, req.body, req)
@@ -260,7 +270,12 @@ module.exports = function (db, userRoutes) {
         order = ' order by date desc ' // take the one with the most recent date
       }
       if (req.body['$where'] && req.body['$where'].match(/this.feedback.length.?>.?0/i)) {
-        where.push(` jsonb_array_length(feedback) > 0 `)
+        where.push(` jsonb_array_length(
+                        case
+                          when jsonb_typeof(feedback) = 'array' then feedback
+                          else '[]'::jsonb
+                        end
+                     ) > 0 `)
       }
 
       let whereStr = where.join(' AND ')

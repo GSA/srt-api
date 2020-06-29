@@ -8,6 +8,8 @@ The srt-server application is an expressjs Node application that provides a
 REST API for the srt-client. Together the client/server provide a web portal
 to view reports from and provide feedback to the Solicitation Review Tool (SRT).
 
+Release notes are available in the [release-notes.md](release-notes.md) file.
+
 ## Deployment
 This web application is intended for deployment to cloud.gov. Deployment is 
 most easily performed using the deploy.sh script which will baseline, build, 
@@ -71,7 +73,7 @@ directory of this repository. The documentaiton can be rebuilt from
 source when updats are necessary using `npm run doc`
 
 
-## Testing and Continuous Integration
+## Testing and Continuous Integration / Continuous Deployment
 The srt-server application has a set of unit test in the server/tests directory.
 These can be run from the command line with `npm run test`  Database connection
 are not mocked for the unit tests to ensure that data flows properly through 
@@ -82,8 +84,8 @@ load process scripted in the `npm run restore-db` command. The package.json file
 connection information coded directly into that command. When running this for
 the first time, that file will need to be updated to your local settings. 
 
-Continuous integration is configured in the .gilab-ci.yml file in the Gitlab format.
-The CI server will start a Postgres database and load it with test data before 
+Continuous integration and Deployment is configured in the .circleci/config.yml file 
+in the CircleCI format. The CI server will start a Postgres database and load it with test data before 
 automatically running the unit tests.
 
 A very brief Selenium IDE integration test can be found in the srt-client repository
