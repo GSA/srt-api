@@ -2,7 +2,7 @@
 #
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
 #
-version: 2
+version: 2.1
 
 
 
@@ -132,8 +132,30 @@ jobs:
     <<: *deploy-core
 
 workflows:
-  version: 2
+  version: 2.1
+  optional-build-and-deploy-to-dev:
+    when:
+      not:
+        equal: [ https://github.com/GSA/srt-ui, << pipeline.project.git_url >>]
+    jobs:
+      - test
+      - hold:
+          type: approval
+      - deploy:
+          requires:
+            - hold
+          filters:
+            branches:
+              ignore:
+                - staging
+                - stage
+                - prod
+                - master
+
+
   test-and-deploy:
+    when:
+        equal: [ https://github.com/GSA/srt-ui, << pipeline.project.git_url >>]
     jobs:
       - test
 
@@ -144,7 +166,6 @@ workflows:
             branches:
               only:
                 - dev
-                - agency-name-sync
 
       - hold:
           requires:
