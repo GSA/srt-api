@@ -136,7 +136,7 @@ workflows:
   optional-build-and-deploy-to-dev:
     when:
       not:
-        equal: [ https://github.com/GSA/srt-ui, << pipeline.project.git_url >>]
+        equal: [ https://github.com/GSA/srt-api, << pipeline.project.git_url >>]
     jobs:
       - test
       - hold:
@@ -155,7 +155,7 @@ workflows:
 
   test-and-deploy:
     when:
-        equal: [ https://github.com/GSA/srt-ui, << pipeline.project.git_url >>]
+        equal: [ https://github.com/GSA/srt-api, << pipeline.project.git_url >>]
     jobs:
       - test
 
