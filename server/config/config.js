@@ -177,7 +177,7 @@ module.exports = {
       "port": 3000
     },
     "srtClientUrl": "http://localhost:4200",
-    "logStdOut" : true,
+    "logStdOut" : false,
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "http://localhost:3000",

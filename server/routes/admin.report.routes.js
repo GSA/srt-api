@@ -47,32 +47,46 @@ module.exports = {
   feedback : async function (req, res) {
     logger.log("debug", "Running feedback report")
     const sql = `
-        select distinct on (P."solNum", (objaction ->> 'date')::date ,(objfeedback ->> 'questionID')::int )
-            P."solNum",
-            P.title,
-            n.notice_id,                                                                                                            
-            ((objaction ->> 'user')::text)       as email,
-            CASE WHEN objaction ->> 'date' is null THEN null ELSE ((objaction ->> 'date')::date)::text END  as date,
-            objfeedback ->> 'questionID'         as questionid,
-            objfeedback ->> 'question'           As question,
-            objfeedback ->> 'answer'             As answer,
-            objfeedback ->> 'note'               as note
-        FROM Public."Predictions" P
-                 JOIN jsonb_array_elements(P."feedback") objfeedback ON true
-                 left JOIN jsonb_array_elements(P."action") objaction
-                           ON (objaction ->> 'action')::text like '%feedback%'
-                 LEFT JOIN (select max(id) as notice_id, solicitation_number from notice group by solicitation_number) n
-                           ON n.solicitation_number = P."solNum"
-        where (P.feedback::text <> '[]')
-          and jsonb_array_length(case
-                                     when jsonb_typeof(P.feedback) = 'array'
-                                         then P.feedback
-                                     else '[]'::jsonb
-            end) > 0
-        order by (objaction ->> 'date')::date desc nulls last, P."solNum", (objfeedback ->> 'questionID')::int,
-                 objaction ->> 'user'
+        select * from (
+                select distinct on (r1.solicitation_number,objfeedback ->> 'questionID')
+                    r1.solicitation_number        as "solNum",
+                    (objhistory ->> 'date')::text as date,
+                    r1.agency,
+                    title,
+                    action,
+                    history,
+                    (objaction ->> 'user')::text as email,                                                                                         
+                    (objhistory ->> 'user')::text as name,
+                    r1.feedback,
+                    objfeedback ->> 'questionID'  as questionID,
+                    objfeedback ->> 'question'    as question,
+                    objfeedback ->> 'answer'      as answer,
+                    objfeedback ->> 'note'        as note,
+                    id as notice_id
+                from (select distinct on (n.solicitation_number)
+                          n.solicitation_number,
+                          n.agency,
+                          n.id,
+                          n.action,
+                          n.feedback,
+                          p.history,
+                          p.title 
+                      from notice n
+                               inner join public."Predictions" p on n.solicitation_number = p."solNum"
+                      where (n.feedback::text <> '[]')
+                      order by solicitation_number, id desc) as r1
+                         join jsonb_array_elements(r1.feedback) objfeedback ON true
+                         join jsonb_array_elements(r1.history) objhistory
+                              ON (objhistory ->> 'action')::text like '%feedback%'
+                         left join jsonb_array_elements(r1.action) objaction
+                                   ON ((objaction ->> 'action')::text like '%feedback%' and
+                                       lower((objaction ->> 'user')::text) like lower(substr((objhistory ->> 'user')::text, 1, position(' ' in (objhistory ->> 'user')::text) - 1)) ||
+                                                                                '.%' ||
+                                                                                lower(substr((objhistory ->> 'user')::text, position(' ' in (objhistory ->> 'user')::text) + 1)) || '%')
+                order by r1.solicitation_number, objfeedback ->> 'questionID'
+            ) unordered
+        order by to_date(date, 'MM/DD/YYYY') desc, "solNum", questionID::int
     `
-
 
     try {
       let rows = await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
@@ -81,7 +95,8 @@ module.exports = {
         result.push(
           Object.assign({
             note: r.note, answer: r.answer, question: r.question, questionID: r.questionid, date: r.date,
-            solicitation_number: r.solNum, email: r.email, title: r.title, id: r.notice_id,
+            solicitation_number: r.solNum, email: `${r.name || ''} ${r.email || ''}`, title: r.title, id: r.notice_id,
+            agency: r.agency
           }))
       }
       return res.status(200).send(result)

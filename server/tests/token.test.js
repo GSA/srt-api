@@ -7,12 +7,13 @@ const jwt = require('jsonwebtoken')
 const CASAuthentication = require('cas-authentication');
 const mockToken = require('./mocktoken')
 const mocks = require('./mocks')
-let {  userAcceptedCASData } = require('./test.data')
+let {  userAcceptedCASData, coordinatorCASData } = require('./test.data')
 const authRoutes = require('../routes/auth.routes')
 // const mocks = require('./mocks')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
 const ms = require('ms')
+const tokenTestFunciton = require('../security/token')()
 
 let token = null
 let invalidToken = null
@@ -221,7 +222,8 @@ describe('JWT Tests', () => {
       cas_userinfo :{
         "max-id": "Z77",
         "samlauthenticationstatementauthmethod" : getConfig('PIVLoginCheckRegex'),
-        "org-agency-name" : "Department of Test"
+        "org-agency-name" : "Department of Test",
+        "grouplist": "AGY-GSA,EXECUTIVE_BRANCH,AGY-GSA-SRT-ADMINISTRATORS.ROLEMANAGEMENT,MAX-AUTHENTICATION-CUSTOMERS-CAS"
       }
     }
     let res = mocks.mockResponse()
@@ -253,7 +255,24 @@ describe('JWT Tests', () => {
     let gsa = authRoutes.translateCASAgencyName("General Services Administration")
     expect(gsa).toBe("GENERAL SERVICES ADMINISTRATION")
     delete process.env.AGENCY_LOOKUP
+  })
 
+  test('Users without a SRT role are rejected', async() => {
+    let user1 = Object.assign({}, coordinatorCASData)
+    user1.firstName = 'token-beforeAllUser'
+    user1.email = 'crowley+token3@tcg.com'
+    user1.grouplist = user1.grouplist.replace('SRT', 'ATC')
+    token = await mockToken(user1)
+    let decoded = jwt.decode(token)
+    decoded.user.userRole //?
+
+    let res = mocks.mockResponse()
+    let req = mocks.mockRequest(null,  {'authorization': `bearer ${token}`})
+
+    await tokenTestFunciton(req, res, ()=>{}) //?
+    expect (res.status.mock.calls[0][0]).toBe(401) //?
+    expect(res.send.mock.calls[0][0].message).toBe("Account must belong to an SRT role.")
 
   })
+
 })
