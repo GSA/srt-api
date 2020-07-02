@@ -7,7 +7,6 @@ const userRoutes = require('../routes/user.routes')
 const solicitationRoutes = require('../routes/solicitation.routes')
 const predictionRoutes = require('../routes/prediction.routes')
 // noinspection JSUnresolvedVariable
-const Notice = require('../models').notice
 const { adminCASData, coordinatorCASData } = require('./test.data')
 const authRoutes = require('../routes/auth.routes')
 
@@ -32,7 +31,7 @@ describe('solicitation tests',  () => {
     return app.db.close();
   })
 
-  test.only('Update Not Applicable', async () => {
+  test('Update Not Applicable', async () => {
     let rows = await db.sequelize.query('select solicitation_number from notice join notice_type nt on notice.notice_type_id = nt.id where nt.notice_type = \'Solicitation\' order by notice.id desc limit 1')
     let solNum = rows[0][0].solicitation_number
     expect(solNum).toBeDefined()

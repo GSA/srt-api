@@ -423,7 +423,7 @@ module.exports = {
     if( ! ( verifyPIVUsed(req.session) ||  userOnPasswordOnlyWhitelist(req.session) ) ) {
       req.session.destroy();
       return res.status(302)
-        .set('Location', encodeURI(config['srtClientUrl'] + '/auth' + '?error=PIV login required')) // send them back with no token
+        .set('Location', encodeURI(config['srtClientUrl'] + '/auth?error=<p>PIV or CAC login required.<br> Log out of MAX and return here, then log in using a PIV or CAC.</p>')) // send them back with no token
         .send(`<html lang="en"><body>Login Failed</body></html>`)
     }
 
@@ -431,6 +431,16 @@ module.exports = {
 
     let responseJson = await tokenJsonFromCasInfo(req.session.cas_userinfo, common.jwtSecret)
     let location = `${config['srtClientUrl']}/auth?token=${responseJson}`
+
+    let rollList = roles.map( (x) => x.name) //?
+    let decoded_user_role = JSON.parse(responseJson).userRole
+    if ( ! rollList.includes(decoded_user_role)) {
+      logger.log('info', req.session.cas_userinfo['email-address'] + ' does not have a SRT role. Rejecting', {responseJson: responseJson, tag: 'casStage2'})
+      req.session.destroy();
+      return res.status(302)
+        .set('Location', encodeURI(config['srtClientUrl'] + '/auth' + '?error=Your MAX account is not associated with an SRT role. Please contact srt@gsa.gov for more information.')) // send them back with no token
+        .send(`<html lang="en"><body>Login Failed</body></html>`)
+    }
 
     return res.status(302)
       .set('Location', location)

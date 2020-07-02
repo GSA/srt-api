@@ -28,12 +28,12 @@ function read_args() {
             shift # past value
             ;;
             -s|--serverrepo)
-            SERVER_REPO="$2"
+            SERVER_REPO="git@github.com:$2/srt-api.git"
             shift # past argument
             shift # past value
             ;;
             -c|--clientrepo)
-            CLIENT_REPO="$2"
+            CLIENT_REPO="git@github.com:$2/srt-ui.git"
             shift # past argument
             shift # past value
             ;;
@@ -190,8 +190,8 @@ function help() {
     echo "usage: deploy.sh [OPTIONS] <SPACE> <TAG>"
     echo ""
     echo "    -d --dry-run    : do everything but push to cloud.gov"
-    echo "    -s --serverrepo : URI for srt-api repository"
-    echo "    -c --clientrepo : URI for srt-ui repository"
+    echo "    -s --serverrepo : Github account for srt-api repository - defaults to GSA"
+    echo "    -c --clientrepo : Github account for srt-ui repository - defaults to GSA"
     echo "    -t --tempdir    : defaults to /tmp"
     echo "    -e --emailkey   : set the provided email key"
     echo "    -y --yes        : delete existing git repo in temp directory"

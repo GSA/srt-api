@@ -64,7 +64,7 @@ jobs:
           POSTGRES_DB: srt
           POSTGRES_PASSWORD: srtpass
 
-    parallelism: 3
+    parallelism: 2
 
     working_directory: ~/repo
 
@@ -112,13 +112,18 @@ jobs:
       - run: node ./server/loadPredictions.js
 
       - run:
+          name: SNYK test
+          command: |
+            if [ $CIRCLE_NODE_INDEX = '0' ]; then ./node_modules/.bin/snyk test; fi
+
+      - run:
          name: Run the Tests
          environment:
            NODE_ENV: circle
 #          command: npm run circleci
          command: |
               ./cc-test-reporter before-build
-              export JWT_SECRET=123456789 && MAIL_ENGINE=nodemailer-mock && ./node_modules/.bin/snyk test &&  circleci tests glob server/tests/**/* | circleci tests split --split-by=timings | xargs -L 20 ./node_modules/.bin/jest  --detectOpenHandles --config=jest.config.js
+              export JWT_SECRET=123456789 && MAIL_ENGINE=nodemailer-mock && circleci tests glob server/tests/**/* | circleci tests split --split-by=timings | xargs -L 20 ./node_modules/.bin/jest  --detectOpenHandles --config=jest.config.js
               ./cc-test-reporter after-build --coverage-input-type lcov --exit-code $?
 
 
