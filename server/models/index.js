@@ -36,6 +36,32 @@
 */
 
 /**
+ * @typedef {Model} Prediction
+ * @property {number} id
+ * @property {string} title
+ * @property {string} url
+ * @property {number} numDocs
+ * @property {string} solNum
+ * @property {string} agency
+ * @property {string} noticeType
+ * @property {string} office
+ * @property {Object} predictions
+ * @property {boolean} na_flag
+ * @property {Object} eitLikelihood
+ * @property {Object} undetermined
+ * @property {Object} action
+ * @property {string} actionStatus
+ * @property {date} actionDate
+ * @property {Object} feedback
+ * @property {Object} history
+ * @property {Object} contactInfo
+ * @property {Object} parseStatus
+ * @property {Object} predictions
+ * @property {string} reviewRec
+ * @property {string} searchText
+ */
+
+/**
  * @typedef {Model} NoticeType
  * @property {number} id
  * @property {string} notice_type
@@ -75,7 +101,7 @@
 
 const fs = require('fs')
 const path = require('path')
-const Sequelize = require('sequelize')
+const {Sequelize, Model} = require('sequelize')
 const Umzug = require('umzug')
 const logger = require('../config/winston')
 const basename = path.basename(__filename)
@@ -102,7 +128,7 @@ const umzug = new Umzug({
   }
 })
 
-umzug.up()
+umzug.up(null)
   .then((result) => {
     logger.log('info', 'Umzug db migration results', { result: result, tag: 'Umzug db migration results' })
   })
@@ -123,6 +149,7 @@ Object.keys(db).forEach(modelName => {
   }
 })
 
+/** @type {Sequelize} **/
 db.sequelize = sequelize
 db.Sequelize = Sequelize
 

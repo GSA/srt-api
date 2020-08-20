@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.13.5
+version: v1.14.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
   SNYK-JS-LODASH-450202:
@@ -25,4 +25,82 @@ ignore:
     - sequelize-cli > js-beautify > mkdirp > minimist:
         reason: no fix available
         expires: '2020-04-11T19:27:49.529Z'
-patch: {}
+  SNYK-JS-LODASH-567746:
+    - random-words > mocha > yargs-unparser > lodash:
+        reason: Patch applied but no update available yet
+        expires: '2020-09-04T14:11:08.724Z'
+    - '@albertcrowley/winston-pg-native@github:albertcrowley/winston-pg-native#867fac4b3a49570bfd71ea80408e26a6d940cc2e > node-sql-2@0.79.0 > lodash@4.17.15':
+        reason: Module patched but no full update is available yet
+        expires: '2020-09-04T14:11:08.724Z'
+    - '@albertcrowley/winston-pg-native@github:albertcrowley/winston-pg-native#867fac4b3a49570bfd71ea80408e26a6d940cc2e > winston@3.2.1 > async@2.6.3 > lodash@4.17.15':
+        reason: Module patched but no full update is available yet
+        expires: '2020-09-04T14:11:08.724Z'
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-567746:
+    - express-winston > lodash:
+        patched: '2020-05-04T17:00:24.282Z'
+      random-words > mocha > yargs-unparser > lodash:
+        patched: '2020-07-08T15:38:17.466Z'
+    - sequelize > lodash:
+        patched: '2020-05-04T17:00:24.282Z'
+    - sequelize-cli > lodash:
+        patched: '2020-05-04T17:00:24.282Z'
+    - '@albertcrowley/winston-pg-native > node-sql-2 > lodash':
+        patched: '2020-05-04T17:00:24.282Z'
+    - winston > async > lodash:
+        patched: '2020-05-04T17:00:24.282Z'
+    - '@albertcrowley/winston-pg-native > winston > async > lodash':
+        patched: '2020-05-04T17:00:24.282Z'
+    - random-words > mocha > yargs-unparser > lodash:
+        patched: '2020-05-04T17:00:24.282Z'
+    - lodash:
+        patched: '2020-05-04T17:00:24.282Z'
+    - snyk > snyk-go-plugin > graphlib > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > snyk-nodejs-lockfile-parser > graphlib > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > @snyk/snyk-cocoapods-plugin > @snyk/dep-graph > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > snyk-mvn-plugin > @snyk/java-call-graph-builder > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > snyk-nuget-plugin > dotnet-deps-parser > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > snyk-php-plugin > @snyk/composer-lockfile-parser > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > @snyk/snyk-cocoapods-plugin > @snyk/dep-graph > graphlib > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > snyk-mvn-plugin > @snyk/java-call-graph-builder > graphlib > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > @snyk/snyk-cocoapods-plugin > @snyk/cocoapods-lockfile-parser > @snyk/dep-graph > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > @snyk/snyk-cocoapods-plugin > @snyk/cocoapods-lockfile-parser > @snyk/ruby-semver > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > snyk-mvn-plugin > @snyk/java-call-graph-builder > snyk-config > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > @snyk/snyk-cocoapods-plugin > @snyk/cocoapods-lockfile-parser > @snyk/dep-graph > graphlib > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > graphlib > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > @snyk/dep-graph > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > inquirer > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > snyk-config > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > snyk-mvn-plugin > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > snyk-nodejs-lockfile-parser > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > snyk-nuget-plugin > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - snyk > @snyk/dep-graph > graphlib > lodash:
+        patched: '2020-05-04T17:10:28.309Z'
+    - random-words > mocha > yargs-unparser > lodash:
+        patched: '2020-06-04T13:46:39.807Z'
+    - random-words > mocha > yargs-unparser > lodash:
+        patched: '2020-06-04T13:59:03.984Z'
+    - random-words > mocha > yargs-unparser > lodash:
+        patched: '2020-07-08T15:20:46.113Z'

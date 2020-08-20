@@ -285,7 +285,7 @@ describe('/api/auth/', () => {
     return authRoutes.casStage2(mockReq, mockRes).then( () => {
       expect(mockRes.statusResult).toBe(302) // quirky but kept for client compatibility
       expect(mockRes.hResult).toMatch(/Location/)
-      expect(mockRes.vResult).toMatch(/\?error=PIV/)
+      expect(mockRes.vResult).toMatch(/\?error=.*PIV.*login.*required+/)
     })
   })
 

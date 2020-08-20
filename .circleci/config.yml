@@ -2,9 +2,54 @@
 #
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
 #
-version: 2
+version: 2.1
+
+
+
+# Create a YAML alias for the deploy step so we can reuse it later
+deploy-core: &deploy-core
+  docker:
+    - image: circleci/node:12
+  working_directory: ~/repo
+  steps:
+    - checkout
+    - run:
+        name: Download CF CLI
+        command: |
+          curl -v -L -o cf-cli_amd64.deb 'https://cli.run.pivotal.io/stable?release=debian64&source=github'
+          sudo dpkg -i cf-cli_amd64.deb
+          cf -v
+
+    - run:
+        name: Build and deploy API
+        command: |
+          pwd
+          export SPACE="$CIRCLE_BRANCH"
+          case $SPACE in
+            dev | staging | prod)
+              echo "Using SPACE $SPACE"
+              ;;
+            *)
+              SPACE="dev"
+              echo "setting SPACE to $SPACE"
+          esac
+
+          rm -f manifest.yml
+          cp manifest.${SPACE}.yml manifest.yml
+          echo "{ \"version\" : \"circle-${CIRCLE_BUILD_NUM}\", \"build_data\" :  \"`date`\"} " > server/version.json
+
+          # Documentation for service accounts here: https://cloud.gov/docs/services/cloud-gov-service-account/
+
+          export UNAME_VAR=CF_USERNAME_${SPACE}
+          export PWD_VAR=CF_PASSWORD_${SPACE}
+
+          echo "Target is ${SPACE}"
+          cf login -a https://api.fr.cloud.gov -u ${!UNAME_VAR} -p ${!PWD_VAR} -o gsa-ogp-srt -s ${SPACE}
+          cf push srt-server-${SPACE}
+
+
 jobs:
-  build:
+  test:
     docker:
       # specify the version you desire here
       - image: circleci/node:12
@@ -13,13 +58,13 @@ jobs:
           CC_TEST_REPORTER_ID: b0a733c16dd63abc6cb21bf9956550d57e05724bc92e58892b306af99963a261
           JWT_SECRET: abc123
 
-      - image: circleci/postgres:12
+      - image: circleci/postgres:9
         environment:
           POSTGRES_USER: circleci
           POSTGRES_DB: srt
           POSTGRES_PASSWORD: srtpass
 
-#    parallelism: 3
+    parallelism: 2
 
     working_directory: ~/repo
 
@@ -42,7 +87,7 @@ jobs:
 
       # Download and cache dependencies
       - restore_cache:
-          key: v1.1-dependencies-{{ checksum "package.json" }}
+          key: v1.1-dependencies-{{ checksum "package.json" }}-{{ checksum ".snyk" }}
 
       - run: test ! -d node_modules && npm install || echo "node modules were cached"
 
@@ -50,7 +95,7 @@ jobs:
           paths:
             - node_modules
             - cc-test-reporter
-          key: v1.1-dependencies-{{ checksum "package.json" }}
+          key: v1.1-dependencies-{{ checksum "package.json" }}-{{ checksum ".snyk" }}
 
       - run:
           name: Setup Code Climate test-reporter
@@ -67,13 +112,80 @@ jobs:
       - run: node ./server/loadPredictions.js
 
       - run:
+          name: SNYK test
+          command: |
+            if [ $CIRCLE_NODE_INDEX = '0' ]; then ./node_modules/.bin/snyk test; fi
+
+      - run:
          name: Run the Tests
          environment:
            NODE_ENV: circle
 #          command: npm run circleci
          command: |
               ./cc-test-reporter before-build
-              npm run circleci
+              export JWT_SECRET=123456789 && MAIL_ENGINE=nodemailer-mock && circleci tests glob server/tests/**/* | circleci tests split --split-by=timings | xargs -L 20 ./node_modules/.bin/jest  --detectOpenHandles --config=jest.config.js
               ./cc-test-reporter after-build --coverage-input-type lcov --exit-code $?
 
 
+
+
+
+  deploy-dev:
+    <<: *deploy-core
+
+  deploy:
+    <<: *deploy-core
+
+workflows:
+  version: 2.1
+  optional-build-and-deploy-to-dev:
+    when:
+      not:
+        equal: [ https://github.com/GSA/srt-api, << pipeline.project.git_url >>]
+    jobs:
+      - test
+      - hold:
+          type: approval
+      - deploy:
+          requires:
+            - hold
+          filters:
+            branches:
+              ignore:
+                - staging
+                - stage
+                - prod
+                - master
+
+
+  test-and-deploy:
+    when:
+        equal: [ https://github.com/GSA/srt-api, << pipeline.project.git_url >>]
+    jobs:
+      - test
+
+      - deploy-dev:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - dev
+
+      - hold:
+          requires:
+            - test
+          type: approval
+          filters:
+            branches:
+              only:
+                - staging
+                - prod
+      - deploy:
+          requires:
+            - hold
+          filters:
+            branches:
+              only:
+                - staging
+                - prod

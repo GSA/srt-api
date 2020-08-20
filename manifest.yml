@@ -1,5 +1,6 @@
 ---
 applications:
+
 - name: srt-server
   command: node server/server.js
   memory: 256M
@@ -12,3 +13,6 @@ applications:
   services:
     - srt-postgres
 
+# sudo apt install libpq-dev
+# cf push srt-server-dev --no-start -b https://github.com/cloudfoundry/apt-buildpack
+# cf v3-push srt-server-dev -b https://github.com/cloudfoundry/nodejs-buildpack

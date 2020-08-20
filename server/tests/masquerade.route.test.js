@@ -64,6 +64,25 @@ describe('Test masquerade functionality', () => {
       })
   } )
 
+  test('Masquerade fixes agency name case sensitivity',  () => {
+    let role = authRoutes.roles[ authRoutes.roleKeys["508_COORDINATOR_ROLE"]].name
+    let agency = 'department of defense'
+    return testSession.get(`/api/user/masquerade?role=${role}&agency=${agency}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .then(async res => {
+        // noinspection JSUnresolvedVariable
+        expect(res.statusCode).toBe(200)
+        expect(res.body.token).toBeDefined()
+        let decoded = jwt.decode(res.body.token)
+        expect(decoded.user.grouplist).toBe(authRoutes.roleNameToCASGroup(role))
+        expect(decoded.user.userRole).toBe(role)
+        expect(decoded.user.agency).toBe("Department of Defense")
+        expect(res.body.agency).toBe("Department of Defense")
+        expect(res.body.role).toBe(role)
+      })
+  } )
+
+
   test('Handle invalid role', () => {
     return testSession.get(`/api/user/masquerade?role=fakerole&agency=NIH`)
       .set('Authorization', `Bearer ${adminToken}`)

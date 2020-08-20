@@ -22,13 +22,13 @@ module.exports = {
     return {
       body: data,
       get: jest.fn ( function(x) { return headers[x]}),
-      session: session,
+      session: Object.assign(session || {}, { destroy: ()=>{} } ),
       headers: headers
     }
   },
   mockResponse : mockResponse,
 
   mockAdminUser : { agency: 'General Services Administration', userRole: 'Administrator'},
-  mockDoDUser : { agency: 'DEPT OF DEFENSE', userRole: 'Administrator'}
+  mockDoDUser : { agency: 'Department of Defense', userRole: 'Administrator'}
 
 }

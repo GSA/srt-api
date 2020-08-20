@@ -7,11 +7,13 @@ const jwt = require('jsonwebtoken')
 const CASAuthentication = require('cas-authentication');
 const mockToken = require('./mocktoken')
 const mocks = require('./mocks')
-let {  userAcceptedCASData } = require('./test.data')
+let {  userAcceptedCASData, coordinatorCASData } = require('./test.data')
 const authRoutes = require('../routes/auth.routes')
 // const mocks = require('./mocks')
+// noinspection JSUnresolvedVariable
 const User = require('../models').User
 const ms = require('ms')
+const tokenTestFunciton = require('../security/token')()
 
 let token = null
 let invalidToken = null
@@ -53,10 +55,11 @@ describe('JWT Tests', () => {
   test('refresh token API call', async () => {
     let app = require('../app')()
     /**
-     * @type {express-session}
+     * @type {Session}
      */
     let testSession = supertestSession(app)
 
+    // noinspection JSUnresolvedFunction
     return testSession.get('/api/renewToken')
       .set('Authorization', `Bearer ${token}`)
       .then( (res) => {
@@ -77,10 +80,11 @@ describe('JWT Tests', () => {
   test('Valid token required for refresh', async () => {
     let app = require('../app')()
     /**
-     * @type {express-session}
+     * @type {Session}
      */
     let testSession = supertestSession(app)
 
+    // noinspection JSUnresolvedFunction
     return testSession.get('/api/renewToken')
       .set('Authorization', `Bearer ${invalidToken}`)
       .then( (res) => {
@@ -93,11 +97,12 @@ describe('JWT Tests', () => {
 
     let app = require('../app')()
     /**
-     * @type {express-session}
+     * @type {Session}
      */
     let testSession = supertestSession(app)
     let token = await mockToken(userAcceptedCASData, null, null, 10)  // generate an expired token
 
+    // noinspection JSUnresolvedFunction
     return testSession.get('/api/renewToken')
       .set('Authorization', `Bearer ${token}`)
       .then( (res) => {
@@ -118,13 +123,14 @@ describe('JWT Tests', () => {
 
     let app = require('../app')()
     /**
-     * @type {express-session}
+     * @type {Session}
      */
     let testSession = supertestSession(app)
     let token = await mockToken(userAcceptedCASData)  // generate an expired token
     global.Date.now = realDateNow; // restore the proper date implementation
 
 
+    // noinspection JSUnresolvedFunction
     return testSession.get('/api/renewToken')
       .set('Authorization', `Bearer ${token}`)
       .then( (res) => {
@@ -185,11 +191,12 @@ describe('JWT Tests', () => {
       let cas = new CASAuthentication(casConfig)
       let app = require('../app')(null, cas)
       /**
-       * @type {express-session}
+       * @type {Session}
        */
       let testSession = supertestSession(app)
 
-      return testSession.get('/api/casLogin')
+      // noinspection JSUnresolvedFunction
+    return testSession.get('/api/casLogin')
         .then( (res) => {
           let redirectUrl = res.get('Location')
           let data = redirectUrl.substr( redirectUrl.indexOf('{') )
@@ -215,7 +222,8 @@ describe('JWT Tests', () => {
       cas_userinfo :{
         "max-id": "Z77",
         "samlauthenticationstatementauthmethod" : getConfig('PIVLoginCheckRegex'),
-        "org-agency-name" : "Department of Health and Human Services"
+        "org-agency-name" : "Department of Test",
+        "grouplist": "AGY-GSA,EXECUTIVE_BRANCH,AGY-GSA-SRT-ADMINISTRATORS.ROLEMANAGEMENT,MAX-AUTHENTICATION-CUSTOMERS-CAS"
       }
     }
     let res = mocks.mockResponse()
@@ -228,28 +236,43 @@ describe('JWT Tests', () => {
 
     let matches = locationRedirect.match('token=({[^}]+})')
     let userTokenData = JSON.parse(matches[1])
-    expect(userTokenData.agency).toBe("HEALTH AND HUMAN SERVICES, DEPARTMENT OF")
+    expect(userTokenData.agency).toBe("TEST, DEPARTMENT OF")
     let decoded = jwt.decode(userTokenData.token)
-    expect(decoded.user.agency).toBe("HEALTH AND HUMAN SERVICES, DEPARTMENT OF")
+    expect(decoded.user.agency).toBe("TEST, DEPARTMENT OF")
 
     // test the mapping directly
-    let ssa = authRoutes.translateCASAgencyName("Social Security Administration")
-    expect(ssa).toBe("SOCIAL SECURITY ADMINISTRATION")
-    let treasury = authRoutes.translateCASAgencyName("Department of the Treasury")
-    expect(treasury).toBe("TREASURY, DEPARTMENT OF THE")
+    let treasury = authRoutes.translateCASAgencyName("Department of Test")
+    expect(treasury).toBe("TEST, DEPARTMENT OF")
 
     // test the env var override
-    process.env.AGENCY_LOOKUP = '{"DoE" : "Department of Energy", "Nat Inst Health":  "National Institutes of Health"}'
+    process.env.AGENCY_LOOKUP = '{"doe" : "Department of Energy", "nat inst health":  "National Institutes of Health"}'
     let energy = authRoutes.translateCASAgencyName("DoE")
     expect(energy).toBe("Department of Energy")
     delete process.env.AGENCY_LOOKUP
 
     // test the env var override
-    process.env.AGENCY_LOOKUP = '{ "Department of Agriculture" : "AGRICULTURE, DEPARTMENT OF", "Department of Commerce": "COMMERCE, DEPARTMENT OF", "Department of Education" : "Department of Education", "Department of Health and Human Services" : "HEALTH AND HUMAN SERVICES, DEPARTMENT OF", "Department of Homeland Security": "HOMELAND SECURITY, DEPARTMENT OF", "Department of Housing and Urban Development" : "Department of Housing and Urban Development", "Department of Justice" : "JUSTICE, DEPARTMENT OF", "Department of Labor" : "LABOR, DEPARTMENT OF", "Department of State" : "STATE, DEPARTMENT OF", "Department of the Interior": "INTERIOR, DEPARTMENT OF THE", "Department of the Treasury": "TREASURY, DEPARTMENT OF THE", "Department of Transportation" : "TRANSPORTATION, DEPARTMENT OF", "Environmental Protection Agency" : "ENVIRONMENTAL PROTECTION AGENCY", "Executive Office of the President" : "Executive Office of the President", "International Assistance Programs" : "AGENCY FOR INTERNATIONAL DEVELOPMENT", "National Aeronautics and Space Administration" : "NATIONAL AERONAUTICS AND SPACE ADMINISTRATION", "National Science Foundation" : "National Science Foundation", "Nuclear Regulatory Commission" : "Nuclear Regulatory Commission", "Office of Personnel Management" : "OFFICE OF PERSONNEL MANAGEMENT", "Small Business Administration" : "Small Business Administration", "Social Security Administration" : "SOCIAL SECURITY ADMINISTRATION", "General Services Administration": "GENERAL SERVICES ADMINISTRATION" }'
+    process.env.AGENCY_LOOKUP = '{ "department of agriculture" : "AGRICULTURE, DEPARTMENT OF", "department of commerce": "COMMERCE, DEPARTMENT OF", "Department of Education" : "Department of Education", "Department of Health and Human Services" : "HEALTH AND HUMAN SERVICES, DEPARTMENT OF", "Department of Homeland Security": "HOMELAND SECURITY, DEPARTMENT OF", "Department of Housing and Urban Development" : "Department of Housing and Urban Development", "Department of Justice" : "JUSTICE, DEPARTMENT OF", "Department of Labor" : "LABOR, DEPARTMENT OF", "Department of State" : "STATE, DEPARTMENT OF", "Department of the Interior": "INTERIOR, DEPARTMENT OF THE", "Department of the Treasury": "TREASURY, DEPARTMENT OF THE", "Department of Transportation" : "TRANSPORTATION, DEPARTMENT OF", "Environmental Protection Agency" : "ENVIRONMENTAL PROTECTION AGENCY", "Executive Office of the President" : "Executive Office of the President", "International Assistance Programs" : "AGENCY FOR INTERNATIONAL DEVELOPMENT", "National Aeronautics and Space Administration" : "NATIONAL AERONAUTICS AND SPACE ADMINISTRATION", "National Science Foundation" : "National Science Foundation", "Nuclear Regulatory Commission" : "Nuclear Regulatory Commission", "Office of Personnel Management" : "OFFICE OF PERSONNEL MANAGEMENT", "Small Business Administration" : "Small Business Administration", "social security administration" : "SOCIAL SECURITY ADMINISTRATION", "general services administration": "GENERAL SERVICES ADMINISTRATION" }'
     let gsa = authRoutes.translateCASAgencyName("General Services Administration")
     expect(gsa).toBe("GENERAL SERVICES ADMINISTRATION")
     delete process.env.AGENCY_LOOKUP
+  })
 
+  test('Users without a SRT role are rejected', async() => {
+    let user1 = Object.assign({}, coordinatorCASData)
+    user1.firstName = 'token-beforeAllUser'
+    user1.email = 'crowley+token3@tcg.com'
+    user1.grouplist = user1.grouplist.replace('SRT', 'ATC')
+    token = await mockToken(user1)
+    let decoded = jwt.decode(token)
+    decoded.user.userRole //?
+
+    let res = mocks.mockResponse()
+    let req = mocks.mockRequest(null,  {'authorization': `bearer ${token}`})
+
+    await tokenTestFunciton(req, res, ()=>{}) //?
+    expect (res.status.mock.calls[0][0]).toBe(401) //?
+    expect(res.send.mock.calls[0][0].message).toBe("Account must belong to an SRT role.")
 
   })
+
 })

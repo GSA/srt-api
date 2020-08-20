@@ -1,8 +1,11 @@
 let app =  require('../app')();
 const db = require('../models/index')
 let predictionRoutes = require('../routes/prediction.routes')
+// noinspection JSUnresolvedVariable
 const Notice = require('../models/index').notice
+// noinspection JSUnresolvedVariable
 const Prediction = require('../models/index').Prediction
+const moment = require('moment')
 
 describe('Prediction Update Test', () => {
   beforeAll(() => {
@@ -17,7 +20,7 @@ describe('Prediction Update Test', () => {
     await predictionRoutes.updatePredictionTable();
 
     let notices = await Notice.findAll({ limit: 1})
-    await notices[0].update ( {feedback: { test: notices[0].feedback} })
+    await notices[0].update ( {feedback: [{ date: moment().format('YYYY-MM-DD:HH:mm:ss')}] })
 
     let updated_count = await predictionRoutes.updatePredictionTable()
     expect(updated_count).toBeGreaterThan(0)
@@ -33,7 +36,7 @@ describe('Prediction Update Test', () => {
             ) nprime on n.solicitation_number = nprime.solicitation_number and n.id = nprime.id
         join notice_type on n.notice_type_id = notice_type.id
         where n.solicitation_number != ''
-        order by n.id;`)
+        order by n.id;`, null)
 
 
     // test about 25 records to make sure the data is correct.
@@ -46,6 +49,11 @@ describe('Prediction Update Test', () => {
 
 
   }, 30000)
+
+  test("Test agency mapping for prediction table load", () => {
+    expect( predictionRoutes.mapAgency("trash") ).toBe("trash")
+    expect( predictionRoutes.mapAgency("TRANSPORTATION, DEPARTMENT OF")).toBe("Department of Transportation")
+  })
 
   // skip this test. It can't be run in parallel with others and isn't terribly important
   test.skip('optional wipe of prediction table during update', async () => {

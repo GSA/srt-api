@@ -1,4 +1,6 @@
 /** @module PredictionRoutes */
+// noinspection JSUnresolvedVariable
+/** @type {Prediction} **/
 const Prediction = require('../models').Prediction
 
 /**
@@ -17,6 +19,7 @@ const configuration = require('../config/configuration')
 const cloneDeep = require('clone-deep')
 const Op = require('sequelize').Op
 const authRoutes = require('./auth.routes')
+const moment = require('moment')
 
 /**
  * PredictionFilter
@@ -99,7 +102,7 @@ function makeOnePrediction (notice) {
     o.id = notice.id
     o.title = (notice.notice_data && notice.notice_data.subject) ? notice.notice_data.subject : 'title not available'
     o.url = (notice.notice_data !== undefined) ? notice.notice_data.url : ''
-    o.agency = notice.agency
+    o.agency = mapAgency(notice.agency)
     o.numDocs = (notice.attachment_json) ? notice.attachment_json.length : 0
     o.solNum = notice.solicitation_number
     o.noticeType = notice.notice_type
@@ -150,6 +153,7 @@ function makeOnePrediction (notice) {
 
     let email = ''
     if (notice.notice_data && notice.notice_data.emails && notice.notice_data.emails.length) {
+      // noinspection JSUnresolvedVariable
       if (config.spamProtect) {
         notice.notice_data.emails = notice.notice_data.emails.map(e => e + '.nospam')
       }
@@ -168,7 +172,7 @@ function makeOnePrediction (notice) {
 
     o.searchText = [o.solNum, o.noticeType, o.title, o.date, o.reviewRec, o.actionStatus, o.actionDate, o.agency, o.office].join(' ').toLowerCase()
   } catch (e) {
-    logger.log("error", "Error building a prediction object", {tag: "MakeOnePrediction", error: e})
+    logger.log("error", "Error building a prediction object", {tag: "MakeOnePrediction", error: e.message, trace: e.stack})
   }
   return o
 }
@@ -283,7 +287,6 @@ function normalizeMatchFilter(filter, field){
 async function getPredictions (filter, user) {
 
   try {
-
     if ( user === undefined || user.agency === undefined || user.userRole === undefined ) {
       return []
     }
@@ -361,9 +364,11 @@ async function getPredictions (filter, user) {
       attributes.order.push([filter.sortField, direction])
     }
 
-    // always end with date sort to keep the newest first (all else being equal)
-    attributes.order.push(['date', 'DESC'])
+    // always end with id sort to keep the newest first (all else being equal)
+    attributes.order.push(['id', 'DESC'])
+    // noinspection JSUnresolvedFunction
     let preds = await Prediction.findAll(attributes)
+    // noinspection JSUnresolvedFunction
     let count = await Prediction.findAndCountAll(attributes)
 
     return {
@@ -373,7 +378,7 @@ async function getPredictions (filter, user) {
       totalCount: count.count
     }
   } catch (e) {
-    logger.log("error", "Error in getPredictions", {tag: "getPredictions", error: e})
+    logger.log("error", "Error in getPredictions", {tag: "getPredictions", error: e, "error-message": e.message, stack: e.stack})
     return {
       predictions: [],
       first: 0,
@@ -381,6 +386,12 @@ async function getPredictions (filter, user) {
       totalCount: 0
     }
   }
+}
+
+function mapAgency(agency) {
+  const key = "AGENCY_MAP:" + agency //?
+  const mapped = configuration.getConfig(key, null)
+  return (mapped) ? mapped : agency
 }
 
 /**
@@ -392,13 +403,14 @@ module.exports = {
   mergePredictions: mergePredictions,
   makeOnePrediction: makeOnePrediction,
   updatePredictionTable: updatePredictionTable,
+  mapAgency: mapAgency,
 
-  /**
+/**
      * Finds all the predictions that match the filter and send them out to the response.
      *
      * @param {Object} req
      * @param {PredictionFilter} req.body
-     * @param {Response} res
+     * @param {{set: *, json: *, send: *, status: *}} res
      * @return {Promise}
      */
   predictionFilter: function (req, res) {
@@ -459,12 +471,17 @@ async function updatePredictionTable  (clearAllAfterDate) {
   if (clearAllAfterDate) {
     let sql = `delete from "Predictions" where "updatedAt" > '${clearAllAfterDate}' `
     logger.debug(`Clearing all predictions after ${clearAllAfterDate}`, {tag: "updatePredictionTable", sql: sql})
+    // noinspection JSUnresolvedFunction
     await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
   }
 
   let actualCount = 0
   let outdatedPredictions = await getOutdatedPrediction()
-  logger.debug(`there are ${outdatedPredictions.length} outdated predictions to update`)
+  let msg = (outdatedPredictions.length < 1000)
+    ? `${outdatedPredictions.length}`
+    : `${outdatedPredictions.length}+`
+    logger.debug(`there are ${msg} outdated predictions to update`)
+
   while (outdatedPredictions && outdatedPredictions.length > 0) {
     actualCount ++
     let pred = outdatedPredictions.pop()
@@ -474,10 +491,12 @@ async function updatePredictionTable  (clearAllAfterDate) {
     try {
       // logger.log("debug", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
       delete (pred.id) // remove the id since that should be auto-increment
+      // noinspection JSCheckFunctionSignatures
       await Prediction.destroy({ where: { solNum: pred.solNum } }) // delete any outdated prediction
+      // noinspection JSUnresolvedFunction
       await Prediction.create(pred);
     } catch(e) {
-      logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', error: e})
+      logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', "error-message": e.message, error: e})
     }
 
     // we only get 1000 at a time so check to see if there are more when we run out of the current batch
@@ -489,7 +508,9 @@ async function updatePredictionTable  (clearAllAfterDate) {
       logger.log("info", `Updated ${actualCount} prediction records.`)
     }
   }
-  logger.log("info", `Updated ${actualCount} prediction records`)
+  if (actualCount > 0) {
+    logger.log("info", `Updated ${actualCount} prediction records`)
+  }
   return actualCount
 }
 
@@ -511,7 +532,7 @@ function getOutdatedPrediction() {
                   (SELECT DISTINCT solicitation_number
                    FROM notice nn
                    LEFT JOIN "Predictions" pp on pp."solNum" = nn.solicitation_number
-                   WHERE (nn."updatedAt" > pp."updatedAt" or
+                   WHERE (COALESCE (nn."updatedAt", nn."createdAt") > pp."updatedAt" or
                          pp."updatedAt" is null) and
                          nn.solicitation_number != '' and nn.solicitation_number is not null limit 1000)`
 
@@ -536,6 +557,7 @@ function makeDate(x) {
   } else {
     d = new Date(x)
   }
-  return  d.toLocaleDateString() + ' ' + d.toLocaleTimeString()
+  const s = moment(d).format('MM/DD/YYYY HH:mm ZZ')
+  return  s
 }
 

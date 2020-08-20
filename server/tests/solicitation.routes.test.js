@@ -33,7 +33,7 @@ describe('solicitation tests', () => {
 
     myUser = Object.assign({}, userAcceptedCASData)
     delete myUser.id
-    user = await User.create({ myUser: myUser })
+    let user = await User.create({ myUser: myUser })
     myUser.id = user.id
     token = await mockToken(myUser, common['jwtSecret'])
 
@@ -56,12 +56,12 @@ describe('solicitation tests', () => {
 
   test('solicitation post', async () => {
 
-    predictionRoutes.updatePredictionTable()
+    await predictionRoutes.updatePredictionTable()
 
     return db.sequelize.query('select count(*), solicitation_number from (select * from notice where history is not null) notice where history is not null group by solicitation_number having count(*) > 5 limit 1')
       .then( async (result) => {
 
-        rows = await db.sequelize.query(`select * from notice where history is not null and  solicitation_number = '${result[0][0].solicitation_number}' order by feedback `)
+        let rows = await db.sequelize.query(`select * from notice where history is not null and  solicitation_number = '${result[0][0].solicitation_number}' order by feedback `)
         let noticeNum = rows[0][0].solicitation_number
         expect(noticeNum).toBeDefined()
 
@@ -214,7 +214,7 @@ describe('solicitation tests', () => {
                         { feedback: [{ question: 'q1', answer: 'a1' }, { question: 'q1', answer: 'a1' }] }
                       ]
 
-                      if (sql.match(/select.*where.*jsonb_array_length\(feedback\).?>.?0/i)) {
+                      if (sql.match(/select.*where.*jsonb_array_length/i)) {
                         set = set.filter(x => { return (x.feedback && x.feedback.length && x.feedback.length > 0) })
                       }
 
@@ -312,7 +312,7 @@ describe('solicitation tests', () => {
   })
 
   test('Solicitation audit', () => {
-    mock_notice = {
+    let mock_notice = {
         "action": [{ "action": "fake action", "date": "2019-03-29T08:05:31.307Z", "status": "complete", "user": "" },
                    { "action": "fake action 2", "date": "2020-01-16T13:07:53.575Z", "status": "complete" },
                   ],
@@ -384,9 +384,9 @@ describe('solicitation tests', () => {
     expect(actions[actions.length-1].user).toBe(myUser.email)
 
     // test NA
-    na_false = cloneDeep(mock_notice, true)
+    let na_false = cloneDeep(mock_notice, true)
     na_false['na_flag'] = false
-    na_true = cloneDeep(mock_notice, true)
+    let na_true = cloneDeep(mock_notice, true)
     na_true['na_flag'] = true
     actions = solicitationRoutes.auditSolicitationChange(na_false, na_true, null)
     expect(actions[actions.length-1].action).toBe(getConfig("constants:NA_ACTION"))

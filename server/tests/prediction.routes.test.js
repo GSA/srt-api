@@ -5,9 +5,11 @@ const mockToken = require('./mocktoken')
 const User = require('../models').User
 // noinspection JSUnresolvedVariable
 const Notice = require('../models').notice
+// noinspection JSUnresolvedVariable
 const NoticeType = require('../models').notice_type
 // noinspection JSUnresolvedVariable
 const Op = require('sequelize').Op
+// noinspection JSUnresolvedVariable
 const Attachment = require('../models').attachment
 const env = process.env.NODE_ENV || 'development'
 const db = require('../models/index')
@@ -100,7 +102,7 @@ describe('prediction tests', () => {
 
     myUser = Object.assign({}, userAcceptedCASData)
     delete myUser.id
-    user = await  User.create(myUser)
+    const user = await  User.create(myUser)
     myUser.id = user.id
     token = await mockToken(myUser, common['jwtSecret'])
 
@@ -112,7 +114,7 @@ describe('prediction tests', () => {
                       notice_data->>'office' is not null
                 order by notice.id desc
                 limit 1`
-    let rows = await db.sequelize.query(sql)
+    let rows = await db.sequelize.query(sql, null)
     sample_sol_num = rows[0][0].solicitation_number
 
   })
@@ -224,7 +226,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Filter predictions to only return a certain office', () => {
-    return db.sequelize.query(`select notice_data->>'office' as office from notice where solicitation_number = '${sample_sol_num}' limit 1;`)
+    return db.sequelize.query(`select notice_data->>'office' as office from notice where solicitation_number = '${sample_sol_num}' limit 1;`, null)
       .then((rows) => {
         let office = rows[0][0].office
 
@@ -260,7 +262,8 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Filter predictions on multiple dimensions', () => {
-    return db.sequelize.query(`select agency from notice where solicitation_number = '${sample_sol_num}'  limit 1;`)
+    // noinspection JSTestFailedLine
+    return db.sequelize.query(`select agency from "Predictions" where "solNum" = '${sample_sol_num}'  limit 1;`, null)
       .then((rows) => {
         let agency = rows[0][0].agency
         return request(app)
@@ -300,7 +303,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Filter predictions on solicitation number', () => {
-    return db.sequelize.query('select solicitation_number from notice order by id desc limit 1')
+    return db.sequelize.query('select solicitation_number from notice join notice_type nt on notice.notice_type_id = nt.id where nt.notice_type = \'Solicitation\' order by notice.id desc limit 1', null)
       .then((rows) => {
         let noticeNum = rows[0][0].solicitation_number
         expect(noticeNum).toBeDefined()
@@ -361,7 +364,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Test prediction date filters', async () => {
-    let rows = await db.sequelize.query('select date from notice order by date desc, agency desc limit 1')
+    let rows = await db.sequelize.query('select date from notice order by date desc, agency desc limit 1', null)
 
     let date = rows[0][0].date
     let year = date.getFullYear()
@@ -574,7 +577,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Test attachment association', () => {
-    return db.sequelize.query('select notice_id from attachment limit 1')
+    return db.sequelize.query(`select notice_id from attachment where attachment_url is not null and attachment_url != '' limit 1`)
       .then((rows) => {
         let noticeId = rows[0][0].notice_id
         return Notice.findAll({ include: [{ model: Attachment }], where: { 'id': noticeId } })
@@ -671,9 +674,9 @@ describe('prediction tests', () => {
   })
 
   function compare (a,b) {
-    let sort = undefined
+    let sort
     if (typeof (a) === 'string') {
-      sort = a.localeCompare(b)
+      return a.localeCompare(b)
     }
     if (typeof (a.getTime) === 'function' ) {
       if (a.getTime() === b.getTime()) {
@@ -682,6 +685,7 @@ describe('prediction tests', () => {
         sort = (a.getTime() < b.getTime()) ? -1 : 1
       }
     } else {
+      // noinspection EqualityComparisonWithCoercionJS
       if (a == b) {
         sort = 0
       } else {
@@ -717,7 +721,7 @@ describe('prediction tests', () => {
       }
     })
 
-    for (field of ['reviewRec', 'date', 'agency', 'noticeType', 'solNum']) {
+    for (const field of ['reviewRec', 'date', 'agency', 'noticeType', 'solNum']) {
 
       event.sortField = field
       event.sortOrder = -1;
@@ -729,6 +733,7 @@ describe('prediction tests', () => {
       event.sortOrder = 1
       predictions = await getPredictions(event);
       let last = predictions[0][event.sortField]
+      // noinspection JSUnresolvedFunction
       expect(compare(first,last)).toBeInOrder([-1, 1], `failed to sort ${first} || ${last}`)
     }
   }, 30000)
@@ -761,13 +766,12 @@ describe('prediction tests', () => {
 
   test("paging no duplicates", async () => {
 
-    for (field of ['agency', 'date', 'solNum']) {
+    for (const field of ['agency', 'date', 'solNum']) {
       let order1 = await predictionRoutes.getPredictions({ first: 0, rows: 50, sortField: field }, mocks.mockAdminUser)
       expect(order1.predictions[0]).toBeTruthy()
       for (let i = 0; i < 50; i += 10) {
         let order = await predictionRoutes.getPredictions({ first: i, rows: 7, sortField: field }, mocks.mockAdminUser)
 
-        i //?
         // check that first = x is the same as the xth item when starting at 0
         expect(order.predictions[0].solNum).toBe(order1.predictions[i].solNum)
 
@@ -784,7 +788,7 @@ describe('prediction tests', () => {
     let {predictions} = await predictionRoutes.getPredictions(filter, mocks.mockAdminUser)
 
     let found = false
-    for (p of predictions) {
+    for (const p of predictions) {
       found = p.title.toLowerCase().match(word.toLowerCase()) ||
               p.noticeType.toLowerCase().match(word.toLowerCase()) ||
               p.solNum.toLowerCase().match(word.toLowerCase()) ||
@@ -817,9 +821,9 @@ describe('prediction tests', () => {
       {field:'solNum', regex: /[0-9]+/}
     ]
 
-    for (x of data ) {
+    for (const x of data ) {
       let word = null
-      for (p of predictions) {
+      for (const p of predictions) {
         word = word || p[x.field].match(x.regex)  // pick out a word from the field
       }
       word = word[0] // grab the first match string
@@ -827,9 +831,9 @@ describe('prediction tests', () => {
     }
 
 
-    for (x of data ) {
+    for (const x of data ) {
       let word = null
-      for (p of predictions) {
+      for (const p of predictions) {
         word = word || p[x.field].match(x.regex)  // pick out a word from the field
       }
       word = word[0].toLowerCase() // grab the first match string
@@ -837,31 +841,11 @@ describe('prediction tests', () => {
       await globalFilterTest(word)
     }
 
-    // non-compliant search term acts strange
-    const filter = { first: 0, rows: 20000, globalFilter: 'non-compliant' }
-    let {totalCount: totalCount} = await predictionRoutes.getPredictions(filter, mocks.mockAdminUser)
-    let non_compliant = await Notice.findAll(
-      {
-        where: { compliant: 0 },
-        include: {
-          model: NoticeType,
-          where: {
-            notice_type: {
-              [Op.in]: configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation'])
-            }
-          }
-        }
-      })
 
-
-    // not perfect, but generally totalCount should be nearly as many as the number of notice rows
-    expect(Number.parseInt(totalCount)).toBeGreaterThan(non_compliant.length/3)
 
   }, 30000)
 
   test("prediction column filter", async () => {
-    // pick a word out of the titles.
-    let {predictions: samples} = await predictionRoutes.getPredictions({ first: 333, rows: 1 }, mocks.mockAdminUser)
 
     const data = [
       {field:'noticeType', value: 'Combined Synopsis/Solicitation'},
@@ -869,7 +853,7 @@ describe('prediction tests', () => {
       // {field:'office'},
       // {field:'reviewRec'},
     ]
-    for (x of data ) {
+    for (const x of data ) {
       let field = x.field
       let word = x.value
 
@@ -885,8 +869,8 @@ describe('prediction tests', () => {
       let {predictions: preds} = await predictionRoutes.getPredictions(filter, mocks.mockAdminUser)
 
       let allMatch = true
-      for (p of preds) {
-        allMatch = p[field] == word
+      for (const p of preds) {
+        allMatch = p[field] === word
         if ( ! allMatch) {
           break;
         }
@@ -930,7 +914,7 @@ describe('prediction tests', () => {
 
 
     expect(preds.length).toBeGreaterThan(0)
-    for (p of preds) {
+    for (const p of preds) {
       expect(p.noticeType).toBe(samples[0].noticeType)
     }
 
@@ -965,22 +949,19 @@ describe('prediction tests', () => {
 
     expect(middleCount).toBeLessThan(totalCount)
 
-    for (p of preds_middle) {
+    for (const p of preds_middle) {
       expect(p.date.getTime()).toBeGreaterThan(middle.getTime())
     }
   })
 
   test("User can't override the prediction cut off date", async () => {
     // grab the oldest prediction
-    let {predictions: preds, totalCount: totalCount} =
+    let {predictions: preds} =
       await predictionRoutes.getPredictions({ rows: 1, sortField: "date", sortOrder: 1 }, mocks.mockAdminUser)
     let pred = Date.parse(preds[0].date)
 
-
-    pred //?
-
     // try to set the start date far in the past
-    let {predictions: preds_older, totalCount: olderCount} =
+    let {predictions: preds_older} =
       await predictionRoutes.getPredictions({ rows: 1, "startDate": "1972-01-01T00:00:00.000Z", sortField: "date", sortOrder: 1 }, mocks.mockAdminUser)
     let oldest = Date.parse(preds_older[0].date)
 
