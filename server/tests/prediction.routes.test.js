@@ -19,6 +19,7 @@ const {common, config_keys} = require('../config/config.js')
 const timeout = 10000 // set to 10 seconds because some of these tests are slow.
 const mocks = require('./mocks')
 const configuration = require('../config/configuration')
+const moment = require('moment')
 
 
 const { userAcceptedCASData } = require('./test.data')
@@ -588,17 +589,17 @@ describe('prediction tests', () => {
       })
   }, timeout)
 
-  test('default solicitation title', () => {
+  test('default solicitation title', async () => {
     let notice = {}
-    let prediction = predictionRoutes.makeOnePrediction(notice)
+    let prediction = await predictionRoutes.makeOnePrediction(notice)
     expect(prediction.title).toBe('title not available')
 
     notice = { notice_data: {} }
-    prediction = predictionRoutes.makeOnePrediction(notice)
+    prediction = await predictionRoutes.makeOnePrediction(notice)
     expect(prediction.title).toBe('title not available')
 
     notice = { notice_data: { subject: 'title here' } }
-    prediction = predictionRoutes.makeOnePrediction(notice)
+    prediction = await predictionRoutes.makeOnePrediction(notice)
     expect(prediction.title).toBe('title here')
   }, timeout)
 
@@ -980,6 +981,40 @@ describe('prediction tests', () => {
     let {totalCount: dodCount} = await predictionRoutes.getPredictions({}, mocks.mockDoDUser)
     expect(dodCount).toBeGreaterThan(1)
     expect(dodCount).toBeLessThan(totalCount)
+
+  })
+
+  test("Attachments have posted dates", async () => {
+    let {predictions, totalCount} = await predictionRoutes.getPredictions({}, mocks.mockAdminUser)
+    expect(totalCount).toBeGreaterThan(1)
+    let index = 0;
+    let targetPrediction = predictions[index]
+    while (targetPrediction.parseStatus.length < 2) {
+      index++
+      targetPrediction = predictions[index]
+    }
+
+    targetPrediction.solNum //?
+    let count = await predictionRoutes.invalidate(targetPrediction.solNum) //?
+
+
+    targetPrediction.solNum //?
+
+    let {predictions:updated_predictions} = await predictionRoutes.getPredictions({ rows: 1, filters: {"solNum": {value: targetPrediction.solNum, matchMode: 'equals'}} }, mocks.mockAdminUser)
+    const targetPrediction2 = updated_predictions[0] //?
+    targetPrediction2.solNum //?
+
+    targetPrediction2.date //?
+    targetPrediction2 //?
+
+    for (const attachment of targetPrediction2.parseStatus) {
+      let notice_id = attachment.notice_id
+      let notice = await Notice.findByPk(notice_id)
+      let posted_date = notice.dataValues.date
+      posted_date //?
+
+      expect( moment(attachment.postedDate).format('MM/DD/YYYY HH:mm ZZ') ).toBe(moment(posted_date).format('MM/DD/YYYY HH:mm ZZ'))
+    }
 
   })
 

@@ -168,7 +168,7 @@ module.exports = function (db, userRoutes) {
 
 
           return notice.save()
-            .then( (n) => {
+            .then( async (n) => {
               // noinspection JSUnresolvedVariable
               logger.log("info",
                 `Updated Notice row for solicitation ${notice.solicitation_number}`,
@@ -177,7 +177,7 @@ module.exports = function (db, userRoutes) {
                       test_flag: req.body.solicitation.na_flag,
                       na_flag: (n.na_flag) ? "true" : "false"
                 })
-              return res.status(200).send(predictionRoute.makeOnePrediction(n))
+              return res.status(200).send(await predictionRoute.makeOnePrediction(n))
             })
             .catch (error => {
               logger.log("error", "Error in solicitation update", {tag: 'solicitation update', error: error})
@@ -230,8 +230,8 @@ module.exports = function (db, userRoutes) {
 
           // noinspection JSUnresolvedFunction
           return notice.save()
-            .then((doc) => {
-              return res.status(200).send(predictionRoute.makeOnePrediction(doc))
+            .then(async (doc) => {
+              return res.status(200).send(await predictionRoute.makeOnePrediction(doc))
             })
             .catch((e) => {
               logger.log('error', 'error in: postSolicitation - error on save', { error:e, tag: 'postSolicitation - error on save' })
@@ -282,8 +282,13 @@ module.exports = function (db, userRoutes) {
       let sql = `select * from notice where ${whereStr} ${order} ${limit}`
 
       return db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
-        .then((notice) => {
-          res.status(200).send(notice.map(predictionRoute.makeOnePrediction))
+        .then(async (notice) => {
+          const result = []
+          for (const n of notice) {
+            const pred = await predictionRoute.makeOnePrediction(n)
+            result.push(pred)
+          }
+          res.status(200).send(result)
         })
         .catch(e => {
           logger.log('error', 'error in: solicitationFeedback', { error:e, tag: 'solicitationFeedback' })

@@ -2,6 +2,7 @@
 // noinspection JSUnresolvedVariable
 /** @type {Prediction} **/
 const Prediction = require('../models').Prediction
+const Notice = require('../models').notice
 
 /**
  * Prediction routes
@@ -95,7 +96,7 @@ const moment = require('moment')
 /** @namespace notice.numDocs */
 /** @namespace notice.attachment_json */
 /** @namespace notice.spamProtect */
-function makeOnePrediction (notice) {
+async function makeOnePrediction (notice) {
   let o = {} // Object.assign({}, template);
 
   try {
@@ -168,7 +169,28 @@ function makeOnePrediction (notice) {
 
     }
 
-    o.parseStatus = (notice.attachment_json !== undefined && notice.attachment_json != null) ? notice.attachment_json : []
+    // add the posted date to each attachment
+    const attachments = (notice.attachment_json !== undefined && notice.attachment_json != null) ? notice.attachment_json : []
+    o.parseStatus = []
+    const noticeList = []
+    const date_map = {} // map from the notice ID to the posted date
+
+    // first gather up all the notices so we can make a single query
+    for (const attachment of attachments) {
+      noticeList.push(attachment.notice_id);
+    }
+
+    // get the notices that are related to all the attachments
+    notices = await Notice.findAll({where: {id: {[Op.in] : noticeList}}});
+    for (const n of notices) {
+      date_map[n.id] = n.date
+    }
+
+    // loop through the attachments and add in the postedDate to each one
+    for (const attachment of attachments) {
+      attachment.postedDate = date_map[attachment.notice_id]
+      o.parseStatus.push(Object.assign(attachment))
+    }
 
     o.searchText = [o.solNum, o.noticeType, o.title, o.date, o.reviewRec, o.actionStatus, o.actionDate, o.agency, o.office].join(' ').toLowerCase()
   } catch (e) {
@@ -389,10 +411,23 @@ async function getPredictions (filter, user) {
 }
 
 function mapAgency(agency) {
-  const key = "AGENCY_MAP:" + agency //?
+  const key = "AGENCY_MAP:" + agency
   const mapped = configuration.getConfig(key, null)
   return (mapped) ? mapped : agency
 }
+
+/***
+ * Invalidates a
+ *
+ * @param sol_num
+ * @returns {Promise<number>}
+ */
+async function invalidate (sol_num) {
+  let sql = `delete from "Predictions" where "solNum" = '${sol_num}' `
+  await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
+  return updatePredictionTable()
+}
+
 
 /**
  * prediction routes
@@ -404,6 +439,7 @@ module.exports = {
   makeOnePrediction: makeOnePrediction,
   updatePredictionTable: updatePredictionTable,
   mapAgency: mapAgency,
+  invalidate: invalidate,
 
 /**
      * Finds all the predictions that match the filter and send them out to the response.
@@ -537,10 +573,10 @@ function getOutdatedPrediction() {
                          nn.solicitation_number != '' and nn.solicitation_number is not null limit 1000)`
 
   return db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
-    .then(notices => {
+    .then(async notices => {
       let data = []
       for (let i = 0; i < notices.length; i++) {
-        data[i] =cloneDeep(makeOnePrediction(notices[i]))
+        data[i] =cloneDeep( await makeOnePrediction(notices[i]))
       }
       return mergePredictions(data)
     })

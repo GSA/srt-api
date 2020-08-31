@@ -68,11 +68,11 @@ describe('Prediction History', () => {
       })
   }, 10000)
 
-  test('notices merge history correctly', () => {
+  test('notices merge history correctly', async () => {
     let solArray = predictionRoutes.mergePredictions([
-      predictionRoutes.makeOnePrediction(n1),
-      predictionRoutes.makeOnePrediction(n2),
-      predictionRoutes.makeOnePrediction(n3),
+      await predictionRoutes.makeOnePrediction(n1),
+      await predictionRoutes.makeOnePrediction(n2),
+      await predictionRoutes.makeOnePrediction(n3),
     ])
     let sol = solArray[0]
     expect(sol).toHaveProperty('predictions')
@@ -89,17 +89,17 @@ describe('Prediction History', () => {
     expect(count).toBe(7)
   })
 
-  test('history lines in date order', () => {
+  test('history lines in date order', async () => {
     let sol1 = predictionRoutes.mergePredictions([
-      predictionRoutes.makeOnePrediction(n1),
-      predictionRoutes.makeOnePrediction(n2),
-      predictionRoutes.makeOnePrediction(n3),
+      await predictionRoutes.makeOnePrediction(n1),
+      await predictionRoutes.makeOnePrediction(n2),
+      await predictionRoutes.makeOnePrediction(n3),
     ])[0]
 
     let sol2 = predictionRoutes.mergePredictions([
-      predictionRoutes.makeOnePrediction(n3),
-      predictionRoutes.makeOnePrediction(n2),
-      predictionRoutes.makeOnePrediction(n1),
+      await predictionRoutes.makeOnePrediction(n3),
+      await predictionRoutes.makeOnePrediction(n2),
+      await predictionRoutes.makeOnePrediction(n1),
     ])[0]
 
     let history1 = sol1.predictions.history
