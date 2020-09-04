@@ -41,13 +41,13 @@
     "ms": "^2.1.2",
     "nodemailer": "^5.1.1",
     "pg": "^7.18.2",
-    "random-words": "^1.1.1",
     "sequelize": "^5.22.3",
     "sequelize-cli": "^5.5.1",
     "umzug": "^2.3.0",
     "winston": "^3.3.3"
   },
   "devDependencies": {
+    "random-words": "^1.1.1",
     "cryptify": "^3.0.3",
     "docdash": "^1.2.0",
     "eslint": "^5.16.0",
