@@ -1,7 +1,7 @@
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
 const Postgres = require('@albertcrowley/winston-pg-native')
-const { stringify } = require('flatted/cjs');
+const { stringify } = require('flatted');
 
 
 const dbConfig = require('../config/dbConfig')[env]
