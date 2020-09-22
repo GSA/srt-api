@@ -27,7 +27,6 @@
   "license": "ISC",
   "dependencies": {
     "@albertcrowley/winston-pg-native": "github:albertcrowley/winston-pg-native",
-    "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "cas-authentication": "0.0.8",
     "clone-deep": "^4.0.1",
@@ -44,12 +43,12 @@
     "sequelize": "^5.22.3",
     "sequelize-cli": "^5.5.1",
     "umzug": "^2.3.0",
-    "winston": "^3.3.3"
+    "winston": "^3.3.3",
+    "flatted": "^3.0.5"
   },
   "devDependencies": {
     "random-words": "^1.1.1",
     "cryptify": "^3.0.3",
-    "docdash": "^1.2.0",
     "eslint": "^5.16.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.22.0",
