@@ -43,7 +43,8 @@
     "sequelize": "^5.22.3",
     "sequelize-cli": "^5.5.1",
     "umzug": "^2.3.0",
-    "winston": "^3.3.3"
+    "winston": "^3.3.3",
+    "flatted": "^3.0.5"
   },
   "devDependencies": {
     "random-words": "^1.1.1",
