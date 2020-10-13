@@ -351,7 +351,17 @@ async function getPredictions (filter, user) {
     // process dates
 
     // make sure anything we return is past the date cuttoff
-    attributes.where.date = { [Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
+    if (configuration.getConfig("minPredictionCutoffDate")) {
+      attributes.where.date = { [Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
+    } else if (configuration.getConfig("predictionCutoffDays")) {
+      const numDays = configuration.getConfig("predictionCutoffDays")
+      const today = new Date()
+      let  cutoff = new Date()
+      cutoff.setDate( today.getDate() - numDays)
+      attributes.where.date = { [Op.gt]: cutoff}
+    }
+
+
 
     if (filter.startDate) {
       // double check they aren't asking for data from before the cutoff
@@ -593,7 +603,6 @@ function makeDate(x) {
   } else {
     d = new Date(x)
   }
-  const s = moment(d).format('MM/DD/YYYY HH:mm ZZ')
-  return  s
+  return moment(d).format('MM/DD/YYYY HH:mm ZZ')
 }
 

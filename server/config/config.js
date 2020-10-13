@@ -158,7 +158,8 @@ module.exports = {
       "MILLENNIUM CHALLENGE CORPORATION":"Millennium Challenge Corporation"
     },
     VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation'],
-    "minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z"
+    //"minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z",
+    "predictionCutoffDays" : 60
   },
   development: {
     "emailFrom": "crowley+srt@tcg.com",
