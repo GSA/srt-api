@@ -62,6 +62,14 @@
  */
 
 /**
+ * @typedef {Model} Solicitation
+ * @property {number} id
+ * @property {string} solNum
+ * @property {boolean} inactive
+ */
+
+
+/**
  * @typedef {Model} NoticeType
  * @property {number} id
  * @property {string} notice_type

@@ -2,6 +2,8 @@
 // noinspection JSUnresolvedVariable
 /** @type {Prediction} **/
 const Prediction = require('../models').Prediction
+/** @type {Solicitation} **/
+const Solicitation = require('../models').Solicitation
 const Notice = require('../models').notice
 
 /**
@@ -58,6 +60,15 @@ const moment = require('moment')
  *
  * @property {Contact} contactInfo
  */
+
+/**
+ * A solicitation object as expected by the client UI
+ * @typedef {Object} Solicitation
+ * @property {Number} id - Database ID of the prediction. This value shouldn't be used if possible. It will refer to the id of the last notice row associated with this prediction.
+ * @property {string} solNum - Notice number for this prediction
+ * @property {boolean} inactive - Solicitation is inactive t/f
+ */
+
 
 /**
  * Action record
@@ -450,6 +461,7 @@ module.exports = {
   updatePredictionTable: updatePredictionTable,
   mapAgency: mapAgency,
   invalidate: invalidate,
+  updateSolicitation: updateSolicitation,
 
 /**
      * Finds all the predictions that match the filter and send them out to the response.
@@ -509,6 +521,21 @@ module.exports = {
 
 }
 
+async function updateSolicitation(solNum) {
+  try {
+    await db.sequelize.query(`
+        insert into solicitations ("solNum")
+         (select distinct solicitation_number 
+          from notice
+          where solicitation_number not in (select "solNum" from solicitations)   )
+    `)
+  } catch (e) {
+    console.log (e.message)
+    throw (e)
+
+
+  }
+}
 
 async function updatePredictionTable  (clearAllAfterDate) {
 
@@ -541,6 +568,9 @@ async function updatePredictionTable  (clearAllAfterDate) {
       await Prediction.destroy({ where: { solNum: pred.solNum } }) // delete any outdated prediction
       // noinspection JSUnresolvedFunction
       await Prediction.create(pred);
+
+      await updateSolicitation(pred.solNum)
+
     } catch(e) {
       logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', "error-message": e.message, error: e})
     }
