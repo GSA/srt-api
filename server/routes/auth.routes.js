@@ -107,6 +107,8 @@ function userOnPasswordOnlyWhitelist(session){
   let userEmail = session && session['cas_userinfo'] && session['cas_userinfo']['email-address'];
   let whitelist = getConfig("maxCas:password-whitelist")
 
+  logger.log("info", "password whitelist is: " + whitelist)
+
   if (! (userEmail && whitelist) ) {
     return false;
   }
