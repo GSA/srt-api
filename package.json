@@ -52,7 +52,7 @@
     "graceful-fs": "4.2.4"
   },
   "engines": {
-    "node": "^12.18.0",
+    "node": "^12.19.0",
     "npm": "^3.10.3"
   },
   "nodemonConfig": {
