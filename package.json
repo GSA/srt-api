@@ -48,6 +48,9 @@
     "umzug": "^2.3.0",
     "winston": "^3.2.1"
   },
+  "resolutions": {
+    "graceful-fs": "4.2.4"
+  },
   "devDependencies": {
     "cryptify": "^3.0.3",
     "docdash": "^1.2.0",
