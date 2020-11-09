@@ -35,13 +35,15 @@ ignore:
     - '@albertcrowley/winston-pg-native@github:albertcrowley/winston-pg-native#867fac4b3a49570bfd71ea80408e26a6d940cc2e > winston@3.2.1 > async@2.6.3 > lodash@4.17.15':
         reason: Module patched but no full update is available yet
         expires: '2020-09-04T14:11:08.724Z'
+  SNYK-JS-FLAT-596927:
+    - random-words > mocha > yargs-unparser > flat:
+        reason: None given
+        expires: '2020-12-09T14:48:21.510Z'
 # patches apply the minimum changes required to fix a vulnerability
 patch:
   SNYK-JS-LODASH-567746:
     - express-winston > lodash:
         patched: '2020-05-04T17:00:24.282Z'
-      random-words > mocha > yargs-unparser > lodash:
-        patched: '2020-07-08T15:38:17.466Z'
     - sequelize > lodash:
         patched: '2020-05-04T17:00:24.282Z'
     - sequelize-cli > lodash:
@@ -104,3 +106,5 @@ patch:
         patched: '2020-06-04T13:59:03.984Z'
     - random-words > mocha > yargs-unparser > lodash:
         patched: '2020-07-08T15:20:46.113Z'
+    - random-words > mocha > yargs-unparser > lodash:
+        patched: '2020-07-08T15:38:17.466Z'
