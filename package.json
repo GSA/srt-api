@@ -41,8 +41,8 @@
     "ms": "^2.1.2",
     "nodemailer": "^6.4.16",
     "pg": "^7.18.2",
-    "sequelize": "^5.22.3",
-    "sequelize-cli": "^5.5.1",
+    "sequelize": "^6",
+    "sequelize-cli": "^6",
     "umzug": "^2.3.0",
     "winston": "^3.3.3"
   },
