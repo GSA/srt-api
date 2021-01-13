@@ -35,6 +35,10 @@ ignore:
     - '@albertcrowley/winston-pg-native@github:albertcrowley/winston-pg-native#867fac4b3a49570bfd71ea80408e26a6d940cc2e > winston@3.2.1 > async@2.6.3 > lodash@4.17.15':
         reason: Module patched but no full update is available yet
         expires: '2020-09-04T14:11:08.724Z'
+  SNYK-JS-Y18N-1021887:
+    - sequelize-cli > yargs > y18n:
+        reason: used only for the cli
+        expires: '2021-02-12T19:44:29.919Z'
 # patches apply the minimum changes required to fix a vulnerability
 patch:
   SNYK-JS-LODASH-567746:
