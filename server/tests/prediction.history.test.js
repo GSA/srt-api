@@ -50,6 +50,7 @@ describe('Prediction History', () => {
       .then( result => {
         let predictions = result.predictions
         let p = predictions[0]
+        p //?
         expect(p).toHaveProperty('predictions')
         expect(p.predictions).toHaveProperty('history')
         let history = p.predictions.history
@@ -58,11 +59,11 @@ describe('Prediction History', () => {
         expect(history[0]).toHaveProperty('value')
 
         // check the last entry in the history is equal to the date of the overall prediction
+        let last = (new Date(history.slice(-1)[0].date)).toISOString().split('T')[0] //?
+        let pdate = p.date.toISOString().split('T')[0] //?
 
-        let last = (new Date(history.slice(-1)[0].date)).toISOString().split('T')[0]
-        let pdate = p.date.toISOString().split('T')[0]
-
-        expect(last).toBe(pdate)
+        // Don't check the date. There are now times where a predication can be updated without new history (ex. becomes inactive)
+        // expect(last).toBe(pdate)
         let color = history.slice(-1)[0].value
         expect(color).toBeOneOf(['red', 'green', 'black'])
       })

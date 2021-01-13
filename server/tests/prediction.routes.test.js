@@ -304,10 +304,11 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Filter predictions on solicitation number', () => {
-    return db.sequelize.query('select solicitation_number from notice join notice_type nt on notice.notice_type_id = nt.id where nt.notice_type = \'Solicitation\' order by notice.id desc limit 1', null)
+    return db.sequelize.query('select "solNum" from "Predictions" where "noticeType" = \'Solicitation\' order by id desc limit 1', null)
       .then((rows) => {
-        let noticeNum = rows[0][0].solicitation_number
+        let noticeNum = rows[0][0].solNum //?
         expect(noticeNum).toBeDefined()
+        console.log ("*****************************")
         return request(app)
           .post('/api/predictions/filter')
           .set('Authorization', `Bearer ${token}`)

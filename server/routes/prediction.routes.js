@@ -416,6 +416,8 @@ async function getPredictions (filter, user) {
     // noinspection JSUnresolvedFunction
     let count = await Prediction.findAndCountAll(attributes)
 
+    preds.length //?
+    preds[0].dataValues.active //?
     return {
       predictions: preds,
       first: filter.first,
@@ -564,7 +566,7 @@ async function updatePredictionTable  (clearAllAfterDate) {
   let outdatedPredictions = await getOutdatedPrediction()
   let msg = (outdatedPredictions.length < 1000)
     ? `${outdatedPredictions.length}`
-    : `${outdatedPredictions.length}+`
+    : `${outdatedPredictions.length}+` //?
     logger.debug(`there are ${msg} outdated predictions to update`)
 
   while (outdatedPredictions && outdatedPredictions.length > 0 && (nowSeconds - startSeconds) < maxSeconds ) {
@@ -579,7 +581,9 @@ async function updatePredictionTable  (clearAllAfterDate) {
     try {
       // get it's active/inactive status from the solicitations table
       let sol_row = await db.sequelize.query(`select active from solicitations where "solNum" = :sn`, { replacements: {"sn": pred.solNum}, type: db.sequelize.QueryTypes.SELECT })
-      pred.active = sol_row[0]['active']
+      pred.solNum //?
+      sol_row[0].active //?
+      pred.active = sol_row[0]['active'] //?
 
       logger.log("debug", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
       delete (pred.id) // remove the id since that should be auto-increment
@@ -588,7 +592,7 @@ async function updatePredictionTable  (clearAllAfterDate) {
       // noinspection JSUnresolvedFunction
       await Prediction.create(pred);
 
-      await prepareSolicitationTable()
+      // await prepareSolicitationTable()
 
     } catch(e) {
       logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', "error-message": e.message, error: e})

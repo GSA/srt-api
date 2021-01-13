@@ -32,8 +32,8 @@ describe('solicitation tests',  () => {
   })
 
   test('Update Not Applicable', async () => {
-    let rows = await db.sequelize.query('select solicitation_number from notice join notice_type nt on notice.notice_type_id = nt.id where nt.notice_type = \'Solicitation\' order by notice.id desc limit 1')
-    let solNum = rows[0][0].solicitation_number
+    let rows = await db.sequelize.query('select "solNum" from "Predictions"  where "noticeType" = \'Solicitation\' order by id desc limit 1')
+    let solNum = rows[0][0].solNum
     expect(solNum).toBeDefined()
     let solRoute = solicitationRoutes(db, userRoutes)
 
@@ -120,31 +120,62 @@ describe('solicitation tests',  () => {
   })
 
   test('Solicitation details include inactive field', async () => {
-    let rows = await db.sequelize.query('select notice."id" from "notice" join notice_type on notice.notice_type_id = notice_type.id where notice_type = \'Solicitation\' order by id desc limit 1;')
-    let id = rows[0][0]['id']
-    console.log(id)
-    await db.sequelize.query(`update solicitations set active = true, "updatedAt" = current_timestamp where "solNum" in (select solicitation_number from "notice" where id = ${id} )`)
+
+    let rows = await db.sequelize.query('select "solNum" from "Predictions"  where "noticeType" = \'Solicitation\' order by id desc limit 1;')
+    let solNum = rows[0][0]['solNum'] //?
+    await db.sequelize.query(`update solicitations set active = true, "updatedAt" = current_timestamp where "solNum" = '${solNum}' ` )
+
+    let res1 = mocks.mockResponse();
+    let req1 = mocks.mockRequest({ } , {'authorization': `bearer ${adminToken}`})
+    req1.params = {"filters": { ["solNum"]: { "value": solNum, "matchMode": "equals" } } }
+    await predictionRoutes.predictionFilter(req1, res1)
+    expect(res1.status.mock.calls[0][0]).toBe(200)
+    let prediction = res1.send.mock.calls[0][0]['predictions'] //?
+    expect(prediction[0].solNum).toBe(solNum)
+    expect(prediction[0]['active']).toBe(true)
 
 
-    let res = mocks.mockResponse();
-    let req = mocks.mockRequest({ } , {'authorization': `bearer ${adminToken}`})
-    req.params = {"id":id}
-    let solRoute = solicitationRoutes(db, userRoutes)
-    await solRoute.get(req, res)
-    expect(res.status.mock.calls[0][0]).toBe(200)
-    let prediction = res.send.mock.calls[0][0]['dataValues']
-    expect(prediction['active']).toBe(true)
-
-    await db.sequelize.query(`update solicitations set active = false, "updatedAt" = current_timestamp where "solNum" in (select solicitation_number from "notice" where id = ${id} )`)
-
+    await db.sequelize.query(`update solicitations set active = false, "updatedAt" = current_timestamp where "solNum" = '${solNum}' ` )
 
     let res2 = mocks.mockResponse();
     let req2 = mocks.mockRequest({ } , {'authorization': `bearer ${adminToken}`})
-    req2.params = {"id":id}
-    await solRoute.get(req2, res2)
+    req2.params = {"filters": { ["solNum"]: { "value": solNum, "matchMode": "equals" } } }
+    await predictionRoutes.predictionFilter(req2, res2)
     expect(res2.status.mock.calls[0][0]).toBe(200)
-    prediction = res2.send.mock.calls[0][0]['dataValues']
-    expect(prediction['active']).toBe(false)
+    prediction = res2.send.mock.calls[0][0]['predictions'] //?
+    expect(prediction[0].solNum).toBe(solNum)
+    expect(prediction[0]['active']).toBe(false)
+
+    //
+    // let rows = await db.sequelize.query('select "solNum" from "Predictions"  where "noticeType" = \'Solicitation\' order by id desc limit 1;')
+    // let solNum = rows[0][0]['solNum'] //?
+    //
+    // let solrows = await db.sequelize.query(`select id from "solicitations"  where "solNum" =  '${solNum}' order by id desc limit 1;`)
+    // let id = solrows[0][0]['id'] //?
+    //
+    // await db.sequelize.query(`update solicitations set active = true, "updatedAt" = current_timestamp where "solNum" = '${solNum}' ` )
+    //
+    // let res = mocks.mockResponse();
+    // let req = mocks.mockRequest({ } , {'authorization': `bearer ${adminToken}`})
+    // req.params = {"id":id}
+    // let solRoute = solicitationRoutes(db, userRoutes)
+    // await solRoute.get(req, res)
+    // expect(res.status.mock.calls[0][0]).toBe(200)
+    // let prediction = res.send.mock.calls[0][0]['dataValues']
+    // expect(prediction['active']).toBe(true)
+    //
+    // let usql = `update solicitations set active = false, "updatedAt" = current_timestamp where "solNum" = '${solNum}' ` //?
+    // await db.sequelize.query(usql)
+    //
+    //
+    // let res2 = mocks.mockResponse();
+    // let req2 = mocks.mockRequest({ } , {'authorization': `bearer ${adminToken}`})
+    // req2.params = {"id":id}
+    // await solRoute.get(req2, res2)
+    // expect(res2.status.mock.calls[0][0]).toBe(200)
+    // prediction = res2.send.mock.calls[0][0]['dataValues']
+    // res2.send.mock.calls //?
+    // expect(prediction['active']).toBe(false)
 
   }, 60000)
 

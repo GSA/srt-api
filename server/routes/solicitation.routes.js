@@ -106,7 +106,8 @@ module.exports = function (db, userRoutes) {
               // we should only have one 'prediction' since they will all merge by solicitation number
               // but for consistency we should set the ID number to the one requested rather than to
               // a pseudo-random choice
-              result.predictions[0].id = parseInt(req.params.id)
+                result.predictions[0].id = parseInt(req.params.id)
+                result.predictions[0].active //?
 
               return res.status(200).send(result.predictions[0])
             })
