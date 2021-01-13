@@ -367,13 +367,19 @@ describe('prediction tests', () => {
   test('Test prediction date filters', async () => {
     let rows = await db.sequelize.query('select date from notice order by date desc, agency desc limit 1', null)
 
-    let date = rows[0][0].date
+    let date = rows[0][0].date //?
     let year = date.getFullYear()
     let month = date.getMonth() + 1
     let day = date.getDate()
     let dayPlus = day + 2  // account for rounding on the db side might
-    let start = `${month}/${day}/${year}`
-    let end = `${month}/${dayPlus}/${year}`
+    let start = `${month}/${day}/${year}` //?
+    let end = `${month}/${dayPlus}/${year}` //?
+    let startBound = new Date(rows[0][0].date)
+    let endBound = new Date(rows[0][0].date)
+    startBound.setDate( startBound.getDate() - 1) //?
+    endBound.setDate(endBound.getDate() + 2) //?
+    startBound //?
+    endBound //?
 
     let res = await request(app)
       .post('/api/predictions/filter')
@@ -386,10 +392,12 @@ describe('prediction tests', () => {
     expect(res.statusCode).toBe(200)
     expect(res.body.predictions.length).toBeGreaterThan(1)
     for (let i = 0; i < res.body.predictions.length; i++) {
-      res.body.predictions[i].date
-      new Date(year, month - 1, dayPlus)
-      expect(new Date(res.body.predictions[i].date) > new Date(year, month - 1, day)).toBeTruthy() // don't forget months are 0 indexed!
-      expect(new Date(res.body.predictions[i].date) < new Date(year, month - 1, dayPlus)).toBeTruthy()
+      console.log("*****")
+      console.log (res.body.predictions[i].date)
+      res.body.predictions[i].date //?
+      new Date(res.body.predictions[i].date) //?
+      expect(new Date(res.body.predictions[i].date) > startBound).toBeTruthy() // don't forget months are 0 indexed!
+      expect(new Date(res.body.predictions[i].date) < endBound).toBeTruthy()
     }
 
     res = await request(app)

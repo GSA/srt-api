@@ -69,6 +69,12 @@ function getConfig(key, defaultValue, customDictionary = null) {
   if (typeof key !== "string") {
     return defaultValue
   }
+
+  if (key in process.env) {
+    let str = process.env[key]
+    return (isJSON(str)) ? JSON.parse(str) : str
+  }
+
   // split on :
   let parts = key.split(":")
   let dict = customDictionary || {}

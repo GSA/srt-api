@@ -19,6 +19,7 @@ const SqlString = require('sequelize/lib/sql-string')
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
 const configuration = require('../config/configuration')
+const getConfig = configuration.getConfig
 const cloneDeep = require('clone-deep')
 const Op = require('sequelize').Op
 const authRoutes = require('./auth.routes')
@@ -66,7 +67,7 @@ const moment = require('moment')
  * @typedef {Object} Solicitation
  * @property {Number} id - Database ID of the prediction. This value shouldn't be used if possible. It will refer to the id of the last notice row associated with this prediction.
  * @property {string} solNum - Notice number for this prediction
- * @property {boolean} inactive - Solicitation is inactive t/f
+ * @property {boolean} active - Solicitation is active t/f
  */
 
 
@@ -377,7 +378,8 @@ async function getPredictions (filter, user) {
     if (filter.startDate) {
       // double check they aren't asking for data from before the cutoff
       const start = Date.parse(filter.startDate)
-      const cutoff = Date.parse(configuration.getConfig("minPredictionCutoffDate"))
+      const cutoff = Date.parse(configuration.getConfig("minPredictionCutoffDate", '1990-01-01'))
+      configuration.getConfig("minPredictionCutoffDate") //?
       if (start > cutoff) {
         attributes.where.date = { [Op.gt]: filter.startDate }
       }
@@ -461,7 +463,7 @@ module.exports = {
   updatePredictionTable: updatePredictionTable,
   mapAgency: mapAgency,
   invalidate: invalidate,
-  updateSolicitation: updateSolicitation,
+  prepareSolicitationTable: prepareSolicitationTable,
 
 /**
      * Finds all the predictions that match the filter and send them out to the response.
@@ -521,11 +523,11 @@ module.exports = {
 
 }
 
-async function updateSolicitation(solNum) {
+async function prepareSolicitationTable() {
   try {
     await db.sequelize.query(`
-        insert into solicitations ("solNum")
-         (select distinct solicitation_number 
+        insert into solicitations ("solNum", "createdAt", "updatedAt")
+         (select distinct solicitation_number, to_timestamp('2010-10-10', 'YYYY-MM-DD') at time zone 'Etc/UTC' ,  to_timestamp('2010-10-10', 'YYYY-MM-DD') at time zone 'Etc/UTC' 
           from notice
           where solicitation_number not in (select "solNum" from solicitations)   )
     `)
@@ -548,6 +550,16 @@ async function updatePredictionTable  (clearAllAfterDate) {
     await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
   }
 
+  await prepareSolicitationTable()
+
+  // lets try only running for max number of seconds
+  const maxSeconds = getConfig("updatePredictionTableMaxRunTime", 120) //?
+
+  const start = new Date()
+  const startSeconds = Math.round(start.getTime() / 1000)
+  let now = new Date()
+  let nowSeconds = Math.round(now.getTime() / 1000)
+
   let actualCount = 0
   let outdatedPredictions = await getOutdatedPrediction()
   let msg = (outdatedPredictions.length < 1000)
@@ -555,21 +567,28 @@ async function updatePredictionTable  (clearAllAfterDate) {
     : `${outdatedPredictions.length}+`
     logger.debug(`there are ${msg} outdated predictions to update`)
 
-  while (outdatedPredictions && outdatedPredictions.length > 0) {
+  while (outdatedPredictions && outdatedPredictions.length > 0 && (nowSeconds - startSeconds) < maxSeconds ) {
+    now = new Date()
+    nowSeconds = Math.round(now.getTime() / 1000)
     actualCount ++
     let pred = outdatedPredictions.pop()
     pred.actionDate = makeDate(pred.actionDate)
     pred.date = makeDate(pred.date)
 
+
     try {
-      // logger.log("debug", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
+      // get it's active/inactive status from the solicitations table
+      let sol_row = await db.sequelize.query(`select active from solicitations where "solNum" = :sn`, { replacements: {"sn": pred.solNum}, type: db.sequelize.QueryTypes.SELECT })
+      pred.active = sol_row[0]['active']
+
+      logger.log("debug", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
       delete (pred.id) // remove the id since that should be auto-increment
       // noinspection JSCheckFunctionSignatures
       await Prediction.destroy({ where: { solNum: pred.solNum } }) // delete any outdated prediction
       // noinspection JSUnresolvedFunction
       await Prediction.create(pred);
 
-      await updateSolicitation(pred.solNum)
+      await prepareSolicitationTable()
 
     } catch(e) {
       logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', "error-message": e.message, error: e})
@@ -592,25 +611,36 @@ async function updatePredictionTable  (clearAllAfterDate) {
 
 function getOutdatedPrediction() {
 
-  let sql = `select n.*, notice_type, attachment_json
-            from notice n 
-            left join ( 
+  let sql = `
+            select n.*, notice_type, attachment_json
+            from notice n
+            left join (
                   select notice_id, json_agg(src) as attachment_json, count(*) as attachment_count
-                  from notice 
-                  left join ( 
-                    select id, attachment_url, filename as name, case machine_readable when true then 'successfully parsed' else 'processing error' end as status, notice_id 
+                  from notice
+                  left join (
+                    select id, attachment_url, filename as name, case machine_readable when true then 'successfully parsed' else 'processing error' end as status, notice_id
                     from attachment
-                    ) src on notice.id = src.notice_id             
+                    ) src on notice.id = src.notice_id
                   group by  notice_id
                   ) a on a.notice_id = n.id
             left join notice_type t on n.notice_type_id = t.id
-                WHERE solicitation_number IN 
-                  (SELECT DISTINCT solicitation_number
+                WHERE solicitation_number IN
+                  ( (SELECT DISTINCT solicitation_number
                    FROM notice nn
                    LEFT JOIN "Predictions" pp on pp."solNum" = nn.solicitation_number
                    WHERE (COALESCE (nn."updatedAt", nn."createdAt") > pp."updatedAt" or
                          pp."updatedAt" is null) and
-                         nn.solicitation_number != '' and nn.solicitation_number is not null limit 1000)`
+                         nn.solicitation_number != '' and nn.solicitation_number is not null
+                    limit 1000 )
+                   UNION
+                    (SELECT DISTINCT solicitations."solNum"
+                     FROM solicitations
+                              LEFT JOIN "Predictions" pp on pp."solNum" = solicitations."solNum"
+                     WHERE (COALESCE(solicitations."updatedAt", solicitations."createdAt") > pp."updatedAt" or
+                            pp."updatedAt" is null) 
+                     limit 1000 )
+                )
+             `
 
   return db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
     .then(async notices => {

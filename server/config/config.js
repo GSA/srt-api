@@ -159,7 +159,8 @@ module.exports = {
     },
     VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation'],
     //"minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z",
-    "predictionCutoffDays" : 60
+    "predictionCutoffDays" : 600,
+    "updatePredictionTableMaxRunTime" : 25
   },
   development: {
     "emailFrom": "crowley+srt@tcg.com",

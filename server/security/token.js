@@ -18,6 +18,8 @@ module.exports = function () {
 
     try {
       if (req.headers.hasOwnProperty('authorization')) {
+        logger.log('debug', "Begin authentication. ", {tag: 'token check 3', auth_header: req.headers['authorization']})
+        message += " - authorization header was found"
         token = req.headers['authorization'].split(' ')[1]
         if (token && token !== 'null') {
           jwt.verify(token, common.jwtSecret) // will thrown an error on an invalid token
@@ -26,11 +28,14 @@ module.exports = function () {
           let decoded = jwt.decode(token)
           let rollList = roles.map( (x) => x.name) //?
           if (decoded.user.userRole && rollList.includes(decoded.user.userRole) ) {
+            logger.log('debug', "Authentication successful. ")
             next()
             return
           } else {
             message = 'Account must belong to an SRT role.'
           }
+        } else {
+          message += " - malformed or empty authorization header"
         }
       }
     } catch (err) {

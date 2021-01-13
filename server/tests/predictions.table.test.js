@@ -7,7 +7,7 @@ const Notice = require('../models/index').notice
 const Prediction = require('../models/index').Prediction
 const moment = require('moment')
 
-describe('Solicitation table Test', () => {
+describe('Predictions table Test', () => {
     beforeAll(() => {
     })
 
@@ -28,7 +28,7 @@ describe('Solicitation table Test', () => {
 
         await db.sequelize.query(`delete from "solicitations" where "solNum" = '${solNum}' `, null)
 
-        await predictionRoutes.updateSolicitation(solNum)
+        await predictionRoutes.prepareSolicitationTable()
 
         let result2 = await db.sequelize.query(`
         select "solNum" 

@@ -59,13 +59,14 @@
  * @property {Object} predictions
  * @property {string} reviewRec
  * @property {string} searchText
+ * @property {boolean} active
  */
 
 /**
  * @typedef {Model} Solicitation
  * @property {number} id
  * @property {string} solNum
- * @property {boolean} inactive
+ * @property {boolean} active
  */
 
 

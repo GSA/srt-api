@@ -401,4 +401,10 @@ describe('solicitation tests', () => {
 
   })
 
+    test('Solicitation inactive test', () => {
+
+
+    })
+
+
 }) // end describe

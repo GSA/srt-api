@@ -22,9 +22,9 @@ module.exports = (sequelize, DataTypes) => {
       history: { type: DataTypes.JSONB },
       contactInfo: { type: DataTypes.JSONB },
       parseStatus: { type: DataTypes.JSONB },
-      predictions: { type: DataTypes.JSONB },
       reviewRec: { type: DataTypes.STRING },
-      searchText: { type: DataTypes.STRING }
+      searchText: { type: DataTypes.STRING },
+      active: { type: DataTypes.BOOLEAN }
     }, {} );
 
   Prediction.associate = function(models) {
