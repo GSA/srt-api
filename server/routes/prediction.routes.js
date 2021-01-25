@@ -25,6 +25,8 @@ const Op = require('sequelize').Op
 const authRoutes = require('./auth.routes')
 const moment = require('moment')
 
+let background_count = 0
+
 /**
  * PredictionFilter
  * @typedef {Object} PredictionFilter
@@ -80,6 +82,7 @@ const moment = require('moment')
 
 /**
  * IT Likelihood record
+ * @typedef {Object} EIT
  * @typedef {Object} EIT
  * @property {string} naics - NAICS number for the solicitation
  * @property {string} value - "Yes" if this solicitation is IT related or "No" if it is not
@@ -541,7 +544,13 @@ async function prepareSolicitationTable() {
   }
 }
 
-async function updatePredictionTable  (clearAllAfterDate) {
+async function updatePredictionTable  (clearAllAfterDate, background = false) {
+  let fetch_limit = 100
+
+  if (background) {
+    background_count -= 1
+    logger.info (`starting a background job.  background count is now ${background_count} in the queue`)
+  }
 
   logger.debug(`starting updatePredictionTable. Clear all after date set to ${clearAllAfterDate}`, {tag: "updatePredictionTable"})
 
@@ -554,8 +563,10 @@ async function updatePredictionTable  (clearAllAfterDate) {
 
   await prepareSolicitationTable()
 
-  // lets try only running for max number of seconds
-  const maxSeconds = getConfig("updatePredictionTableMaxRunTime", 120) //?
+  // lets try only running for max number of seconds before returning
+  const maxSeconds = getConfig("updatePredictionTableMaxRunTime", 20) //?
+  const queueDelaySeconds = getConfig("updatePredictionTableQueueDelay", 60) //?
+
 
   const start = new Date()
   const startSeconds = Math.round(start.getTime() / 1000)
@@ -563,13 +574,18 @@ async function updatePredictionTable  (clearAllAfterDate) {
   let nowSeconds = Math.round(now.getTime() / 1000)
 
   let actualCount = 0
-  let outdatedPredictions = await getOutdatedPrediction()
-  let msg = (outdatedPredictions.length < 1000)
+  let outdatedPredictions = await getOutdatedPrediction(fetch_limit)
+  let msg = (outdatedPredictions.length < fetch_limit)
     ? `${outdatedPredictions.length}`
     : `${outdatedPredictions.length}+` //?
     logger.debug(`there are ${msg} outdated predictions to update`)
 
-  while (outdatedPredictions && outdatedPredictions.length > 0 && (nowSeconds - startSeconds) < maxSeconds ) {
+  let timeout = false
+  while (outdatedPredictions && outdatedPredictions.length > 0 ) {
+    if ((nowSeconds - startSeconds) > maxSeconds) {
+      timeout = true
+      break
+    }
     now = new Date()
     nowSeconds = Math.round(now.getTime() / 1000)
     actualCount ++
@@ -598,9 +614,9 @@ async function updatePredictionTable  (clearAllAfterDate) {
       logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', "error-message": e.message, error: e})
     }
 
-    // we only get 1000 at a time so check to see if there are more when we run out of the current batch
+    // we only get a few at a time so check to see if there are more when we run out of the current batch
     if (outdatedPredictions.length === 0) {
-      outdatedPredictions = await getOutdatedPrediction()
+      outdatedPredictions = await getOutdatedPrediction(fetch_limit)
     }
 
     if ((actualCount % 100) === 0) {
@@ -610,10 +626,19 @@ async function updatePredictionTable  (clearAllAfterDate) {
   if (actualCount > 0) {
     logger.log("info", `Updated ${actualCount} prediction records`)
   }
-  return actualCount
+
+  if (timeout && background_count == 0) {
+    background_count += 1
+    logger.log("info", `Prediction update hit time limit - queuing another round of updates. ${background_count} in the queue`)
+    setTimeout( function() { updatePredictionTable(null, true) } , 5000)
+  }
+
+
+    return actualCount
 }
 
-function getOutdatedPrediction() {
+function getOutdatedPrediction(fetch_limit = 500) {
+
 
   let sql = `
             select n.*, notice_type, attachment_json
@@ -635,14 +660,14 @@ function getOutdatedPrediction() {
                    WHERE (COALESCE (nn."updatedAt", nn."createdAt") > pp."updatedAt" or
                          pp."updatedAt" is null) and
                          nn.solicitation_number != '' and nn.solicitation_number is not null
-                    limit 1000 )
+                    limit ${fetch_limit} )
                    UNION
                     (SELECT DISTINCT solicitations."solNum"
                      FROM solicitations
                               LEFT JOIN "Predictions" pp on pp."solNum" = solicitations."solNum"
                      WHERE (COALESCE(solicitations."updatedAt", solicitations."createdAt") > pp."updatedAt" or
                             pp."updatedAt" is null) 
-                     limit 1000 )
+                     limit ${fetch_limit} )
                 )
              `
 
