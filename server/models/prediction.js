@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       action: { type: DataTypes.JSONB },
       actionStatus: { type: DataTypes.STRING },
       actionDate: { type: DataTypes.DATE },
-      feedback: { type: DataTypes.JSONB },
+//      feedback: { type: DataTypes.JSONB },
       history: { type: DataTypes.JSONB },
       contactInfo: { type: DataTypes.JSONB },
       parseStatus: { type: DataTypes.JSONB },

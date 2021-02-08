@@ -5,6 +5,7 @@ const Prediction = require('../models').Prediction
 /** @type {Solicitation} **/
 const Solicitation = require('../models').Solicitation
 const Notice = require('../models').notice
+const survey_routes = require('../routes/survey.routes')
 
 /**
  * Prediction routes
@@ -421,8 +422,16 @@ async function getPredictions (filter, user) {
 
     preds.length //?
     preds[0].dataValues.active //?
+
+    //Fill in the proper survey_results (aka feedback)
+    let final_predictions = []
+    for (pred of preds) {
+      let [status, feedback] = await survey_routes.getLatestSurveyResponse(pred.solNum) //?
+      final_predictions.push(Object.assign(pred.dataValues, {feedback: null}))
+    }
+
     return {
-      predictions: preds,
+      predictions: final_predictions,
       first: filter.first,
       rows: Math.min(filter.rows, preds.length),
       totalCount: count.count
@@ -537,10 +546,8 @@ async function prepareSolicitationTable() {
           where solicitation_number not in (select "solNum" from solicitations)   )
     `)
   } catch (e) {
-    console.log (e.message)
+    logger.log("error", "Error preparing the solication table", {tag: "prepareSolTable", error: e})
     throw (e)
-
-
   }
 }
 
@@ -654,20 +661,33 @@ function getOutdatedPrediction(fetch_limit = 500) {
                   ) a on a.notice_id = n.id
             left join notice_type t on n.notice_type_id = t.id
                 WHERE solicitation_number IN
-                  ( (SELECT DISTINCT solicitation_number
-                   FROM notice nn
-                   LEFT JOIN "Predictions" pp on pp."solNum" = nn.solicitation_number
-                   WHERE (COALESCE (nn."updatedAt", nn."createdAt") > pp."updatedAt" or
-                         pp."updatedAt" is null) and
-                         nn.solicitation_number != '' and nn.solicitation_number is not null
-                    limit ${fetch_limit} )
-                   UNION
+                  ( 
+                      (SELECT DISTINCT solicitation_number
+                       FROM notice nn
+                       LEFT JOIN "Predictions" pp on pp."solNum" = nn.solicitation_number
+                       WHERE (COALESCE (nn."updatedAt", nn."createdAt") > pp."updatedAt" or
+                             pp."updatedAt" is null) and
+                             nn.solicitation_number != '' and nn.solicitation_number is not null
+                        limit ${fetch_limit} )
+
+                  UNION
+                      
                     (SELECT DISTINCT solicitations."solNum"
                      FROM solicitations
                               LEFT JOIN "Predictions" pp on pp."solNum" = solicitations."solNum"
                      WHERE (COALESCE(solicitations."updatedAt", solicitations."createdAt") > pp."updatedAt" or
                             pp."updatedAt" is null) 
                      limit ${fetch_limit} )
+                      
+                  UNION
+
+                    (SELECT DISTINCT sr."solNum"
+                     FROM survey_responses sr
+                              LEFT JOIN "Predictions" pp on pp."solNum" = sr."solNum"
+                     WHERE (COALESCE(sr."updatedAt", sr."createdAt") > pp."updatedAt" or
+                            pp."updatedAt" is null)
+                     limit ${fetch_limit} )
+                      
                 )
              `
 

@@ -14,15 +14,17 @@ const Attachment = require('../models').attachment
 const env = process.env.NODE_ENV || 'development'
 const db = require('../models/index')
 let predictionRoutes = require('../routes/prediction.routes')
+let surveyRoutes = require('../routes/survey.routes')
 let randomWords = require('random-words')
 const {common, config_keys} = require('../config/config.js')
 const timeout = 10000 // set to 10 seconds because some of these tests are slow.
 const mocks = require('./mocks')
 const configuration = require('../config/configuration')
 const moment = require('moment')
+const test_utils = require ('../shared/test_utils')
 
 
-const { userAcceptedCASData } = require('./test.data')
+const { userAcceptedCASData, feedback } = require('./test.data')
 
 let myUser = {}
 myUser.firstName = 'pred-beforeAllUser'
@@ -304,7 +306,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Filter predictions on solicitation number', () => {
-    return db.sequelize.query('select "solNum" from "Predictions" where "noticeType" = \'Solicitation\' order by id desc limit 1', null)
+    return db.sequelize.query('select p."solNum" from "Predictions" p join solicitations s on p."solNum" = s."solNum" where "noticeType" = \'Solicitation\' and s.active order by p.id desc limit 1', null)
       .then((rows) => {
         let noticeNum = rows[0][0].solNum //?
         expect(noticeNum).toBeDefined()
@@ -627,7 +629,7 @@ describe('prediction tests', () => {
 
     // get rows 55 to 59
     let res = mocks.mockResponse()
-    let req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    let req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[0][0]).toBe(200);
     let predictions0 = res.send.mock.calls[0][0].predictions
@@ -638,7 +640,7 @@ describe('prediction tests', () => {
     event.first = 59
     event.rows = 2
     event.sortOrder = -1
-    req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[1][0]).toBe(200);
     let predictions1 = res.send.mock.calls[1][0].predictions
@@ -649,7 +651,7 @@ describe('prediction tests', () => {
     event.first = 59
     event.rows = 1
     event.sortOrder = -1
-    req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[2][0]).toBe(200);
     let predictions2 = res.send.mock.calls[2][0].predictions
@@ -662,7 +664,7 @@ describe('prediction tests', () => {
     event.sortOrder = 1
     event.first = 0
     event.rows = 60
-    req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[3][0]).toBe(200);
     let predictions3 = res.send.mock.calls[3][0].predictions
@@ -672,7 +674,7 @@ describe('prediction tests', () => {
     expect(pred59clone2.solNum !== pred59clone3.solNum).toBeTruthy()
 
     event.sortOrder = -1
-    req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[4][0]).toBe(200);
     let predictions4 = res.send.mock.calls[4][0].predictions
@@ -750,7 +752,7 @@ describe('prediction tests', () => {
 
   async function getPredictions(event){
     let res = mocks.mockResponse()
-    let req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    let req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[0][0]).toBe(200);
     let result = res.send.mock.calls[0][0]
@@ -991,7 +993,7 @@ describe('prediction tests', () => {
     expect(dodCount).toBeGreaterThan(1)
     expect(dodCount).toBeLessThan(totalCount)
 
-  })
+  }, 60000)
 
   test("Attachments have posted dates", async () => {
     let {predictions, totalCount} = await predictionRoutes.getPredictions({}, mocks.mockAdminUser)
@@ -1025,6 +1027,26 @@ describe('prediction tests', () => {
       expect( moment(attachment.postedDate).format('MM/DD/YYYY HH:mm ZZ') ).toBe(moment(posted_date).format('MM/DD/YYYY HH:mm ZZ'))
     }
 
-  })
+  }, 30000)
+
+  test("Predictions have feedback", async () => {
+    // make sure we have feedback
+    let solNum = await test_utils.getSolNumForTesting() //?
+    surveyRoutes.updateSurveyResponse(solNum, feedback)
+    predictionRoutes.updatePredictionTable()
+
+
+
+    let preds = await predictionRoutes.getPredictions({"solNum": solNum}, {agency:"general services administration", userRole: "Administrator"})
+
+    preds.predictions[0] //?
+    preds.predictions[0].feedback
+    preds.predictions[0].feedback[0] //?
+    let a = preds.predictions[0].dataValues.feedback[0].answer //?
+    expect (preds.predictions[0].feedback[0].answer).toContain("Maybe") //?
+
+
+  },30000)
+
 
 })

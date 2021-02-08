@@ -92,6 +92,7 @@ module.exports = {
     },
     // keys for agency look should be all lower case
     AGENCY_LOOKUP: {
+      "department of test": "TEST, DEPARTMENT OF",
       "department of agriculture": "Department of Agriculture",
       "department of commerce": "Department of Commerce",
       "department of education": "Department of Education",
@@ -115,11 +116,11 @@ module.exports = {
       "social security administration": "Social Security Administration",
       "general services administration": "General Services Administration",
       "department of defense--military programs": "Department of Defense",
+      "department of defense": "Department of Defense",
       "millennium challenge corporation":"Millennium Challenge Corporation"
     },
 
     // AGENCY_LOOKUP: {
-    //   "department of test": "TEST, DEPARTMENT OF",
     //   "department of agriculture":"Department of Agriculture",
     //   "department of commerce":"Department of Commerce",
     //   "department of defense":"Department of Defense",

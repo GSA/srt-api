@@ -18,9 +18,10 @@ function mockResponse () {
 }
 
 module.exports = {
-  mockRequest : function (data, headers, session) {
+  mockRequest : function (data, headers, params = {}, session = {}) {
     return {
       body: data,
+      params: params,
       get: jest.fn ( function(x) { return headers[x]}),
       session: Object.assign(session || {}, { destroy: ()=>{} } ),
       headers: headers

@@ -1,41 +1,70 @@
-const request = require('supertest')
-let app = require('../app')()
 const mockToken = require('./mocktoken')
+const mocks = require('./mocks')
 // noinspection JSUnresolvedVariable
-const User = require('../models').User
-const { userAcceptedCASData } = require('./test.data')
 const {common} = require('../config/config.js')
+const surveyRoutes = require('../routes/survey.routes')
+const {coordinatorCASData,feedback} = require('./test.data')
+const random_words = require('random-words')
+const {getSolNumForTesting} = require('../shared/test_utils')
 
-let myUser = {}
 let token = {}
 
 describe('Survey routes tests', () => {
-  beforeAll(() => {
-    myUser = Object.assign({}, userAcceptedCASData)
-    myUser.firstName = 'survey-beforeAllUser'
-    myUser.email = 'crowley+survey@tcg.com'
-    delete myUser.id
-    return User.create(myUser)
-      .then(async (user) => {
-        myUser.id = user.id
-        token = await mockToken(myUser, common['jwtSecret'])
-      })
-  })
+    beforeAll(async () => {
+        token = await mockToken(coordinatorCASData, common['jwtSecret'])
+    })
 
-  afterAll(() => {
-    return User.destroy({ where: { firstName: 'survey-beforeAllUser' } })
-  })
+    afterAll(() => {
 
-  test('Get surveys', () => {
-    return request(app)
-      .get('/api/surveys')
-      .set('Authorization', `Bearer ${token}`)
-      .send({})
-      .then(res => {
-        // noinspection JSUnresolvedVariable
-        expect(res.statusCode).toBe(200)
-        expect(res.body[0].Choices.length).toBeDefined()
-        return expect(res.body[0].ID).toBeDefined()
-      })
-  })
+    })
+
+    test('Get survey questions', async () => {
+
+        let res = mocks.mockResponse();
+        let req = mocks.mockRequest({}, {'authorization': `bearer ${token}`})
+        await surveyRoutes.getSurveyQuestions(req, res) //?
+
+        expect(res.status.mock.calls[0][0]).toBe(200)
+        body = res.send.mock.calls[0][0]
+        expect(body[0].Choices.length).toBeDefined()
+        expect(body[0].ID).toBeDefined()
+    })
+
+    test('Save and pull a new survey result', async () => {
+
+        solNum = await getSolNumForTesting({'offset': 4, 'notice_count': 4}) //?
+
+        let res = mocks.mockResponse();
+        let req = mocks.mockRequest({
+            "solNum": solNum,
+            "feedback": feedback
+        }, {'authorization': `bearer ${token}`}, {"solNum": solNum})
+        await surveyRoutes.postResponse(req, res)
+
+        expect(res.status.mock.calls[0][0]).toBe(200)
+        let body = res.send.mock.calls[0][0]
+        expect(body.solNum).toBe(solNum)
+        expect(body.response[0].answer).toBe("Maybe")
+
+
+        let res_get = mocks.mockResponse();
+        let req_get = mocks.mockRequest({}, {'authorization': `bearer ${token}`}, {"solNum": solNum})
+        await surveyRoutes.get(req_get, res_get)
+
+        expect(res_get.status.mock.calls[0][0]).toBe(200)
+        body = res_get.send.mock.calls[0][0]
+        expect(body[0].answer).toBe("Maybe")
+
+    }, 600000)
+
+
+    test('Get a 404 if you ask for a survey response that does not exist', async () => {
+
+        let res_get = mocks.mockResponse();
+        let req_get = mocks.mockRequest({}, {'authorization': `bearer ${token}`}, {"solNum": "not a real sol number"})
+        await surveyRoutes.get(req_get, res_get)
+
+        expect(res_get.status.mock.calls[0][0]).toBe(404)
+
+    })
 })

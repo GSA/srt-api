@@ -5,6 +5,7 @@ const logger = require('../config/winston')
 const Notice = require('../models').notice
 const predictionRoute = require('../routes/prediction.routes')
 const authRoutes = require('../routes/auth.routes')
+const surveyRoutes = require('../routes/survey.routes')
 const cloneDeep = require('clone-deep')
 const {getConfig} = require('../config/configuration')
 const { formatDateAsString } = require('../shared/time')
@@ -203,46 +204,51 @@ module.exports = function (db, userRoutes) {
          * @param res
          * @return {Promise}
          */
-    postSolicitation: function (req, res) {
+    postSolicitation: async function (req, res) {
 
-      return Notice.findAll({
-        where: { solicitation_number: req.body.solNum.toString() },
-        order: [['date', 'desc']]
-      })
-        .then((notices) => {
-          // we are only going to work with the first entry - which is the newest row having the given notice_number
-          /** @var Notice notice */
-          let notice = (notices.length > 0) ? notices[0] : null
-          if (notice == null) {
-            logger.log('error', req.body, { tag: 'postSolicitation - solicitation not found' })
-            return res.status(404).send({ msg: 'solicitation not found' })
-          }
+        try {
 
-          // first do the audit
-          if (! Array.isArray(notice.action)){
-            notice.action = []
-          }
-          notice.action = auditSolicitationChange(notice, req.body, req)
-
-          //now that audit is done, we can update.
-          notice.history = req.body.history
-          notice.feedback = cloneDeep(req.body.feedback)
-
-
-          // noinspection JSUnresolvedFunction
-          return notice.save()
-            .then(async (doc) => {
-              return res.status(200).send(await predictionRoute.makeOnePrediction(doc))
+            let notices = await Notice.findAll({
+                where: {solicitation_number: req.body.solNum.toString()},
+                order: [['date', 'desc']]
             })
-            .catch((e) => {
-              logger.log('error', 'error in: postSolicitation - error on save', { error:e, tag: 'postSolicitation - error on save' })
-              res.status(400).send({ msg: 'error updating solicitation' })
+
+            // we are only going to work with the first entry - which is the newest row having the given notice_number
+            /** @var Notice notice */
+            let notice = (notices.length > 0) ? notices[0] : null
+            if (notice == null) {
+                logger.log('error', req.body, {tag: 'postSolicitation - solicitation not found'})
+                return res.status(404).send({msg: 'solicitation not found'})
+            }
+
+            // first do the audit
+            if (!Array.isArray(notice.action)) {
+                notice.action = []
+            }
+            notice.action = auditSolicitationChange(notice, req.body, req)
+
+            //now that audit is done, we can update.
+            notice.history = req.body.history
+
+
+            try {
+                let doc = await notice.save()
+                let feedback = cloneDeep(req.body.feedback) || []
+                if (Array.isArray(feedback) && (feedback.length > 0)) {
+                    await surveyRoutes.updateSurveyResponse(notice.solicitation_number, feedback)
+                }
+
+                return res.status(200).send(await predictionRoute.makeOnePrediction(doc))
+            } catch (e) {
+                logger.log('error', 'error in: postSolicitation - error on save', {error: e, tag: 'postSolicitation - error on save' })
+                res.status(400).send({msg: 'error updating solicitation'})
+            }
+
+        } catch(e) {
+            logger.log('error', 'error in: postSolicitation - error during find', {error: e, tag: 'postSolicitation - error during find'
             })
-        })
-        .catch((e) => {
-          logger.log('error', 'error in: postSolicitation - error during find', { error:e, tag: 'postSolicitation - error during find' })
-          res.status(400).send({ msg: 'error updating solicitation' })
-        })
+            res.status(400).send({msg: 'error updating solicitation'})
+        }
     }, // end postSolicitation
 
     /**

@@ -55,7 +55,7 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
     "expect": "^1.20.2",
-    "jest": "^25.5.4",
+    "jest": "^26.6.3",
     "jest-extended": "^0.11.5",
     "jsdoc": "^3.6.5",
     "mock-express-request": "^0.2.2",
