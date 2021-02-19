@@ -11,6 +11,7 @@ let upSql = [
       "solNum" varchar,
       "contemporary_notice_id" int NOT NULL REFERENCES notice (id),
       response jsonb default '[]'::jsonb,
+      "maxId" varchar(256),
       "updatedAt" timestamp without time zone default current_timestamp,
       "createdAt"  timestamp without time zone default current_timestamp                  
     )`,

@@ -3,7 +3,7 @@ module.exports = {
     VISIBLE_NOTICE_TYPES: "VisibleNoticeTypes"
   },
   common: {
-    "jwtSecret" : process.env.JWT_SECRET,
+    "jwtSecret" : process.env.JWT_SECRET || ( ( process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development" ) ? "abc123" : null),
     "sessionLength" : "12h",  // 12 hours
     "tokenLife" : "30m",  // 30 minutes
     "renewTokenLife" : "30m", // 30 minutes

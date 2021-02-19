@@ -235,7 +235,7 @@ module.exports = function (db, userRoutes) {
                 let doc = await notice.save()
                 let feedback = cloneDeep(req.body.feedback) || []
                 if (Array.isArray(feedback) && (feedback.length > 0)) {
-                    await surveyRoutes.updateSurveyResponse(notice.solicitation_number, feedback)
+                    await surveyRoutes.updateSurveyResponse(notice.solicitation_number, feedback, authRoutes.userInfoFromReq(req).maxId)
                 }
 
                 return res.status(200).send(await predictionRoute.makeOnePrediction(doc))
@@ -266,41 +266,46 @@ module.exports = function (db, userRoutes) {
          * @return {Promise}
          *
          */
-    solicitationFeedback: (req, res) => {
-      // translate mongo formatted parameters to postgres
-      let where = [' 1 = 1 ']
-      let limit = ''
-      let order = ''
-      if (req.body.solNum) {
-        where.push(` solicitation_number = '${req.body.solNum}' `)
-        limit = ' limit 1 ' // notice number should be unique, but isn't in the test data. Yikes!
-        order = ' order by date desc ' // take the one with the most recent date
-      }
-      if (req.body['$where'] && req.body['$where'].match(/this.feedback.length.?>.?0/i)) {
-        where.push(` jsonb_array_length(
-                        case
-                          when jsonb_typeof(feedback) = 'array' then feedback
-                          else '[]'::jsonb
-                        end
-                     ) > 0 `)
-      }
+    solicitationFeedback: async (req, res) => {
 
-      let whereStr = where.join(' AND ')
-      let sql = `select * from notice where ${whereStr} ${order} ${limit}`
+        const [statusCode, data] = await surveyRoutes.getLatestSurveyResponse(req.body.solNum)
+        data //?
+        return res.status(statusCode).send(data)
 
-      return db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
-        .then(async (notice) => {
-          const result = []
-          for (const n of notice) {
-            const pred = await predictionRoute.makeOnePrediction(n)
-            result.push(pred)
-          }
-          res.status(200).send(result)
-        })
-        .catch(e => {
-          logger.log('error', 'error in: solicitationFeedback', { error:e, tag: 'solicitationFeedback' })
-          res.status(400).send(e)
-        })
+      // // translate mongo formatted parameters to postgres
+      // let where = [' 1 = 1 ']
+      // let limit = ''
+      // let order = ''
+      // if (req.body.solNum) {
+      //   where.push(` solicitation_number = '${req.body.solNum}' `)
+      //   limit = ' limit 1 ' // notice number should be unique, but isn't in the test data. Yikes!
+      //   order = ' order by date desc ' // take the one with the most recent date
+      // }
+      // if (req.body['$where'] && req.body['$where'].match(/this.feedback.length.?>.?0/i)) {
+      //   where.push(` jsonb_array_length(
+      //                   case
+      //                     when jsonb_typeof(feedback) = 'array' then feedback
+      //                     else '[]'::jsonb
+      //                   end
+      //                ) > 0 `)
+      // }
+      //
+      // let whereStr = where.join(' AND ')
+      // let sql = `select * from notice where ${whereStr} ${order} ${limit}`
+      //
+      // return db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
+      //   .then(async (notice) => {
+      //     const result = []
+      //     for (const n of notice) {
+      //       const pred = await predictionRoute.makeOnePrediction(n)
+      //       result.push(pred)
+      //     }
+      //     res.status(200).send(result)
+      //   })
+      //   .catch(e => {
+      //     logger.log('error', 'error in: solicitationFeedback', { error:e, tag: 'solicitationFeedback' })
+      //     res.status(400).send(e)
+      //   })
     }
 
   }

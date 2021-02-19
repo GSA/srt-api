@@ -227,12 +227,13 @@ describe('JWT Tests', () => {
       }
     }
     let res = mocks.mockResponse()
-    let req = mocks.mockRequest({}, {}, session)
+    let req = mocks.mockRequest({}, {}, {}, session)
 
     await authRoutes.casStage2(req, res);
     expect(res.status).toBeCalledWith(302)
     expect(res.set.mock.calls[0][0]).toBe("Location") // first arg
-    let locationRedirect = res.set.mock.calls[0][1]
+    let locationRedirect = res.set.mock.calls[0][1] //?
+    res.set.mock.calls//?
 
     let matches = locationRedirect.match('token=({[^}]+})')
     let userTokenData = JSON.parse(matches[1])

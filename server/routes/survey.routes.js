@@ -8,7 +8,9 @@ const logger = require('../config/winston')
 // noinspection JSUnresolvedVariable
 const Survey = require('../models').Survey
 const Notice = require('../models').notice
+const User = require('../models').User
 const SurveyResponse = require('../models').SurveyResponse
+const authRoutes = require('../routes/auth.routes')
 
 /**
  * Takes a survey record from the database and reformat it as expected by the client UI
@@ -29,7 +31,7 @@ function makeOneSurvey (s) {
   }
 }
 
-async function updateSurveyResponse (solNum, response) {
+async function updateSurveyResponse(solNum, response, maxId = null) {
   try {
     if (!Array.isArray(response)) {
       return [500, []];
@@ -45,10 +47,11 @@ async function updateSurveyResponse (solNum, response) {
     let survey_response = await SurveyResponse.findOne({"where": {"solNum": solNum,"contemporary_notice_id": notice.id}})
 
     if (survey_response == null) {
-      survey_response = await SurveyResponse.create({"solNum": solNum,"response": response,"contemporary_notice_id": notice.id})
+      survey_response = await SurveyResponse.create({"solNum": solNum,"response": response,"contemporary_notice_id": notice.id, maxId: maxId})
     } else {
       survey_response.response = response
-      logger.log("error", `XXXXX saving the response ` + JSON.stringify(response))
+      survey_response.maxId = maxId
+
       await survey_response.save()
     }
     return [200, survey_response]
@@ -65,13 +68,15 @@ async function getLatestSurveyResponse(solNum) {
     for (let notice of notices) {
       let survey_response = await SurveyResponse.findOne({ "where": { "solNum": solNum,"contemporary_notice_id": notice.id}})
       if (survey_response) {
-        logger.log("error", `XXXXX returning response ` + JSON.stringify(survey_response))
-        return [200, survey_response.response]
+        let user = await User.findOne( {"where": {"maxId": survey_response.maxId}})
+
+        return [200, {responses: survey_response.response, solNum: solNum, date: survey_response.updatedAt, maxId: survey_response.maxId, name: `${user.firstName} ${user.lastName}`, email: user.email}]
       }
     }
     return [404, []]
 
   } catch (e){
+    e//?
     logger.log("error", "Error updating survey response", {tag: "survey_response", "error-message": e.message, err:e } )
     return [500,[]]
   }
@@ -130,13 +135,19 @@ module.exports = {
    *
    */
   postResponse: async (req, res) => {
-    let solNum = req.params.solNum || req.body.solNum.toString() //?
-    let response = req.body.response || req.body.feedback // the current API calls this "feedback" but we should accept either.
+    try {
+      const solNum = req.params.solNum || req.body.solNum.toString() //?
+      const response = req.body.response || req.body.feedback // the current API calls this "feedback" but we should accept either.
+      const user = authRoutes.userInfoFromReq(req) //?
 
-    let [statusCode, send] = await updateSurveyResponse(solNum, response) //?
+      let [statusCode, send] = await updateSurveyResponse(solNum, response, user.maxId) //?
 
-    res.status(statusCode).send(send)
-
+      return res.status(statusCode).send(send)
+    } catch (e) {
+      logger.log("error", "Error updating survey response", {tag: "survey response", "error-message": e.message, err:e } )
+      e.message //?
+      return res.status(500).send({})
+    }
   },
 
   updateSurveyResponse : updateSurveyResponse,

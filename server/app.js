@@ -96,7 +96,7 @@ module.exports = function (db, cas) {
           user = (decoded.user) ? decoded.user : user; // make sure we got something to prevent crash below
         } catch (e) {
           user.id = 'Caught error decoding JWT'
-          logger.log("error", "Caught error decoding JWT", {"tag": "log", "error": e})
+          logger.log("error", "Caught error decoding JWT.", {"tag": "log", "error": e})
         }
       }
       return `${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms ${user.id} ${user.email} ${user.position} ${user.userRole}`

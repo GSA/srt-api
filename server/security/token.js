@@ -26,7 +26,7 @@ module.exports = function () {
 
           // next check the role
           let decoded = jwt.decode(token)
-          let rollList = roles.map( (x) => x.name) //?
+          let rollList = roles.map( (x) => x.name)
           if (decoded.user.userRole && rollList.includes(decoded.user.userRole) ) {
             logger.log('debug', "Authentication successful. ")
             next()

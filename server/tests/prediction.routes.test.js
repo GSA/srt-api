@@ -995,15 +995,16 @@ describe('prediction tests', () => {
 
   }, 60000)
 
-  test("Attachments have posted dates", async () => {
-    let {predictions, totalCount} = await predictionRoutes.getPredictions({}, mocks.mockAdminUser)
-    expect(totalCount).toBeGreaterThan(1)
-    let index = 0;
-    let targetPrediction = predictions[index]
-    while (targetPrediction.parseStatus.length < 2) {
-      index++
-      targetPrediction = predictions[index]
-    }
+  // ATCFAIL
+  test.only("Attachments have posted dates", async () => {
+
+    let sql = `select * from "Predictions" where jsonb_array_length("parseStatus") > 2 limit 1`
+    let results = await db.sequelize.query(sql, null)
+    let targetSolNum = results[0][0].solNum //?
+
+    let res = await predictionRoutes.getPredictions({filters: {"solNum": {value: targetSolNum }}}, mocks.mockAdminUser) //?
+    let {predictions: predictions} = await predictionRoutes.getPredictions({filters: {"solNum": {value: targetSolNum }}}, mocks.mockAdminUser)
+    let targetPrediction = predictions[0]
 
     targetPrediction.solNum //?
     let count = await predictionRoutes.invalidate(targetPrediction.solNum) //?
@@ -1031,19 +1032,16 @@ describe('prediction tests', () => {
 
   test("Predictions have feedback", async () => {
     // make sure we have feedback
-    let solNum = await test_utils.getSolNumForTesting() //?
+    let solNum = await test_utils.getSolNumForTesting({offset: 12}) //?
     surveyRoutes.updateSurveyResponse(solNum, feedback)
     predictionRoutes.updatePredictionTable()
 
 
-
     let preds = await predictionRoutes.getPredictions({"solNum": solNum}, {agency:"general services administration", userRole: "Administrator"})
-
+    console.log(preds.predictions[0])
     preds.predictions[0] //?
-    preds.predictions[0].feedback
-    preds.predictions[0].feedback[0] //?
-    let a = preds.predictions[0].dataValues.feedback[0].answer //?
-    expect (preds.predictions[0].feedback[0].answer).toContain("Maybe") //?
+    let ans = preds.predictions[0].feedback[0].answer //?
+    expect (ans).toBe("Maybe") //?
 
 
   },30000)

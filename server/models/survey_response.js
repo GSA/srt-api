@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
             autoIncrement: true
         },
         solNum: DataTypes.STRING,
+        maxId: DataTypes.STRING,
         contemporary_notice_id: DataTypes.INTEGER,
         response: DataTypes.JSONB,
     }, {

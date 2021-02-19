@@ -47,45 +47,23 @@ module.exports = {
   feedback : async function (req, res) {
     logger.log("debug", "Running feedback report")
     const sql = `
-        select * from (
-                select distinct on (r1.solicitation_number,objfeedback ->> 'questionID')
-                    r1.solicitation_number        as "solNum",
-                    (objhistory ->> 'date')::text as date,
-                    r1.agency,
-                    title,
-                    action,
-                    history,
-                    (objaction ->> 'user')::text as email,                                                                                         
-                    (objhistory ->> 'user')::text as name,
-                    r1.feedback,
-                    objfeedback ->> 'questionID'  as questionID,
-                    objfeedback ->> 'question'    as question,
-                    objfeedback ->> 'answer'      as answer,
-                    objfeedback ->> 'note'        as note,
-                    id as notice_id
-                from (select distinct on (n.solicitation_number)
-                          n.solicitation_number,
-                          n.agency,
-                          n.id,
-                          n.action,
-                          n.feedback,
-                          p.history,
-                          p.title 
-                      from notice n
-                               inner join public."Predictions" p on n.solicitation_number = p."solNum"
-                      where (n.feedback::text <> '[]')
-                      order by solicitation_number, id desc) as r1
-                         join jsonb_array_elements(r1.feedback) objfeedback ON true
-                         join jsonb_array_elements(r1.history) objhistory
-                              ON (objhistory ->> 'action')::text like '%feedback%'
-                         left join jsonb_array_elements(r1.action) objaction
-                                   ON ((objaction ->> 'action')::text like '%feedback%' and
-                                       lower((objaction ->> 'user')::text) like lower(substr((objhistory ->> 'user')::text, 1, position(' ' in (objhistory ->> 'user')::text) - 1)) ||
-                                                                                '.%' ||
-                                                                                lower(substr((objhistory ->> 'user')::text, position(' ' in (objhistory ->> 'user')::text) + 1)) || '%')
-                order by r1.solicitation_number, objfeedback ->> 'questionID'
-            ) unordered
-        order by to_date(date, 'MM/DD/YYYY') desc, "solNum", questionID::int
+      select sr."solNum",
+             jsonb_array_elements(response) -> 'question'::varchar as question,
+             jsonb_array_elements(response) -> 'answer'::varchar   as answer,
+             jsonb_array_elements(response) -> 'questionID'::varchar   as questionID,
+             notice_data->'subject'::varchar as title,
+             to_char(date, 'MM/DD/YYYY') as notice_date,
+             to_char(sr."updatedAt", 'MM/DD/YYYY') as survey_response_date,
+             n.agency,
+             sr."maxId",
+             email,
+             "lastName",
+             "firstName",
+             n.id as notice_id
+      from survey_responses sr
+             left join "notice" n on sr.contemporary_notice_id = n.id
+             left join "Users" u on sr."maxId" = u."maxId"
+      order by survey_response_date desc, "solNum", jsonb_array_elements(response) -> 'questionID'
     `
 
     try {
@@ -94,7 +72,7 @@ module.exports = {
       for (const r of rows) {
         result.push(
           Object.assign({
-            note: r.note, answer: r.answer, question: r.question, questionID: r.questionid, date: r.date,
+            note: r.note, answer: r.answer, question: r.question, questionID: r.questionid, date: r.survey_response_date,
             solicitation_number: r.solNum, email: `${r.name || ''} ${r.email || ''}`, title: r.title, id: r.notice_id,
             agency: r.agency
           }))

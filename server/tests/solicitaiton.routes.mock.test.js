@@ -9,6 +9,7 @@ const predictionRoutes = require('../routes/prediction.routes')
 // noinspection JSUnresolvedVariable
 const { adminCASData, coordinatorCASData } = require('./test.data')
 const authRoutes = require('../routes/auth.routes')
+const testUtils = require('../shared/test_utils')
 
 let myUser = {}
 myUser.firstName = 'sol-beforeAllUser'
@@ -31,9 +32,9 @@ describe('solicitation tests',  () => {
     return app.db.close();
   })
 
-  test('Update Not Applicable', async () => {
-    let rows = await db.sequelize.query('select "solNum" from "Predictions"  where "noticeType" = \'Solicitation\' order by id desc limit 1')
-    let solNum = rows[0][0].solNum
+  test.only('Update Not Applicable', async () => {
+    // let rows = await db.sequelize.query('select "solNum" from "Predictions"  where "noticeType" = \'Solicitation\' order by id desc limit 1')
+    let solNum = await testUtils.getSolNumForTesting()
     expect(solNum).toBeDefined()
     let solRoute = solicitationRoutes(db, userRoutes)
 
@@ -127,7 +128,7 @@ describe('solicitation tests',  () => {
 
     let res1 = mocks.mockResponse();
     let req1 = mocks.mockRequest({ } , {'authorization': `bearer ${adminToken}`})
-    req1.params = {"filters": { ["solNum"]: { "value": solNum, "matchMode": "equals" } } }
+    req1.body = {"filters": { ["solNum"]: { "value": solNum, "matchMode": "equals" } } }
     await predictionRoutes.predictionFilter(req1, res1)
     expect(res1.status.mock.calls[0][0]).toBe(200)
     let prediction = res1.send.mock.calls[0][0]['predictions'] //?
@@ -139,7 +140,7 @@ describe('solicitation tests',  () => {
 
     let res2 = mocks.mockResponse();
     let req2 = mocks.mockRequest({ } , {'authorization': `bearer ${adminToken}`})
-    req2.params = {"filters": { ["solNum"]: { "value": solNum, "matchMode": "equals" } } }
+    req2.body = {"filters": { ["solNum"]: { "value": solNum, "matchMode": "equals" } } }
     await predictionRoutes.predictionFilter(req2, res2)
     expect(res2.status.mock.calls[0][0]).toBe(200)
     prediction = res2.send.mock.calls[0][0]['predictions'] //?

@@ -37,8 +37,8 @@ ignore:
         expires: '2020-09-04T14:11:08.724Z'
   SNYK-JS-Y18N-1021887:
     - sequelize-cli > yargs > y18n:
-        reason: used only for the cli
-        expires: '2021-02-12T19:44:29.919Z'
+        reason: waiting for patch
+        expires: '2021-03-28T02:26:12.800Z'
 # patches apply the minimum changes required to fix a vulnerability
 patch:
   SNYK-JS-LODASH-567746:
