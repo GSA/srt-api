@@ -2,6 +2,10 @@
 // noinspection JSUnresolvedVariable
 /** @type {Prediction} **/
 const Prediction = require('../models').Prediction
+/** @type {Solicitation} **/
+const Solicitation = require('../models').Solicitation
+const Notice = require('../models').notice
+const survey_routes = require('../routes/survey.routes')
 
 /**
  * Prediction routes
@@ -16,10 +20,13 @@ const SqlString = require('sequelize/lib/sql-string')
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
 const configuration = require('../config/configuration')
+const getConfig = configuration.getConfig
 const cloneDeep = require('clone-deep')
 const Op = require('sequelize').Op
 const authRoutes = require('./auth.routes')
 const moment = require('moment')
+
+let background_count = 0
 
 /**
  * PredictionFilter
@@ -59,6 +66,15 @@ const moment = require('moment')
  */
 
 /**
+ * A solicitation object as expected by the client UI
+ * @typedef {Object} Solicitation
+ * @property {Number} id - Database ID of the prediction. This value shouldn't be used if possible. It will refer to the id of the last notice row associated with this prediction.
+ * @property {string} solNum - Notice number for this prediction
+ * @property {boolean} active - Solicitation is active t/f
+ */
+
+
+/**
  * Action record
  * @typedef {Object} action - Status of the last action for a solicitation/prediction
  * @property {date} actionDate - Date the action occurred
@@ -67,6 +83,7 @@ const moment = require('moment')
 
 /**
  * IT Likelihood record
+ * @typedef {Object} EIT
  * @typedef {Object} EIT
  * @property {string} naics - NAICS number for the solicitation
  * @property {string} value - "Yes" if this solicitation is IT related or "No" if it is not
@@ -95,7 +112,7 @@ const moment = require('moment')
 /** @namespace notice.numDocs */
 /** @namespace notice.attachment_json */
 /** @namespace notice.spamProtect */
-function makeOnePrediction (notice) {
+async function makeOnePrediction (notice) {
   let o = {} // Object.assign({}, template);
 
   try {
@@ -148,7 +165,9 @@ function makeOnePrediction (notice) {
       o.actionStatus = o.actionDate = ''
     }
 
-    o.feedback = notice.feedback ? notice.feedback : []
+    // o.feedback = notice.feedback ? notice.feedback : []
+    let [response_code, survey_response] = await survey_routes.getLatestSurveyResponse(notice.solicitation_number)
+    o.feedback = notice.feedback ? notice.feedback : survey_response.responses
     o.history = notice.history ? notice.history : []
 
     let email = ''
@@ -168,7 +187,28 @@ function makeOnePrediction (notice) {
 
     }
 
-    o.parseStatus = (notice.attachment_json !== undefined && notice.attachment_json != null) ? notice.attachment_json : []
+    // add the posted date to each attachment
+    const attachments = (notice.attachment_json !== undefined && notice.attachment_json != null) ? notice.attachment_json : []
+    o.parseStatus = []
+    const noticeList = []
+    const date_map = {} // map from the notice ID to the posted date
+
+    // first gather up all the notices so we can make a single query
+    for (const attachment of attachments) {
+      noticeList.push(attachment.notice_id);
+    }
+
+    // get the notices that are related to all the attachments
+    notices = await Notice.findAll({where: {id: {[Op.in] : noticeList}}});
+    for (const n of notices) {
+      date_map[n.id] = n.date
+    }
+
+    // loop through the attachments and add in the postedDate to each one
+    for (const attachment of attachments) {
+      attachment.postedDate = date_map[attachment.notice_id]
+      o.parseStatus.push(Object.assign(attachment))
+    }
 
     o.searchText = [o.solNum, o.noticeType, o.title, o.date, o.reviewRec, o.actionStatus, o.actionDate, o.agency, o.office].join(' ').toLowerCase()
   } catch (e) {
@@ -329,12 +369,23 @@ async function getPredictions (filter, user) {
     // process dates
 
     // make sure anything we return is past the date cuttoff
-    attributes.where.date = { [Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
+    if (configuration.getConfig("minPredictionCutoffDate")) {
+      attributes.where.date = { [Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
+    } else if (configuration.getConfig("predictionCutoffDays")) {
+      const numDays = configuration.getConfig("predictionCutoffDays")
+      const today = new Date()
+      let  cutoff = new Date()
+      cutoff.setDate( today.getDate() - numDays)
+      attributes.where.date = { [Op.gt]: cutoff}
+    }
+
+
 
     if (filter.startDate) {
       // double check they aren't asking for data from before the cutoff
       const start = Date.parse(filter.startDate)
-      const cutoff = Date.parse(configuration.getConfig("minPredictionCutoffDate"))
+      const cutoff = Date.parse(configuration.getConfig("minPredictionCutoffDate", '1990-01-01'))
+      configuration.getConfig("minPredictionCutoffDate") //?
       if (start > cutoff) {
         attributes.where.date = { [Op.gt]: filter.startDate }
       }
@@ -371,8 +422,18 @@ async function getPredictions (filter, user) {
     // noinspection JSUnresolvedFunction
     let count = await Prediction.findAndCountAll(attributes)
 
+    preds.length
+    preds[0].dataValues.active
+
+    //Fill in the proper survey_results (aka feedback)
+    let final_predictions = []
+    for (pred of preds) {
+      let [status, feedback] = await survey_routes.getLatestSurveyResponse(pred.solNum)
+      final_predictions.push(Object.assign(pred.dataValues, {feedback: feedback.responses}))
+    }
+
     return {
-      predictions: preds,
+      predictions: final_predictions,
       first: filter.first,
       rows: Math.min(filter.rows, preds.length),
       totalCount: count.count
@@ -389,10 +450,23 @@ async function getPredictions (filter, user) {
 }
 
 function mapAgency(agency) {
-  const key = "AGENCY_MAP:" + agency //?
+  const key = "AGENCY_MAP:" + agency
   const mapped = configuration.getConfig(key, null)
   return (mapped) ? mapped : agency
 }
+
+/***
+ * Invalidates a
+ *
+ * @param sol_num
+ * @returns {Promise<number>}
+ */
+async function invalidate (sol_num) {
+  let sql = `delete from "Predictions" where "solNum" = '${sol_num}' `
+  await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
+  return updatePredictionTable()
+}
+
 
 /**
  * prediction routes
@@ -404,6 +478,8 @@ module.exports = {
   makeOnePrediction: makeOnePrediction,
   updatePredictionTable: updatePredictionTable,
   mapAgency: mapAgency,
+  invalidate: invalidate,
+  prepareSolicitationTable: prepareSolicitationTable,
 
 /**
      * Finds all the predictions that match the filter and send them out to the response.
@@ -463,8 +539,27 @@ module.exports = {
 
 }
 
+async function prepareSolicitationTable() {
+  try {
+    await db.sequelize.query(`
+        insert into solicitations ("solNum", "createdAt", "updatedAt")
+         (select distinct solicitation_number, to_timestamp('2010-10-10', 'YYYY-MM-DD') at time zone 'Etc/UTC' ,  to_timestamp('2010-10-10', 'YYYY-MM-DD') at time zone 'Etc/UTC' 
+          from notice
+          where solicitation_number not in (select "solNum" from solicitations)   )
+    `)
+  } catch (e) {
+    logger.log("error", "Error preparing the solication table", {tag: "prepareSolTable", error: e})
+    throw (e)
+  }
+}
 
-async function updatePredictionTable  (clearAllAfterDate) {
+async function updatePredictionTable  (clearAllAfterDate, background = false) {
+  let fetch_limit = 100
+
+  if (background) {
+    background_count -= 1
+    logger.info (`starting a background job.  background count is now ${background_count} in the queue`)
+  }
 
   logger.debug(`starting updatePredictionTable. Clear all after date set to ${clearAllAfterDate}`, {tag: "updatePredictionTable"})
 
@@ -475,33 +570,62 @@ async function updatePredictionTable  (clearAllAfterDate) {
     await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
   }
 
+  await prepareSolicitationTable()
+
+  // lets try only running for max number of seconds before returning
+  const maxSeconds = getConfig("updatePredictionTableMaxRunTime", 20)
+  const queueDelaySeconds = getConfig("updatePredictionTableQueueDelay", 60)
+
+
+  const start = new Date()
+  const startSeconds = Math.round(start.getTime() / 1000)
+  let now = new Date()
+  let nowSeconds = Math.round(now.getTime() / 1000)
+
   let actualCount = 0
-  let outdatedPredictions = await getOutdatedPrediction()
-  let msg = (outdatedPredictions.length < 1000)
+  let outdatedPredictions = await getOutdatedPrediction(fetch_limit)
+  let msg = (outdatedPredictions.length < fetch_limit)
     ? `${outdatedPredictions.length}`
     : `${outdatedPredictions.length}+`
     logger.debug(`there are ${msg} outdated predictions to update`)
 
-  while (outdatedPredictions && outdatedPredictions.length > 0) {
+  let timeout = false
+  while (outdatedPredictions && outdatedPredictions.length > 0 ) {
+    if ((nowSeconds - startSeconds) > maxSeconds) {
+      timeout = true
+      break
+    }
+    now = new Date()
+    nowSeconds = Math.round(now.getTime() / 1000)
     actualCount ++
     let pred = outdatedPredictions.pop()
     pred.actionDate = makeDate(pred.actionDate)
     pred.date = makeDate(pred.date)
 
+
     try {
-      // logger.log("debug", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
+      // get it's active/inactive status from the solicitations table
+      let sol_row = await db.sequelize.query(`select active from solicitations where "solNum" = :sn`, { replacements: {"sn": pred.solNum}, type: db.sequelize.QueryTypes.SELECT })
+      pred.solNum //?
+      sol_row[0].active //?
+      pred.active = sol_row[0]['active'] //?
+
+      logger.log("debug", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
       delete (pred.id) // remove the id since that should be auto-increment
       // noinspection JSCheckFunctionSignatures
       await Prediction.destroy({ where: { solNum: pred.solNum } }) // delete any outdated prediction
       // noinspection JSUnresolvedFunction
       await Prediction.create(pred);
+
+      // await prepareSolicitationTable()
+
     } catch(e) {
       logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', "error-message": e.message, error: e})
     }
 
-    // we only get 1000 at a time so check to see if there are more when we run out of the current batch
+    // we only get a few at a time so check to see if there are more when we run out of the current batch
     if (outdatedPredictions.length === 0) {
-      outdatedPredictions = await getOutdatedPrediction()
+      outdatedPredictions = await getOutdatedPrediction(fetch_limit)
     }
 
     if ((actualCount % 100) === 0) {
@@ -511,36 +635,69 @@ async function updatePredictionTable  (clearAllAfterDate) {
   if (actualCount > 0) {
     logger.log("info", `Updated ${actualCount} prediction records`)
   }
-  return actualCount
+
+  if (timeout && background_count == 0) {
+    background_count += 1
+    logger.log("info", `Prediction update hit time limit - queuing another round of updates. ${background_count} in the queue`)
+    setTimeout( function() { updatePredictionTable(null, true) } , 5000)
+  }
+
+
+    return actualCount
 }
 
-function getOutdatedPrediction() {
+function getOutdatedPrediction(fetch_limit = 500) {
 
-  let sql = `select n.*, notice_type, attachment_json
-            from notice n 
-            left join ( 
+
+  let sql = `
+            select n.*, notice_type, attachment_json
+            from notice n
+            left join (
                   select notice_id, json_agg(src) as attachment_json, count(*) as attachment_count
-                  from notice 
-                  left join ( 
-                    select id, attachment_url, filename as name, case machine_readable when true then 'successfully parsed' else 'processing error' end as status, notice_id 
+                  from notice
+                  left join (
+                    select id, attachment_url, filename as name, case machine_readable when true then 'successfully parsed' else 'processing error' end as status, notice_id
                     from attachment
-                    ) src on notice.id = src.notice_id             
+                    ) src on notice.id = src.notice_id
                   group by  notice_id
                   ) a on a.notice_id = n.id
             left join notice_type t on n.notice_type_id = t.id
-                WHERE solicitation_number IN 
-                  (SELECT DISTINCT solicitation_number
-                   FROM notice nn
-                   LEFT JOIN "Predictions" pp on pp."solNum" = nn.solicitation_number
-                   WHERE (COALESCE (nn."updatedAt", nn."createdAt") > pp."updatedAt" or
-                         pp."updatedAt" is null) and
-                         nn.solicitation_number != '' and nn.solicitation_number is not null limit 1000)`
+                WHERE solicitation_number IN
+                  ( 
+                      (SELECT DISTINCT solicitation_number
+                       FROM notice nn
+                       LEFT JOIN "Predictions" pp on pp."solNum" = nn.solicitation_number
+                       WHERE (COALESCE (nn."updatedAt", nn."createdAt") > pp."updatedAt" or
+                             pp."updatedAt" is null) and
+                             nn.solicitation_number != '' and nn.solicitation_number is not null
+                        limit ${fetch_limit} )
+
+                  UNION
+                      
+                    (SELECT DISTINCT solicitations."solNum"
+                     FROM solicitations
+                              LEFT JOIN "Predictions" pp on pp."solNum" = solicitations."solNum"
+                     WHERE (COALESCE(solicitations."updatedAt", solicitations."createdAt") > pp."updatedAt" or
+                            pp."updatedAt" is null) 
+                     limit ${fetch_limit} )
+                      
+                  UNION
+
+                    (SELECT DISTINCT sr."solNum"
+                     FROM survey_responses sr
+                              LEFT JOIN "Predictions" pp on pp."solNum" = sr."solNum"
+                     WHERE (COALESCE(sr."updatedAt", sr."createdAt") > pp."updatedAt" or
+                            pp."updatedAt" is null)
+                     limit ${fetch_limit} )
+                      
+                )
+             `
 
   return db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
-    .then(notices => {
+    .then(async notices => {
       let data = []
       for (let i = 0; i < notices.length; i++) {
-        data[i] =cloneDeep(makeOnePrediction(notices[i]))
+        data[i] =cloneDeep( await makeOnePrediction(notices[i]))
       }
       return mergePredictions(data)
     })
@@ -557,7 +714,6 @@ function makeDate(x) {
   } else {
     d = new Date(x)
   }
-  const s = moment(d).format('MM/DD/YYYY HH:mm ZZ')
-  return  s
+  return moment(d).format('MM/DD/YYYY HH:mm ZZ')
 }
 

@@ -1,18 +1,15 @@
 ---
 applications:
-
 - name: srt-server
   command: node server/server.js
   memory: 256M
-  disk_quota: 1024M
+  disk_quota: 512M
 #  health-check-type: process # don't re-enable....move to port 8080 if you have problems
   instances: 1
-  buildpack: https://github.com/cloudfoundry/nodejs-buildpack
+  buildpack:
+    - https://github.com/cloudfoundry/nodejs-buildpack
   env:
     NODE_ENV: clouddev
   services:
-    - srt-postgres
+    - srt-postgres-dev
 
-# sudo apt install libpq-dev
-# cf push srt-server-dev --no-start -b https://github.com/cloudfoundry/apt-buildpack
-# cf v3-push srt-server-dev -b https://github.com/cloudfoundry/nodejs-buildpack

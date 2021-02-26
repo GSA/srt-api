@@ -5,6 +5,7 @@ const logger = require('../config/winston')
 const Notice = require('../models').notice
 const predictionRoute = require('../routes/prediction.routes')
 const authRoutes = require('../routes/auth.routes')
+const surveyRoutes = require('../routes/survey.routes')
 const cloneDeep = require('clone-deep')
 const {getConfig} = require('../config/configuration')
 const { formatDateAsString } = require('../shared/time')
@@ -106,7 +107,8 @@ module.exports = function (db, userRoutes) {
               // we should only have one 'prediction' since they will all merge by solicitation number
               // but for consistency we should set the ID number to the one requested rather than to
               // a pseudo-random choice
-              result.predictions[0].id = parseInt(req.params.id)
+                result.predictions[0].id = parseInt(req.params.id)
+                result.predictions[0].active //?
 
               return res.status(200).send(result.predictions[0])
             })
@@ -168,7 +170,7 @@ module.exports = function (db, userRoutes) {
 
 
           return notice.save()
-            .then( (n) => {
+            .then( async (n) => {
               // noinspection JSUnresolvedVariable
               logger.log("info",
                 `Updated Notice row for solicitation ${notice.solicitation_number}`,
@@ -177,7 +179,7 @@ module.exports = function (db, userRoutes) {
                       test_flag: req.body.solicitation.na_flag,
                       na_flag: (n.na_flag) ? "true" : "false"
                 })
-              return res.status(200).send(predictionRoute.makeOnePrediction(n))
+              return res.status(200).send(await predictionRoute.makeOnePrediction(n))
             })
             .catch (error => {
               logger.log("error", "Error in solicitation update", {tag: 'solicitation update', error: error})
@@ -202,46 +204,51 @@ module.exports = function (db, userRoutes) {
          * @param res
          * @return {Promise}
          */
-    postSolicitation: function (req, res) {
+    postSolicitation: async function (req, res) {
 
-      return Notice.findAll({
-        where: { solicitation_number: req.body.solNum.toString() },
-        order: [['date', 'desc']]
-      })
-        .then((notices) => {
-          // we are only going to work with the first entry - which is the newest row having the given notice_number
-          /** @var Notice notice */
-          let notice = (notices.length > 0) ? notices[0] : null
-          if (notice == null) {
-            logger.log('error', req.body, { tag: 'postSolicitation - solicitation not found' })
-            return res.status(404).send({ msg: 'solicitation not found' })
-          }
+        try {
 
-          // first do the audit
-          if (! Array.isArray(notice.action)){
-            notice.action = []
-          }
-          notice.action = auditSolicitationChange(notice, req.body, req)
-
-          //now that audit is done, we can update.
-          notice.history = req.body.history
-          notice.feedback = cloneDeep(req.body.feedback)
-
-
-          // noinspection JSUnresolvedFunction
-          return notice.save()
-            .then((doc) => {
-              return res.status(200).send(predictionRoute.makeOnePrediction(doc))
+            let notices = await Notice.findAll({
+                where: {solicitation_number: req.body.solNum.toString()},
+                order: [['date', 'desc']]
             })
-            .catch((e) => {
-              logger.log('error', 'error in: postSolicitation - error on save', { error:e, tag: 'postSolicitation - error on save' })
-              res.status(400).send({ msg: 'error updating solicitation' })
+
+            // we are only going to work with the first entry - which is the newest row having the given notice_number
+            /** @var Notice notice */
+            let notice = (notices.length > 0) ? notices[0] : null
+            if (notice == null) {
+                logger.log('error', req.body, {tag: 'postSolicitation - solicitation not found'})
+                return res.status(404).send({msg: 'solicitation not found'})
+            }
+
+            // first do the audit
+            if (!Array.isArray(notice.action)) {
+                notice.action = []
+            }
+            notice.action = auditSolicitationChange(notice, req.body, req)
+
+            //now that audit is done, we can update.
+            notice.history = req.body.history
+
+
+            try {
+                let doc = await notice.save()
+                let feedback = cloneDeep(req.body.feedback) || []
+                if (Array.isArray(feedback) && (feedback.length > 0)) {
+                    await surveyRoutes.updateSurveyResponse(notice.solicitation_number, feedback, authRoutes.userInfoFromReq(req).maxId)
+                }
+
+                return res.status(200).send(await predictionRoute.makeOnePrediction(doc))
+            } catch (e) {
+                logger.log('error', 'error in: postSolicitation - error on save', {error: e, tag: 'postSolicitation - error on save' })
+                res.status(400).send({msg: 'error updating solicitation'})
+            }
+
+        } catch(e) {
+            logger.log('error', 'error in: postSolicitation - error during find', {error: e, tag: 'postSolicitation - error during find'
             })
-        })
-        .catch((e) => {
-          logger.log('error', 'error in: postSolicitation - error during find', { error:e, tag: 'postSolicitation - error during find' })
-          res.status(400).send({ msg: 'error updating solicitation' })
-        })
+            res.status(400).send({msg: 'error updating solicitation'})
+        }
     }, // end postSolicitation
 
     /**
@@ -259,36 +266,46 @@ module.exports = function (db, userRoutes) {
          * @return {Promise}
          *
          */
-    solicitationFeedback: (req, res) => {
-      // translate mongo formatted parameters to postgres
-      let where = [' 1 = 1 ']
-      let limit = ''
-      let order = ''
-      if (req.body.solNum) {
-        where.push(` solicitation_number = '${req.body.solNum}' `)
-        limit = ' limit 1 ' // notice number should be unique, but isn't in the test data. Yikes!
-        order = ' order by date desc ' // take the one with the most recent date
-      }
-      if (req.body['$where'] && req.body['$where'].match(/this.feedback.length.?>.?0/i)) {
-        where.push(` jsonb_array_length(
-                        case
-                          when jsonb_typeof(feedback) = 'array' then feedback
-                          else '[]'::jsonb
-                        end
-                     ) > 0 `)
-      }
+    solicitationFeedback: async (req, res) => {
 
-      let whereStr = where.join(' AND ')
-      let sql = `select * from notice where ${whereStr} ${order} ${limit}`
+        const [statusCode, data] = await surveyRoutes.getLatestSurveyResponse(req.body.solNum)
+        data //?
+        return res.status(statusCode).send(data)
 
-      return db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
-        .then((notice) => {
-          res.status(200).send(notice.map(predictionRoute.makeOnePrediction))
-        })
-        .catch(e => {
-          logger.log('error', 'error in: solicitationFeedback', { error:e, tag: 'solicitationFeedback' })
-          res.status(400).send(e)
-        })
+      // // translate mongo formatted parameters to postgres
+      // let where = [' 1 = 1 ']
+      // let limit = ''
+      // let order = ''
+      // if (req.body.solNum) {
+      //   where.push(` solicitation_number = '${req.body.solNum}' `)
+      //   limit = ' limit 1 ' // notice number should be unique, but isn't in the test data. Yikes!
+      //   order = ' order by date desc ' // take the one with the most recent date
+      // }
+      // if (req.body['$where'] && req.body['$where'].match(/this.feedback.length.?>.?0/i)) {
+      //   where.push(` jsonb_array_length(
+      //                   case
+      //                     when jsonb_typeof(feedback) = 'array' then feedback
+      //                     else '[]'::jsonb
+      //                   end
+      //                ) > 0 `)
+      // }
+      //
+      // let whereStr = where.join(' AND ')
+      // let sql = `select * from notice where ${whereStr} ${order} ${limit}`
+      //
+      // return db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
+      //   .then(async (notice) => {
+      //     const result = []
+      //     for (const n of notice) {
+      //       const pred = await predictionRoute.makeOnePrediction(n)
+      //       result.push(pred)
+      //     }
+      //     res.status(200).send(result)
+      //   })
+      //   .catch(e => {
+      //     logger.log('error', 'error in: solicitationFeedback', { error:e, tag: 'solicitationFeedback' })
+      //     res.status(400).send(e)
+      //   })
     }
 
   }
