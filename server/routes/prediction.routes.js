@@ -366,6 +366,12 @@ async function getPredictions (filter, user) {
     }
 
 
+    try {
+      logger.log("debug", `Getting predictions for agency ${filter.filters.agency.value}. Remaining filters in meta data`, {filter: filter.filter})
+    } catch (e) {
+      logger.log ("error", "error logging prediction search filter", {error: e})
+    }
+
     // process dates
 
     // make sure anything we return is past the date cuttoff
