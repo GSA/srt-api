@@ -21,7 +21,8 @@
     "killIdle": "ps -eaf | grep idle | grep -v grep | grep -v 4801 | grep -o \"^[0-9]*[^0-9]*[0-9]*\" | grep -o \"[0-9]*$\" | sudo xargs kill -9 ",
     "doc": "node_modules/.bin/jsdoc  -d docs -R ./README.md -r server/routes server/models",
     "snyk-protect": "snyk protect",
-    "prepare": "npm run snyk-protect"
+    "prepare": "npm run snyk-protect",
+    "cf-dev-log" : "echo 'run this: cf logs srt-server-dev | grep -o \"OUT .*\" | sed \"s/^OUT //\"  | grep \"^\\[\"  | jq \".[2]\" | grep -v \"^.GET\" | grep -v \"^.POST\" | cut -c -$COLUMNS'"
   },
   "author": "TCG",
   "license": "ISC",

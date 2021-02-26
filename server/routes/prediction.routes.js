@@ -367,7 +367,7 @@ async function getPredictions (filter, user) {
 
 
     try {
-      logger.log("debug", `Getting predictions for agency ${filter.filters.agency.value}. Remaining filters in meta data`, {filter: filter.filter})
+      logger.log("debug", `DOD Getting predictions for agency ${filter.filters.agency.value}. Remaining filters in meta data`, {filter: filter.filter})
     } catch (e) {
       logger.log ("error", "error logging prediction search filter", {error: e})
     }
@@ -529,6 +529,10 @@ module.exports = {
     req.body.first = (req.body.first !== undefined) ? req.body.first : 0
     req.body.rows = (req.body.rows !== undefined) ? req.body.rows : 100
     let user = authRoutes.userInfoFromReq(req)
+
+  logger.log("debug", "PREDS - req body " + JSON.stringify(req.body))
+  logger.log("debug", "PREDS - user " + JSON.stringify(user))
+
 
     return getPredictions(req.body, user)
       .then((predictions) => {
