@@ -305,27 +305,28 @@ describe('prediction tests', () => {
       })
   }, timeout)
 
-  test('Filter predictions on solicitation number', () => {
-    return db.sequelize.query('select p."solNum" from "Predictions" p join solicitations s on p."solNum" = s."solNum" where "noticeType" = \'Solicitation\' and s.active order by p.id desc limit 1', null)
-      .then((rows) => {
-        let noticeNum = rows[0][0].solNum //?
-        expect(noticeNum).toBeDefined()
-        console.log ("*****************************")
-        return request(app)
-          .post('/api/predictions/filter')
-          .set('Authorization', `Bearer ${token}`)
-          .send({
-            solNum: noticeNum
-          })
-          .then((res) => {
-            // noinspection JSUnresolvedVariable
-            expect(res.statusCode).toBe(200)
+  test.only('Filter predictions on solicitation number', async () => {
+    let solNum = await test_utils.getSolNumForTesting()
+    solNum //?
 
-            expect(res.body.predictions.length).toBe(1)
-            expect(res.body.predictions[0].title).toBeDefined()
-            expect(res.body.predictions[0].solNum).toBe(noticeNum)
-          })
-      })
+
+    expect(solNum).toBeDefined()
+    console.log("*****************************")
+    console.log (`solNum: ${solNum}`)
+    return request(app)
+        .post('/api/predictions/filter')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          solNum: solNum
+        })
+        .then((res) => {
+          // noinspection JSUnresolvedVariable
+          expect(res.statusCode).toBe(200)
+
+          expect(res.body.predictions.length).toBe(1)
+          expect(res.body.predictions[0].title).toBeDefined()
+          expect(res.body.predictions[0].solNum).toBe(solNum)
+        })
   }, timeout)
 
   test('Test unsupported parameter for Filter predictions', () => {
@@ -995,8 +996,8 @@ describe('prediction tests', () => {
 
   }, 60000)
 
-  // ATCFAIL
-  test.only("Attachments have posted dates", async () => {
+
+  test("Attachments have posted dates", async () => {
 
     let sql = `select * from "Predictions" where jsonb_array_length("parseStatus") > 2 limit 1`
     let results = await db.sequelize.query(sql, null)

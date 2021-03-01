@@ -189,7 +189,9 @@ module.exports = {
     VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation'],
     //"minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z",
     "predictionCutoffDays" : 60,
-    "updatePredictionTableMaxRunTime" : 15
+    "updatePredictionTableMaxRunTime" : 10,
+    "updatePredictionTableQueueDelay": 60,
+    "logPerformance": false
   },
   development: {
     "emailFrom": "crowley+srt@tcg.com",
@@ -208,7 +210,8 @@ module.exports = {
       "port": 3000
     },
     "srtClientUrl": "http://localhost:4200",
-    "logStdOut" : false,
+    "logStdOut" : true,
+    "logStdOutLevel" : "debug",
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "http://localhost:3000",
@@ -221,7 +224,8 @@ module.exports = {
       "password-whitelist": [ "samira.isber@gsa.gov", "albert.crowley@gsa.gov" ]
     },
     "sessionCookieSecure" : false,
-    "SolicitationCountLimit" : 1000
+    "SolicitationCountLimit" : 1000,
+    "logPerformance": false
   },
   "circle": {
     "emailFrom": "crowley+srt@tcg.com",
@@ -241,6 +245,7 @@ module.exports = {
     },
     "srtClientUrl": "https://srt-client-dev.app.cloud.gov",
     "logStdOut" : true,
+    "logStdOutLevel" : "error",
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "http://localhost:3000",
@@ -250,7 +255,8 @@ module.exports = {
       "dev_mode_user" : "dev_user",
       "renew" : true,
       "renew_query_parameter_name" : "bypassMaxsso"
-    }
+    },
+    "logPerformance": false
   },
   "clouddev": {
     "emailFrom": "crowley+srt@tcg.com",
@@ -280,7 +286,8 @@ module.exports = {
       "renew" : true,
       "renew_query_parameter_name" : "bypassMaxsso",
       "password-whitelist": [ "samira.isber@gsa.gov", "albert.crowley@gsa.gov" ]
-    }
+    },
+    "logPerformance": false
   },
   "cloudstaging": {
     "emailFrom": "crowley+srtstage@tcg.com",
@@ -310,7 +317,8 @@ module.exports = {
       "renew" : true,
       "renew_query_parameter_name" : "bypassMaxsso",
       "password-whitelist": [ "samira.isber@gsa.gov", "albert.crowley@gsa.gov" ]
-    }
+    },
+    "logPerformance": false
     // "SolicitationCountLimit" : 10000
   },
   "test": {
@@ -339,7 +347,8 @@ module.exports = {
       "dev_mode_user" : "",
       "renew" : true,
       "renew_query_parameter_name" : "bypassMaxsso"
-    }
+    },
+    "logPerformance": false
   },
   "production": {
     "emailFrom": "crowley+srt@tcg.com",
@@ -369,6 +378,7 @@ module.exports = {
       "dev_mode_user" : "",
       "renew" : true,
       "renew_query_parameter_name" : "bypassMaxsso"
-    }
+    },
+    "logPerformance": false
   }
 }

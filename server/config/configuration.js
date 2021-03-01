@@ -66,24 +66,30 @@ function lookup(key, defaultValue, extraDictionary) {
  * @return {string|*}
  */
 function getConfig(key, defaultValue, customDictionary = null) {
-  if (typeof key !== "string") {
+  try {
+    if (typeof key !== "string") {
+      return defaultValue
+    }
+
+    if (key in process.env) {
+      let str = process.env[key]
+      return (isJSON(str)) ? JSON.parse(str) : str
+    }
+
+    // split on :
+    let parts = key.split(":")
+    let dict = customDictionary || {}
+    while (parts.length > 1) {
+      let head = parts.shift()
+      dict = lookup(head, defaultValue, dict)
+      dict = (isJSON(dict)) ? JSON.parse(dict) : dict
+    }
+    return lookup(parts[0], defaultValue, dict)
+  } catch(e) {
+    // this is causing an error "looger.log not function" ????
+    // logger.log('warning', `Caught error in getConfig looking up`)
     return defaultValue
   }
-
-  if (key in process.env) {
-    let str = process.env[key]
-    return (isJSON(str)) ? JSON.parse(str) : str
-  }
-
-  // split on :
-  let parts = key.split(":")
-  let dict = customDictionary || {}
-  while (parts.length > 1) {
-    let head = parts.shift()
-    dict = lookup(head, defaultValue, dict)
-    dict = (isJSON(dict)) ? JSON.parse(dict) : dict
-  }
-  return lookup(parts[0], defaultValue, dict)
 }
 
 module.exports = {

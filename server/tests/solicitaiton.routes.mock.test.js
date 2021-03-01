@@ -32,7 +32,7 @@ describe('solicitation tests',  () => {
     return app.db.close();
   })
 
-  test.only('Update Not Applicable', async () => {
+  test('Update Not Applicable', async () => {
     // let rows = await db.sequelize.query('select "solNum" from "Predictions"  where "noticeType" = \'Solicitation\' order by id desc limit 1')
     let solNum = await testUtils.getSolNumForTesting()
     expect(solNum).toBeDefined()
