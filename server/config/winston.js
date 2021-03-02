@@ -1,7 +1,9 @@
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
 const Postgres = require('@albertcrowley/winston-pg-native')
-const { stringify } = require('flatted/cjs');
+const { stringify } = require('flatted');
+
+const logStdOutLevel = config.logPerformance || process.env.logPerformance || false
 
 
 const dbConfig = require('../config/dbConfig')[env]
@@ -43,7 +45,7 @@ if (config['logStdOut'] ) {
   options.transports.push(
     new winston.transports.Console(
       {
-        level: 'debug',
+        level: logStdOutLevel,
         json: true,
         colorize: false,
 

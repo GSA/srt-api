@@ -16,6 +16,7 @@ const randomWords = require('random-words')
 
 const { formatDateAsString } = require('../shared/time')
 const { userAcceptedCASData } = require('./test.data')
+const testUtils = require('../shared/test_utils')
 
 let myUser = {}
 myUser.firstName = 'sol-beforeAllUser'
@@ -58,7 +59,7 @@ describe('solicitation tests', () => {
 
     await predictionRoutes.updatePredictionTable()
 
-    return db.sequelize.query('select count(*), solicitation_number from (select * from notice where history is not null) notice where history is not null group by solicitation_number having count(*) > 5 limit 1')
+    return db.sequelize.query('select count(*), solicitation_number from (select * from notice where history is not null) notice where history is not null and solicitation_number is not null and solicitation_number != \'\' group by solicitation_number having count(*) > 5 limit 1')
       .then( async (result) => {
 
         let rows = await db.sequelize.query(`select * from notice where history is not null and  solicitation_number = '${result[0][0].solicitation_number}' order by feedback `)
@@ -123,7 +124,7 @@ describe('solicitation tests', () => {
               })
           })
       })
-  })
+  },77000)
 
   test('solicitation get', () => {
 
@@ -201,115 +202,85 @@ describe('solicitation tests', () => {
       })
   })
 
-  test('get solicitation feedback (using POST of all things because that is how the UI is coded', () => {
-    let mockDB =
-            { sequelize:
-                    { query: (sql) => {
-                      let set = [
-                        { feedback: [{ question: 'q1', answer: 'a1' }, { question: 'q1', answer: 'a1' }] },
-                        {},
-                        { feedback: [{ question: 'q1', answer: 'a1' }, { question: 'q1', answer: 'a1' }] },
-                        { solicitation_number: 'sprra1-19-r-0069', feedback: [{ question: 'q1', answer: 'a1' }, { question: 'q1', answer: 'a1' }] },
-                        { feedback: [] },
-                        { feedback: [{ question: 'q1', answer: 'a1' }, { question: 'q1', answer: 'a1' }] }
-                      ]
+  test('get solicitation feedback (using POST of all things because that is how the UI is coded', async () => {
+    let app = require('../app')()
+      const solNum = await testUtils.getSolNumForTesting({has_feedback: true})  //?
+      solNum //?
 
-                      if (sql.match(/select.*where.*jsonb_array_length/i)) {
-                        set = set.filter(x => { return (x.feedback && x.feedback.length && x.feedback.length > 0) })
-                      }
 
-                      if (sql.match(/select.*where.*solicitation_number.?=.*sprra1-19-r-0069/i)) {
-                        set = set.filter(x => { return (x.solicitation_number && x.solicitation_number === 'sprra1-19-r-0069') })
-                      }
-                      return new Promise(function (resolve) {
-                        resolve(set)
-                      })
-                    },
-                    QueryTypes: { SELECT: 7 }
-                    }
-
-            }
-
-    let app = require('../app')(mockDB)
-
-    return request(app)
-      .post('/api/feedback')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ $where: '{this.feedback.length > 0}'
-      })
-      .then((res) => {
-        // noinspection JSUnresolvedVariable
-        expect(res.statusCode).toBe(200)
-
-        expect(res.body.length).toBeGreaterThan(1)
-        for (let i = 0; i < res.body.length; i++) {
-          expect(res.body[i].feedback.length).toBeGreaterThan(0)
-          expect(res.body[i].feedback[0].question).toBeDefined()
-        }
-      })
-      .then(() => {
-        return request(app)
+      return request(app)
           .post('/api/feedback')
           .set('Authorization', `Bearer ${token}`)
-          .send({ solNum: 'sprra1-19-r-0069' })
-      })
+          .send({ solNum: solNum})
       .then((res) => {
+          // noinspection JSUnresolvedVariable
+          res.body //?
+          expect(res.statusCode).toBe(200)
+          expect(res.body).toContainKey("responses")
+          expect(res.body).toContainKey("solNum")
+          expect(res.body).toContainKey("maxId")
+          expect(res.body).toContainKey("name")
+          expect(res.body).toContainKey("email")
+
+          expect(res.body.responses).toBeArray()
+          expect(res.body.responses.length).toBeGreaterThan(0)
+          expect(res.body.solNum).toBe(solNum)
+      })
+
+
+    // return request(app)
+    //   .post('/api/feedback')
+    //   .set('Authorization', `Bearer ${token}`)
+    //   .send({ $where: '{this.feedback.length > 0}'
+    //   })
+    //   .then((res) => {
+    //     // noinspection JSUnresolvedVariable
+    //     expect(res.statusCode).toBe(200)
+    //
+    //     expect(res.body.length).toBeGreaterThan(1)
+    //     for (let i = 0; i < res.body.length; i++) {
+    //       expect(res.body[i].feedback.length).toBeGreaterThan(0)
+    //       expect(res.body[i].feedback[0].question).toBeDefined()
+    //     }
+    //   })
+    //   .then(() => {
+    //     return request(app)
+    //       .post('/api/feedback')
+    //       .set('Authorization', `Bearer ${token}`)
+    //       .send({ solNum: 'sprra1-19-r-0069' })
+    //   })
+    //   .then((res) => {
+    //     // noinspection JSUnresolvedVariable
+    //     expect(res.statusCode).toBe(200)
+    //
+    //     expect(res.body.length).toBe(1)
+    //     expect(res.body[0].solNum).toBe('sprra1-19-r-0069')
+    //   })
+  })
+
+
+    test('Test attachment filenames', async () => {
+        let solNum = await testUtils.getSolNumForTesting({"attachment_count": 3}) //?
+        let files = await db.sequelize.query(`select filename from attachment join notice n on attachment.notice_id = n.id where solicitation_number = '${solNum}'`)
+        let rows = await db.sequelize.query(`select id from notice where solicitation_number = '${solNum}' limit 1`)
+        let noticeId = rows[0][0].id //?
+        let res = await request(app)
+            .get('/api/solicitation/' + noticeId)
+            .set('Authorization', `Bearer ${token}`)
+            .send({})
+
         // noinspection JSUnresolvedVariable
         expect(res.statusCode).toBe(200)
 
-        expect(res.body.length).toBe(1)
-        expect(res.body[0].solNum).toBe('sprra1-19-r-0069')
-      })
-  })
-
-
-  test('Test attachment filenames', () => {
-
-    let limit = configuration.getConfig('SolicitationCountLimit', '2000')
-    let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",") //?
-    let sql = `select  n.solicitation_number, count(*) as c
-               from ( 
-                     select solicitation_number, attachment.* 
-                     from attachment 
-                     join notice on attachment.notice_id = notice.id 
-                     join notice_type nt on notice.notice_type_id = nt.id 
-                     where nt.notice_type in (${allowed_types})
-                    ) attachment  
-               join (select solicitation_number, min(date) as d from notice group by solicitation_number order by d desc limit ${limit}) n 
-                     on attachment.solicitation_number = n.solicitation_number
-               group by n.solicitation_number
-               having count(*) > 2`
-
-
-    return db.sequelize.query(sql)
-      .then((rows) => {
-        let solNum = rows[0][0].solicitation_number
-        return db.sequelize.query(`select filename from attachment join notice n on attachment.notice_id = n.id where solicitation_number = '${solNum}'`)
-          .then(files => {
-            return db.sequelize.query(`select id from notice where solicitation_number = '${solNum}' limit 1`)
-              .then(rows => {
-                let noticeId = rows[0][0].id //?
-                return request(app)
-                  .get('/api/solicitation/' + noticeId)
-                  .set('Authorization', `Bearer ${token}`)
-                  .send({})
-                  .then((res) => {
-                    // noinspection JSUnresolvedVariable
-                    expect(res.statusCode).toBe(200)
-
-                    let found = false
-                    for (let fileRow of files[0]) {
-                      if (res.body.parseStatus[0].name === fileRow.filename) {
-                        found = true
-                        break
-                      }
-                    }
-                    return expect(found).toBeTruthy()
-                  })
-              })
-          })
-      })
-  })
+        let found = false
+        for (let fileRow of files[0]) {
+            if (res.body.parseStatus[0].name === fileRow.filename) {
+                found = true
+                break
+            }
+        }
+        return expect(found).toBeTruthy()
+    })
 
   test('Solicitation audit', () => {
     let mock_notice = {
@@ -400,5 +371,11 @@ describe('solicitation tests', () => {
     expect(actions[actions.length-1].user).toBe(myUser.email)
 
   })
+
+    test('Solicitation inactive test', () => {
+
+
+    })
+
 
 }) // end describe
