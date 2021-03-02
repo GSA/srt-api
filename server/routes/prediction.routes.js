@@ -601,7 +601,7 @@ async function updatePredictionTable  (clearAllAfterDate, background = false) {
 
   // lets try only running for max number of seconds before returning
   const maxSeconds = getConfig("updatePredictionTableMaxRunTime", 10)
-  const queueDelaySeconds = getConfig("updatePredictionTableQueueDelay", 60)
+  const queueDelaySeconds = getConfig("updatePredictionTableQueueDelay", 30)
 
 
   const start = new Date()
@@ -729,7 +729,7 @@ async function getOutdatedPrediction(fetch_limit = 500) {
     let message = "Found the following outdated solicitations: "
     for (let i = 0; i < notices.length; i++) {
       data[i] = cloneDeep(await makeOnePrediction(notices[i]))
-      message += " " + notices[i].solNum
+      message += " " + data[i].solNum
     }
     logger.log("debug", message)
 

@@ -190,7 +190,7 @@ module.exports = {
     //"minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z",
     "predictionCutoffDays" : 60,
     "updatePredictionTableMaxRunTime" : 10,
-    "updatePredictionTableQueueDelay": 60,
+    "updatePredictionTableQueueDelay": 10,
     "logPerformance": false
   },
   development: {
