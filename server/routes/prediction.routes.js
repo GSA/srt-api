@@ -382,22 +382,24 @@ async function getPredictions (filter, user) {
 
     try {
       let agency = (filter && filter.filters && filter.filters.agency && filter.filters.agency.value) || "no agency"
-      logger.log("debug", `DOD Getting predictions for agency ${agency}. Remaining filters in meta data`, {filter: filter.filter})
+      logger.log("debug", `Getting predictions for agency ${agency}. Remaining filters in meta data`, {tag: 'getPredictions', filter: filter })
     } catch (e) {
       logger.log ("error", "error logging prediction search filter", {error: e})
     }
 
     // process dates
 
-    // make sure anything we return is past the date cuttoff
-    if (configuration.getConfig("minPredictionCutoffDate")) {
-      attributes.where.date = { [Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
-    } else if (configuration.getConfig("predictionCutoffDays")) {
-      const numDays = configuration.getConfig("predictionCutoffDays")
-      const today = new Date()
-      let  cutoff = new Date()
-      cutoff.setDate( today.getDate() - numDays)
-      attributes.where.date = { [Op.gt]: cutoff}
+    // make sure anything we return is past the date cuttoff - unless we are asking for a specific record!
+    if ( ! filter.filters.hasOwnProperty('solNum')) {
+      if (configuration.getConfig("minPredictionCutoffDate")) {
+        attributes.where.date = {[Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
+      } else if (configuration.getConfig("predictionCutoffDays")) {
+        const numDays = configuration.getConfig("predictionCutoffDays")
+        const today = new Date()
+        let cutoff = new Date()
+        cutoff.setDate(today.getDate() - numDays)
+        attributes.where.date = {[Op.gt]: cutoff}
+      }
     }
 
 
@@ -443,8 +445,6 @@ async function getPredictions (filter, user) {
     // noinspection JSUnresolvedFunction
     let count = await Prediction.findAndCountAll(attributes)
 
-    preds.length
-    preds[0].dataValues.active
 
     //Fill in the proper survey_results (aka feedback)
     let final_predictions = []
