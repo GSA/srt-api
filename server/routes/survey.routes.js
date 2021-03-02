@@ -65,7 +65,8 @@ async function updateSurveyResponse(solNum, response, maxId = null) {
 
 async function getLatestSurveyResponse(solNum) {
   try {
-    logger.log("debug", `Getting feedback for ${solNum}.  Results will be cached for 1 second`)
+    // logger.log("debug", `Getting feedback for ${solNum}.  Results will be cached for 1 second`)
+    logger.log("debug", `Getting feedback for ${solNum}.`)
     let notices = await Notice.findAll({"where": {"solicitation_number": solNum}, "order": [["createdAt", "DESC"]]})
     for (let notice of notices) {
       let survey_response = await SurveyResponse.findOne({ "where": { "solNum": solNum,"contemporary_notice_id": notice.id}})
