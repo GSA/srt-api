@@ -708,7 +708,7 @@ async function getOutdatedPrediction(fetch_limit = 500) {
                      FROM solicitations
                               LEFT JOIN "Predictions" pp on pp."solNum" = solicitations."solNum"
                      WHERE (COALESCE(solicitations."updatedAt", solicitations."createdAt") > pp."updatedAt" or
-                            pp."updatedAt" is null) 
+                            pp."updatedAt" is null)  
                      limit ${fetch_limit} )
                       
                   UNION
@@ -720,7 +720,7 @@ async function getOutdatedPrediction(fetch_limit = 500) {
                             pp."updatedAt" is null)
                      limit ${fetch_limit} )
                       
-                )
+                ) and solicitation_number is not null and solicitation_number != ''
              `
 
     let notices = await db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
