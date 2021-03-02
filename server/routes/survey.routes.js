@@ -11,7 +11,7 @@ const Notice = require('../models').notice
 const User = require('../models').User
 const SurveyResponse = require('../models').SurveyResponse
 const authRoutes = require('../routes/auth.routes')
-const memoize = require('memoizee')
+// const memoize = require('memoizee')
 
 /**
  * Takes a survey record from the database and reformat it as expected by the client UI
@@ -153,7 +153,7 @@ module.exports = {
   },
 
   updateSurveyResponse : updateSurveyResponse,
-  getLatestSurveyResponse: memoize(getLatestSurveyResponse, { length: false, promise: true, maxAge: 1000})
+  getLatestSurveyResponse: getLatestSurveyResponse //memoize(getLatestSurveyResponse, { length: false, promise: true, maxAge: 1000})
 
 
 }
