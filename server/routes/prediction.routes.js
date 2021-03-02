@@ -726,9 +726,12 @@ async function getOutdatedPrediction(fetch_limit = 500) {
     let notices = await db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
 
     let data = []
+    let message = "Found the following outdated solicitations: "
     for (let i = 0; i < notices.length; i++) {
       data[i] = cloneDeep(await makeOnePrediction(notices[i]))
+      message += " " + notices[i].solNum
     }
+    logger.log("debug", message)
 
     performance.mark("getOutdatedPrediction-end")
     performance.measure("getOutdatedPrediction", "getOutdatedPrediction-start", "getOutdatedPrediction-end")
