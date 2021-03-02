@@ -13,10 +13,26 @@ const CASAuthentication = require('cas-authentication')
 const jwtSecret = common.jwtSecret || undefined
 const {getConfig} = require('./config/configuration')
 const logger = require('./config/winston')
+const {cleanAwardNotices} = require('./cron/noticeAwardCleanup')
+const {CronJob} = require('cron')
+
 
 if (! jwtSecret) {
   console.log("No JWT secret defined.  Be sure to set JWT_SECRET in the environment before running startup") // allowed output
   process.exit(1)
+}
+
+function setupCronJobs() {
+
+  if (process.env.JEST_WORKER_ID == null || process.env.JEST_WORKER_ID == undefined) {
+    const noticeAwardJob = new CronJob('20 6 * * *', cleanAwardNotices)
+    noticeAwardJob.start()
+    // also run the cleanAwardNotices function once on startup!
+    cleanAwardNotices()
+    logger.log("debug", "Completed cron setup")
+  } else {
+    logger.log("debug", "Found a JEST_WORKER_ID in the environment so skipping cron start")
+  }
 }
 
 //
@@ -72,7 +88,7 @@ module.exports = function (db, cas) {
   let transports = [ new winston.transports.File({ filename: 'winston.log.json', level: 'debug' }) ]
   // Don't log to stdout when running tests
   if (config['logStdOut'] && process.env.JEST_WORKER_ID === undefined) {
-    transports.push(new winston.transports.Console({ level: 'info', json: true }))
+    transports.push(new winston.transports.Console({ level: getConfig("logStdOutLevel", "info"), json: true }))
   }
 
   app.use(expressWinston.logger({
@@ -208,6 +224,8 @@ module.exports = function (db, cas) {
       }
     }
   }))
+
+  setupCronJobs()
 
   return app
 }

@@ -3,6 +3,8 @@ const config = require('../config/config.js')[env]
 const Postgres = require('@albertcrowley/winston-pg-native')
 const { stringify } = require('flatted');
 
+const logStdOutLevel = config.logPerformance || process.env.logPerformance || false
+
 
 const dbConfig = require('../config/dbConfig')[env]
 let connectionString = 'postgres://' + dbConfig.username + ':' + dbConfig.password + '@' + dbConfig.host + ':' + dbConfig.port + '/' + dbConfig.database
@@ -43,7 +45,7 @@ if (config['logStdOut'] ) {
   options.transports.push(
     new winston.transports.Console(
       {
-        level: 'debug',
+        level: logStdOutLevel,
         json: true,
         colorize: false,
 

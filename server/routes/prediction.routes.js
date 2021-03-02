@@ -11,6 +11,7 @@ const survey_routes = require('../routes/survey.routes')
  * Prediction routes
  */
 const logger = require('../config/winston')
+const {performance, perfObserver} = require('../shared/perfMon')
 const db = require('../models/index')
 /**
  * @typedef {Object} SqlString
@@ -113,7 +114,11 @@ let background_count = 0
 /** @namespace notice.attachment_json */
 /** @namespace notice.spamProtect */
 async function makeOnePrediction (notice) {
+  performance.mark("makeOnePrediction-start")
+
   let o = {} // Object.assign({}, template);
+
+  logger.log("debug", `makeOnePrediction starting for ${notice.solicitation_number}`)
 
   try {
     o.id = notice.id
@@ -214,6 +219,10 @@ async function makeOnePrediction (notice) {
   } catch (e) {
     logger.log("error", "Error building a prediction object", {tag: "MakeOnePrediction", error: e.message, trace: e.stack})
   }
+
+  performance.mark("makeOnePrediction-end")
+  performance.measure(`makeOnePrediction-${notice.solicitation_number}`, "makeOnePrediction-start", "makeOnePrediction-end")
+
   return o
 }
 
@@ -279,6 +288,8 @@ function mergeOnePrediction (older, newer) {
  * @return Array Merged prediction list
  */
 function mergePredictions (predictionList) {
+  performance.mark("mergePredictions-start")
+
   let merged = []
   let dupeIndex = {}
 
@@ -293,6 +304,9 @@ function mergePredictions (predictionList) {
       dupeIndex[ p.solNum ] = merged.length - 1
     }
   }
+
+  performance.mark("mergePredictions-end")
+  performance.measure("mergePredictions", "mergePredictions-start", "mergePredictions-end")
 
   return (Object.keys(merged)).map(key => merged[key])
 }
@@ -365,6 +379,13 @@ async function getPredictions (filter, user) {
       }
     }
 
+
+    try {
+      let agency = (filter && filter.filters && filter.filters.agency && filter.filters.agency.value) || "no agency"
+      logger.log("debug", `DOD Getting predictions for agency ${agency}. Remaining filters in meta data`, {filter: filter.filter})
+    } catch (e) {
+      logger.log ("error", "error logging prediction search filter", {error: e})
+    }
 
     // process dates
 
@@ -524,6 +545,10 @@ module.exports = {
     req.body.rows = (req.body.rows !== undefined) ? req.body.rows : 100
     let user = authRoutes.userInfoFromReq(req)
 
+  logger.log("debug", "PREDS - req body " + JSON.stringify(req.body))
+  logger.log("debug", "PREDS - user " + JSON.stringify(user))
+
+
     return getPredictions(req.body, user)
       .then((predictions) => {
         if (predictions == null) {
@@ -554,7 +579,9 @@ async function prepareSolicitationTable() {
 }
 
 async function updatePredictionTable  (clearAllAfterDate, background = false) {
-  let fetch_limit = 100
+  performance.mark("updatePredictionTable-start")
+
+  let fetch_limit = 10
 
   if (background) {
     background_count -= 1
@@ -573,7 +600,7 @@ async function updatePredictionTable  (clearAllAfterDate, background = false) {
   await prepareSolicitationTable()
 
   // lets try only running for max number of seconds before returning
-  const maxSeconds = getConfig("updatePredictionTableMaxRunTime", 20)
+  const maxSeconds = getConfig("updatePredictionTableMaxRunTime", 10)
   const queueDelaySeconds = getConfig("updatePredictionTableQueueDelay", 60)
 
 
@@ -606,9 +633,7 @@ async function updatePredictionTable  (clearAllAfterDate, background = false) {
     try {
       // get it's active/inactive status from the solicitations table
       let sol_row = await db.sequelize.query(`select active from solicitations where "solNum" = :sn`, { replacements: {"sn": pred.solNum}, type: db.sequelize.QueryTypes.SELECT })
-      pred.solNum //?
-      sol_row[0].active //?
-      pred.active = sol_row[0]['active'] //?
+      pred.active = sol_row[0]['active']
 
       logger.log("debug", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
       delete (pred.id) // remove the id since that should be auto-increment
@@ -638,18 +663,23 @@ async function updatePredictionTable  (clearAllAfterDate, background = false) {
 
   if (timeout && background_count == 0) {
     background_count += 1
-    logger.log("info", `Prediction update hit time limit - queuing another round of updates. ${background_count} in the queue`)
-    setTimeout( function() { updatePredictionTable(null, true) } , 5000)
+    const queueDelayMilliseconds = queueDelaySeconds * 1000
+    logger.log("info", `Prediction update hit time of ${maxSeconds} seconds limit - queuing another round of updates in ${queueDelaySeconds}. ${background_count} in the queue`)
+    setTimeout( function() { updatePredictionTable(null, true) } , queueDelayMilliseconds)
   }
 
+  performance.mark("updatePredictionTable-end")
+  performance.measure("updatePredictionTable", "updatePredictionTable-start", "updatePredictionTable-end")
 
     return actualCount
 }
 
-function getOutdatedPrediction(fetch_limit = 500) {
+async function getOutdatedPrediction(fetch_limit = 500) {
 
+  try {
+    performance.mark("getOutdatedPrediction-start")
 
-  let sql = `
+    let sql = `
             select n.*, notice_type, attachment_json
             from notice n
             left join (
@@ -693,18 +723,22 @@ function getOutdatedPrediction(fetch_limit = 500) {
                 )
              `
 
-  return db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
-    .then(async notices => {
-      let data = []
-      for (let i = 0; i < notices.length; i++) {
-        data[i] =cloneDeep( await makeOnePrediction(notices[i]))
-      }
-      return mergePredictions(data)
-    })
-    .catch(e => {
-      logger.log('error', 'error in: getOutdatedPrediction', { error:e, tag: 'getOutdatedPrediction', sql: sql })
-      return null
-    })
+    let notices = await db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
+
+    let data = []
+    for (let i = 0; i < notices.length; i++) {
+      data[i] = cloneDeep(await makeOnePrediction(notices[i]))
+    }
+
+    performance.mark("getOutdatedPrediction-end")
+    performance.measure("getOutdatedPrediction", "getOutdatedPrediction-start", "getOutdatedPrediction-end")
+
+    return mergePredictions(data)
+
+  } catch (e) {
+    logger.log('error', 'error in: getOutdatedPrediction', {error: e, tag: 'getOutdatedPrediction', sql: sql})
+    return null
+  }
 }
 
 function makeDate(x) {
