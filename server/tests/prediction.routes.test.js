@@ -305,14 +305,12 @@ describe('prediction tests', () => {
       })
   }, timeout)
 
-  test.only('Filter predictions on solicitation number', async () => {
+  test('Filter predictions on solicitation number', async () => {
     let solNum = await test_utils.getSolNumForTesting()
     solNum //?
 
 
     expect(solNum).toBeDefined()
-    console.log("*****************************")
-    console.log (`solNum: ${solNum}`)
     return request(app)
         .post('/api/predictions/filter')
         .set('Authorization', `Bearer ${token}`)
