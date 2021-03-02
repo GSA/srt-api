@@ -15,7 +15,7 @@ const logger = require('./config/winston')
 function runNext (pgClient, sql) {
   return pgClient.query(sql)
     .then((res) => {
-      logger.log('info', 'sql:', sql)
+      logger.log('info', 'Running migration sql: ' + sql)
       res.rows.forEach(r => {
         logger.log('info', r)
       })

@@ -71,10 +71,33 @@ let userRejected = {
   'max-id' : 'A0003'
 }
 
+let feedback = [
+    {
+      "questionID": 0,
+      "question": "Did the tool correctly identify this solicitation as an Information and Communication Technology (ICT)?",
+      "note": "",
+      "answer": "Maybe"
+    },
+    {
+      "questionID": 1,
+      "question": "Did the tool correctly predict compliance with Section 508? ",
+      "note": "",
+      "answer": "No"
+    },
+    {
+      "questionID": 2,
+      "question": "Other comments such as recommendations to improve the tool or why the solicitation is NOT Section 508 compliant?",
+      "note": "",
+      "answer": "Yes"
+    }
+  ]
+
+
 module.exports = {
   user1: user1,
   userAcceptedCASData: userAcceptedCASData,
   userRejected: userRejected,
   adminCASData: adminCASData,
-  coordinatorCASData: coordinatorCASData
+  coordinatorCASData: coordinatorCASData,
+  feedback: feedback
 }

@@ -50,6 +50,7 @@ describe('Prediction History', () => {
       .then( result => {
         let predictions = result.predictions
         let p = predictions[0]
+        p //?
         expect(p).toHaveProperty('predictions')
         expect(p.predictions).toHaveProperty('history')
         let history = p.predictions.history
@@ -58,21 +59,21 @@ describe('Prediction History', () => {
         expect(history[0]).toHaveProperty('value')
 
         // check the last entry in the history is equal to the date of the overall prediction
+        let last = (new Date(history.slice(-1)[0].date)).toISOString().split('T')[0] //?
+        let pdate = p.date.toISOString().split('T')[0] //?
 
-        let last = (new Date(history.slice(-1)[0].date)).toISOString().split('T')[0]
-        let pdate = p.date.toISOString().split('T')[0]
-
-        expect(last).toBe(pdate)
+        // Don't check the date. There are now times where a predication can be updated without new history (ex. becomes inactive)
+        // expect(last).toBe(pdate)
         let color = history.slice(-1)[0].value
         expect(color).toBeOneOf(['red', 'green', 'black'])
       })
   }, 10000)
 
-  test('notices merge history correctly', () => {
+  test('notices merge history correctly', async () => {
     let solArray = predictionRoutes.mergePredictions([
-      predictionRoutes.makeOnePrediction(n1),
-      predictionRoutes.makeOnePrediction(n2),
-      predictionRoutes.makeOnePrediction(n3),
+      await predictionRoutes.makeOnePrediction(n1),
+      await predictionRoutes.makeOnePrediction(n2),
+      await predictionRoutes.makeOnePrediction(n3),
     ])
     let sol = solArray[0]
     expect(sol).toHaveProperty('predictions')
@@ -89,17 +90,17 @@ describe('Prediction History', () => {
     expect(count).toBe(7)
   })
 
-  test('history lines in date order', () => {
+  test('history lines in date order', async () => {
     let sol1 = predictionRoutes.mergePredictions([
-      predictionRoutes.makeOnePrediction(n1),
-      predictionRoutes.makeOnePrediction(n2),
-      predictionRoutes.makeOnePrediction(n3),
+      await predictionRoutes.makeOnePrediction(n1),
+      await predictionRoutes.makeOnePrediction(n2),
+      await predictionRoutes.makeOnePrediction(n3),
     ])[0]
 
     let sol2 = predictionRoutes.mergePredictions([
-      predictionRoutes.makeOnePrediction(n3),
-      predictionRoutes.makeOnePrediction(n2),
-      predictionRoutes.makeOnePrediction(n1),
+      await predictionRoutes.makeOnePrediction(n3),
+      await predictionRoutes.makeOnePrediction(n2),
+      await predictionRoutes.makeOnePrediction(n1),
     ])[0]
 
     let history1 = sol1.predictions.history

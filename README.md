@@ -91,3 +91,76 @@ automatically running the unit tests.
 A very brief Selenium IDE integration test can be found in the srt-client repository
 under test/SRT.side. The integration test is not run automatically by the CI server.
 
+## Development Environment Setup
+
+The following steps should take you from a clean Ubuntu install to a working
+development environment.  
+
+
+```
+sudo apt-get update
+
+# install docker based on docs here https://docs.docker.com/engine/install/ubuntu/
+sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+# test docker
+sudo docker run hello-world
+
+# install node and npm
+sudo apt-get install -y nodejs npm
+sudo npm install npm@latest -g
+
+# install postgres
+sudo apt install postgresql-client libpq-dev postgresql-server-dev pgadmin
+
+# download SRT source
+cd ~
+git clone https://github.com/GSA/srt-api.git
+cd srt-api
+git checkout dev
+npm install
+cd ~
+git clone https://github.com/GSA/srt-ui.git
+cd srt-ui
+git checkout dev
+npm install
+cd ~
+
+# Set some env variables
+echo export CRYPTIFY=Blue-Cast-1-Heavy-Bird >> ~/.bashrc
+echo "export PAGER='less -S'" >> ~/.bashrc
+echo export JWT_SECRET=abc123 >> ~/.bashrc
+echo export NODE_ENV=development >> ~/.bashrc
+echo export MAIL_ENGINE=nodemailer-mock >> ~/.bashrc
+echo export PGHOST=localhost >> ~/.bashrc
+echo export PGDATABASE=srt >> ~/.bashrc
+echo export PGUSER=circleci >> ~/.bashrc
+echo export PGPASSWORD=srtpass >> ~/.bashrc
+source ~/.bashrc
+
+# start the SRT database
+cd ~/srt-api
+npm run startdb
+
+# test / start the API
+cd ~/srt-api
+npm run test
+# check for any failed tests. 
+# You should get odd messages during the 
+# run, but as long as none fail you are good
+# now start the API
+npm run dev-monitor
+
+#now in another shell start the Angular app
+cd ~/srt-ui
+npm run dev
+```
+
+At this point, you should be able to open a web browser 
+on the Ubuntu desktop and navigate to [http://localhost:4200/](http://localhost:4200/)
