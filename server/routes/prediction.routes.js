@@ -374,7 +374,7 @@ async function getPredictions (filter, user) {
     if (filter.filters) {
       for (let f in filter.filters) {
         if (filter.filters.hasOwnProperty(f) && filter.filters[f].matchMode === 'equals') {
-          attributes.where[f] = filter.filters[f].value
+          attributes.where[f] = { [Op.eq]: filter.filters[f].value}
         }
       }
     }
