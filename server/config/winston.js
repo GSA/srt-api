@@ -3,7 +3,7 @@ const config = require('../config/config.js')[env]
 const Postgres = require('@albertcrowley/winston-pg-native')
 const { stringify } = require('flatted');
 
-const logStdOutLevel = config.logPerformance || process.env.logPerformance || false
+const logStdOutLevel = config.logStdOutLevel || process.env.logStdOutLevel || "info"
 
 
 const dbConfig = require('../config/dbConfig')[env]

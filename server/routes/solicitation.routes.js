@@ -234,7 +234,7 @@ module.exports = function (db, userRoutes) {
             try {
                 let doc = await notice.save()
                 let feedback = cloneDeep(req.body.feedback) || []
-                if (Array.isArray(feedback) && (feedback.length > 0)) {
+                if (req.body.newFeedbackSubmission && Array.isArray(feedback) && (feedback.length > 0)) {
                     await surveyRoutes.updateSurveyResponse(notice.solicitation_number, feedback, authRoutes.userInfoFromReq(req).maxId)
                 }
 

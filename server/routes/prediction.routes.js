@@ -374,7 +374,7 @@ async function getPredictions (filter, user) {
     if (filter.filters) {
       for (let f in filter.filters) {
         if (filter.filters.hasOwnProperty(f) && filter.filters[f].matchMode === 'equals') {
-          attributes.where[f] = filter.filters[f].value
+          attributes.where[f] = { [Op.eq]: filter.filters[f].value}
         }
       }
     }
@@ -382,22 +382,24 @@ async function getPredictions (filter, user) {
 
     try {
       let agency = (filter && filter.filters && filter.filters.agency && filter.filters.agency.value) || "no agency"
-      logger.log("debug", `DOD Getting predictions for agency ${agency}. Remaining filters in meta data`, {filter: filter.filter})
+      logger.log("debug", `Getting predictions for agency ${agency}. Remaining filters in meta data`, {tag: 'getPredictions', filter: filter })
     } catch (e) {
       logger.log ("error", "error logging prediction search filter", {error: e})
     }
 
     // process dates
 
-    // make sure anything we return is past the date cuttoff
-    if (configuration.getConfig("minPredictionCutoffDate")) {
-      attributes.where.date = { [Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
-    } else if (configuration.getConfig("predictionCutoffDays")) {
-      const numDays = configuration.getConfig("predictionCutoffDays")
-      const today = new Date()
-      let  cutoff = new Date()
-      cutoff.setDate( today.getDate() - numDays)
-      attributes.where.date = { [Op.gt]: cutoff}
+    // make sure anything we return is past the date cuttoff - unless we are asking for a specific record!
+    if ( ! filter.filters.hasOwnProperty('solNum')) {
+      if (configuration.getConfig("minPredictionCutoffDate")) {
+        attributes.where.date = {[Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
+      } else if (configuration.getConfig("predictionCutoffDays")) {
+        const numDays = configuration.getConfig("predictionCutoffDays")
+        const today = new Date()
+        let cutoff = new Date()
+        cutoff.setDate(today.getDate() - numDays)
+        attributes.where.date = {[Op.gt]: cutoff}
+      }
     }
 
 
@@ -443,8 +445,6 @@ async function getPredictions (filter, user) {
     // noinspection JSUnresolvedFunction
     let count = await Prediction.findAndCountAll(attributes)
 
-    preds.length
-    preds[0].dataValues.active
 
     //Fill in the proper survey_results (aka feedback)
     let final_predictions = []
@@ -601,7 +601,7 @@ async function updatePredictionTable  (clearAllAfterDate, background = false) {
 
   // lets try only running for max number of seconds before returning
   const maxSeconds = getConfig("updatePredictionTableMaxRunTime", 10)
-  const queueDelaySeconds = getConfig("updatePredictionTableQueueDelay", 60)
+  const queueDelaySeconds = getConfig("updatePredictionTableQueueDelay", 30)
 
 
   const start = new Date()
@@ -726,9 +726,12 @@ async function getOutdatedPrediction(fetch_limit = 500) {
     let notices = await db.sequelize.query(sql, {type: db.sequelize.QueryTypes.SELECT})
 
     let data = []
+    let message = "Found the following outdated solicitations: "
     for (let i = 0; i < notices.length; i++) {
       data[i] = cloneDeep(await makeOnePrediction(notices[i]))
+      message += " " + data[i].solNum
     }
+    logger.log("debug", message)
 
     performance.mark("getOutdatedPrediction-end")
     performance.measure("getOutdatedPrediction", "getOutdatedPrediction-start", "getOutdatedPrediction-end")

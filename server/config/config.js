@@ -190,7 +190,7 @@ module.exports = {
     //"minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z",
     "predictionCutoffDays" : 60,
     "updatePredictionTableMaxRunTime" : 10,
-    "updatePredictionTableQueueDelay": 60,
+    "updatePredictionTableQueueDelay": 10,
     "logPerformance": false
   },
   development: {
@@ -276,6 +276,7 @@ module.exports = {
     },
     "srtClientUrl": "https://srt-client-dev.app.cloud.gov",
     "logStdOut" : true,
+    "logStdOutLevel" : "debug",
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "https://srt-server-dev.app.cloud.gov",
@@ -307,6 +308,7 @@ module.exports = {
     },
     "srtClientUrl": "https://srt-client-staging.app.cloud.gov",
     "logStdOut" : true,
+    "logStdOutLevel" : "debug",
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "https://srt-server-staging.app.cloud.gov",
@@ -338,6 +340,7 @@ module.exports = {
     },
     "srtClientUrl": "https://srt-client-dev.app.cloud.gov",
     "logStdOut" : true,
+    "logStdOutLevel" : "debug",
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "https://srt-server-test.app.cloud.gov",
@@ -368,6 +371,7 @@ module.exports = {
     },
     "srtClientUrl": "https://srt.app.cloud.gov",
     "logStdOut" : true,
+    "logStdOutLevel" : "debug",
     "maxCas" : {
       "cas_url" : "https://login.max.gov/cas/",
       "service_url" : "https://srt-server.app.cloud.gov",
