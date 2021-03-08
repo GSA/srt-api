@@ -29,6 +29,8 @@ let dbConfig = {
   }
 }
 
+dbConfig["test"] = dbConfig["development"]
+
 const env = process.env.NODE_ENV || 'development'
 
 if (process.env.VCAP_SERVICES) {

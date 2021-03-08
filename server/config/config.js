@@ -3,7 +3,7 @@ module.exports = {
     VISIBLE_NOTICE_TYPES: "VisibleNoticeTypes"
   },
   common: {
-    "jwtSecret" : process.env.JWT_SECRET,
+    "jwtSecret" : process.env.JWT_SECRET || ( ( process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development" ) ? "abc123" : null),
     "sessionLength" : "12h",  // 12 hours
     "tokenLife" : "30m",  // 30 minutes
     "renewTokenLife" : "30m", // 30 minutes
@@ -93,36 +93,65 @@ module.exports = {
     // keys for agency look should be all lower case
     AGENCY_LOOKUP: {
       "department of test": "TEST, DEPARTMENT OF",
-      "department of agriculture":"Department of Agriculture",
-      "department of commerce":"Department of Commerce",
-      "department of defense":"Department of Defense",
-      "department of education":"Department of Education",
-      "department of health and human services":"Department of Health and Human Services",
-      "department of homeland security":"Department of Homeland Security",
-      "department of housing and urban development":"Department of Housing and Urban Development",
-      "department of justice":"Department of Justice",
-      "department of labor":"Department of Labor",
-      "department of state":"Department of State",
-      "department of the interior":"Department of the Interior",
-      "department of the treasury":"Department of the Treasury",
-      "department of transportation":"Department of Transportation",
-      "environmental protection agency":"Environmental Protection Agency",
-      "executive office of the president":"Executive Office of the President",
-      "general services administration":"General Services Administration",
-      "agency for international development":"Agency for International Development",
-      "national aeronautics and space administration":"National Aeronautics and Space Administration",
-      "national science foundation":"National Science Foundation",
-      "nuclear regulatory commission":"Nuclear Regulatory Commission",
-      "office of personnel management":"Office of Personnel Management",
-      "small business administration":"Small Business Administration",
-      "social security administration":"Social Security Administration",
-      "library of congress": "Library of Congress",
-      "department of veterans affairs": "Department of Veterans Affairs",
-      "national archives and records administration": "National Archives and Records Administration",
-      "department of energy":"Department of Energy",
+      "department of agriculture": "Department of Agriculture",
+      "department of commerce": "Department of Commerce",
+      "department of education": "Department of Education",
+      "department of health and human services": "Department of Health and Human Services",
+      "department of homeland security": "Department of Homeland Security",
+      "department of housing and urban development": "Department of Housing and Urban Development",
+      "department of justice": "Department of Justice",
+      "department of labor": "Department of Labor",
+      "department of state": "Department of State",
+      "department of the interior": "Department of the Interior",
+      "department of the treasury": "Department of the Treasury",
+      "department of transportation": "Department of Transportation",
+      "environmental protection agency": "Environmental Protection Agency",
+      "executive office of the president": "Executive Office of the President",
+      "international assistance programs": "International Assistance Programs",
+      "national aeronautics and space administration": "National Aeronautics and Space Administration",
+      "national science foundation": "National Science Foundation",
+      "nuclear regulatory commission": "Nuclear Regulatory Commission",
+      "office of personnel management": "Office of Personnel Management",
+      "small business administration": "Small Business Administration",
+      "social security administration": "Social Security Administration",
+      "general services administration": "General Services Administration",
+      "department of defense--military programs": "Department of Defense",
+      "department of defense": "Department of Defense",
       "millennium challenge corporation":"Millennium Challenge Corporation"
-
     },
+
+    // AGENCY_LOOKUP: {
+    //   "department of agriculture":"Department of Agriculture",
+    //   "department of commerce":"Department of Commerce",
+    //   "department of defense":"Department of Defense",
+    //   "department of education":"Department of Education",
+    //   "department of health and human services":"Department of Health and Human Services",
+    //   "department of homeland security":"Department of Homeland Security",
+    //   "department of housing and urban development":"Department of Housing and Urban Development",
+    //   "department of justice":"Department of Justice",
+    //   "department of labor":"Department of Labor",
+    //   "department of state":"Department of State",
+    //   "department of the interior":"Department of the Interior",
+    //   "department of the treasury":"Department of the Treasury",
+    //   "department of transportation":"Department of Transportation",
+    //   "environmental protection agency":"Environmental Protection Agency",
+    //   "executive office of the president":"Executive Office of the President",
+    //   "general services administration":"General Services Administration",
+    //   "agency for international development":"Agency for International Development",
+    //   "national aeronautics and space administration":"National Aeronautics and Space Administration",
+    //   "national science foundation":"National Science Foundation",
+    //   "nuclear regulatory commission":"Nuclear Regulatory Commission",
+    //   "office of personnel management":"Office of Personnel Management",
+    //   "small business administration":"Small Business Administration",
+    //   "social security administration":"Social Security Administration",
+    //   "library of congress": "Library of Congress",
+    //   "department of veterans affairs": "Department of Veterans Affairs",
+    //   "national archives and records administration": "National Archives and Records Administration",
+    //   "department of energy":"Department of Energy",
+    //   "millennium challenge corporation":"Millennium Challenge Corporation",
+    //   "Department of Defense--Military Programs": "DEPT OF DEFENSE"
+    //
+    // },
     AGENCY_MAP: {
       "AGRICULTURE, DEPARTMENT OF":"Department of Agriculture",
       "COMMERCE, DEPARTMENT OF":"Department of Commerce",
@@ -158,7 +187,11 @@ module.exports = {
       "MILLENNIUM CHALLENGE CORPORATION":"Millennium Challenge Corporation"
     },
     VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation'],
-    "minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z"
+    //"minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z",
+    "predictionCutoffDays" : 60,
+    "updatePredictionTableMaxRunTime" : 10,
+    "updatePredictionTableQueueDelay": 10,
+    "logPerformance": false
   },
   development: {
     "emailFrom": "crowley+srt@tcg.com",
@@ -177,7 +210,8 @@ module.exports = {
       "port": 3000
     },
     "srtClientUrl": "http://localhost:4200",
-    "logStdOut" : false,
+    "logStdOut" : true,
+    "logStdOutLevel" : "debug",
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "http://localhost:3000",
@@ -190,7 +224,8 @@ module.exports = {
       "password-whitelist": [ "samira.isber@gsa.gov", "albert.crowley@gsa.gov" ]
     },
     "sessionCookieSecure" : false,
-    "SolicitationCountLimit" : 1000
+    "SolicitationCountLimit" : 1000,
+    "logPerformance": false
   },
   "circle": {
     "emailFrom": "crowley+srt@tcg.com",
@@ -210,6 +245,7 @@ module.exports = {
     },
     "srtClientUrl": "https://srt-client-dev.app.cloud.gov",
     "logStdOut" : true,
+    "logStdOutLevel" : "error",
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "http://localhost:3000",
@@ -219,7 +255,8 @@ module.exports = {
       "dev_mode_user" : "dev_user",
       "renew" : true,
       "renew_query_parameter_name" : "bypassMaxsso"
-    }
+    },
+    "logPerformance": false
   },
   "clouddev": {
     "emailFrom": "crowley+srt@tcg.com",
@@ -239,6 +276,7 @@ module.exports = {
     },
     "srtClientUrl": "https://srt-client-dev.app.cloud.gov",
     "logStdOut" : true,
+    "logStdOutLevel" : "debug",
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "https://srt-server-dev.app.cloud.gov",
@@ -249,7 +287,8 @@ module.exports = {
       "renew" : true,
       "renew_query_parameter_name" : "bypassMaxsso",
       "password-whitelist": [ "samira.isber@gsa.gov", "albert.crowley@gsa.gov" ]
-    }
+    },
+    "logPerformance": false
   },
   "cloudstaging": {
     "emailFrom": "crowley+srtstage@tcg.com",
@@ -269,6 +308,7 @@ module.exports = {
     },
     "srtClientUrl": "https://srt-client-staging.app.cloud.gov",
     "logStdOut" : true,
+    "logStdOutLevel" : "debug",
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "https://srt-server-staging.app.cloud.gov",
@@ -279,7 +319,8 @@ module.exports = {
       "renew" : true,
       "renew_query_parameter_name" : "bypassMaxsso",
       "password-whitelist": [ "samira.isber@gsa.gov", "albert.crowley@gsa.gov" ]
-    }
+    },
+    "logPerformance": false
     // "SolicitationCountLimit" : 10000
   },
   "test": {
@@ -299,6 +340,7 @@ module.exports = {
     },
     "srtClientUrl": "https://srt-client-dev.app.cloud.gov",
     "logStdOut" : true,
+    "logStdOutLevel" : "debug",
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "https://srt-server-test.app.cloud.gov",
@@ -308,7 +350,8 @@ module.exports = {
       "dev_mode_user" : "",
       "renew" : true,
       "renew_query_parameter_name" : "bypassMaxsso"
-    }
+    },
+    "logPerformance": false
   },
   "production": {
     "emailFrom": "crowley+srt@tcg.com",
@@ -328,6 +371,7 @@ module.exports = {
     },
     "srtClientUrl": "https://srt.app.cloud.gov",
     "logStdOut" : true,
+    "logStdOutLevel" : "debug",
     "maxCas" : {
       "cas_url" : "https://login.max.gov/cas/",
       "service_url" : "https://srt-server.app.cloud.gov",
@@ -338,6 +382,7 @@ module.exports = {
       "dev_mode_user" : "",
       "renew" : true,
       "renew_query_parameter_name" : "bypassMaxsso"
-    }
+    },
+    "logPerformance": false
   }
 }

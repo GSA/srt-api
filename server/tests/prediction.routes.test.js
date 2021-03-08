@@ -14,14 +14,17 @@ const Attachment = require('../models').attachment
 const env = process.env.NODE_ENV || 'development'
 const db = require('../models/index')
 let predictionRoutes = require('../routes/prediction.routes')
+let surveyRoutes = require('../routes/survey.routes')
 let randomWords = require('random-words')
 const {common, config_keys} = require('../config/config.js')
 const timeout = 10000 // set to 10 seconds because some of these tests are slow.
 const mocks = require('./mocks')
 const configuration = require('../config/configuration')
+const moment = require('moment')
+const test_utils = require ('../shared/test_utils')
 
 
-const { userAcceptedCASData } = require('./test.data')
+const { userAcceptedCASData, feedback } = require('./test.data')
 
 let myUser = {}
 myUser.firstName = 'pred-beforeAllUser'
@@ -302,26 +305,26 @@ describe('prediction tests', () => {
       })
   }, timeout)
 
-  test('Filter predictions on solicitation number', () => {
-    return db.sequelize.query('select solicitation_number from notice join notice_type nt on notice.notice_type_id = nt.id where nt.notice_type = \'Solicitation\' order by notice.id desc limit 1', null)
-      .then((rows) => {
-        let noticeNum = rows[0][0].solicitation_number
-        expect(noticeNum).toBeDefined()
-        return request(app)
-          .post('/api/predictions/filter')
-          .set('Authorization', `Bearer ${token}`)
-          .send({
-            solNum: noticeNum
-          })
-          .then((res) => {
-            // noinspection JSUnresolvedVariable
-            expect(res.statusCode).toBe(200)
+  test('Filter predictions on solicitation number', async () => {
+    let solNum = await test_utils.getSolNumForTesting()
+    solNum //?
 
-            expect(res.body.predictions.length).toBe(1)
-            expect(res.body.predictions[0].title).toBeDefined()
-            expect(res.body.predictions[0].solNum).toBe(noticeNum)
-          })
-      })
+
+    expect(solNum).toBeDefined()
+    return request(app)
+        .post('/api/predictions/filter')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          solNum: solNum
+        })
+        .then((res) => {
+          // noinspection JSUnresolvedVariable
+          expect(res.statusCode).toBe(200)
+
+          expect(res.body.predictions.length).toBe(1)
+          expect(res.body.predictions[0].title).toBeDefined()
+          expect(res.body.predictions[0].solNum).toBe(solNum)
+        })
   }, timeout)
 
   test('Test unsupported parameter for Filter predictions', () => {
@@ -366,13 +369,19 @@ describe('prediction tests', () => {
   test('Test prediction date filters', async () => {
     let rows = await db.sequelize.query('select date from notice order by date desc, agency desc limit 1', null)
 
-    let date = rows[0][0].date
+    let date = rows[0][0].date //?
     let year = date.getFullYear()
     let month = date.getMonth() + 1
     let day = date.getDate()
     let dayPlus = day + 2  // account for rounding on the db side might
-    let start = `${month}/${day}/${year}`
-    let end = `${month}/${dayPlus}/${year}`
+    let start = `${month}/${day}/${year}` //?
+    let end = `${month}/${dayPlus}/${year}` //?
+    let startBound = new Date(rows[0][0].date)
+    let endBound = new Date(rows[0][0].date)
+    startBound.setDate( startBound.getDate() - 1) //?
+    endBound.setDate(endBound.getDate() + 2) //?
+    startBound //?
+    endBound //?
 
     let res = await request(app)
       .post('/api/predictions/filter')
@@ -385,10 +394,12 @@ describe('prediction tests', () => {
     expect(res.statusCode).toBe(200)
     expect(res.body.predictions.length).toBeGreaterThan(1)
     for (let i = 0; i < res.body.predictions.length; i++) {
-      res.body.predictions[i].date
-      new Date(year, month - 1, dayPlus)
-      expect(new Date(res.body.predictions[i].date) > new Date(year, month - 1, day)).toBeTruthy() // don't forget months are 0 indexed!
-      expect(new Date(res.body.predictions[i].date) < new Date(year, month - 1, dayPlus)).toBeTruthy()
+      console.log("*****")
+      console.log (res.body.predictions[i].date)
+      res.body.predictions[i].date //?
+      new Date(res.body.predictions[i].date) //?
+      expect(new Date(res.body.predictions[i].date) > startBound).toBeTruthy() // don't forget months are 0 indexed!
+      expect(new Date(res.body.predictions[i].date) < endBound).toBeTruthy()
     }
 
     res = await request(app)
@@ -588,17 +599,17 @@ describe('prediction tests', () => {
       })
   }, timeout)
 
-  test('default solicitation title', () => {
+  test('default solicitation title', async () => {
     let notice = {}
-    let prediction = predictionRoutes.makeOnePrediction(notice)
+    let prediction = await predictionRoutes.makeOnePrediction(notice)
     expect(prediction.title).toBe('title not available')
 
     notice = { notice_data: {} }
-    prediction = predictionRoutes.makeOnePrediction(notice)
+    prediction = await predictionRoutes.makeOnePrediction(notice)
     expect(prediction.title).toBe('title not available')
 
     notice = { notice_data: { subject: 'title here' } }
-    prediction = predictionRoutes.makeOnePrediction(notice)
+    prediction = await predictionRoutes.makeOnePrediction(notice)
     expect(prediction.title).toBe('title here')
   }, timeout)
 
@@ -617,7 +628,7 @@ describe('prediction tests', () => {
 
     // get rows 55 to 59
     let res = mocks.mockResponse()
-    let req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    let req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[0][0]).toBe(200);
     let predictions0 = res.send.mock.calls[0][0].predictions
@@ -628,7 +639,7 @@ describe('prediction tests', () => {
     event.first = 59
     event.rows = 2
     event.sortOrder = -1
-    req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[1][0]).toBe(200);
     let predictions1 = res.send.mock.calls[1][0].predictions
@@ -639,7 +650,7 @@ describe('prediction tests', () => {
     event.first = 59
     event.rows = 1
     event.sortOrder = -1
-    req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[2][0]).toBe(200);
     let predictions2 = res.send.mock.calls[2][0].predictions
@@ -652,7 +663,7 @@ describe('prediction tests', () => {
     event.sortOrder = 1
     event.first = 0
     event.rows = 60
-    req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[3][0]).toBe(200);
     let predictions3 = res.send.mock.calls[3][0].predictions
@@ -662,7 +673,7 @@ describe('prediction tests', () => {
     expect(pred59clone2.solNum !== pred59clone3.solNum).toBeTruthy()
 
     event.sortOrder = -1
-    req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[4][0]).toBe(200);
     let predictions4 = res.send.mock.calls[4][0].predictions
@@ -740,7 +751,7 @@ describe('prediction tests', () => {
 
   async function getPredictions(event){
     let res = mocks.mockResponse()
-    let req = mocks.mockRequest(event, { 'authorization': `bearer ${token}` })
+    let req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[0][0]).toBe(200);
     let result = res.send.mock.calls[0][0]
@@ -981,6 +992,58 @@ describe('prediction tests', () => {
     expect(dodCount).toBeGreaterThan(1)
     expect(dodCount).toBeLessThan(totalCount)
 
-  })
+  }, 60000)
+
+
+  test("Attachments have posted dates", async () => {
+
+    let sql = `select * from "Predictions" where jsonb_array_length("parseStatus") > 2 limit 1`
+    let results = await db.sequelize.query(sql, null)
+    let targetSolNum = results[0][0].solNum //?
+
+    let res = await predictionRoutes.getPredictions({filters: {"solNum": {value: targetSolNum }}}, mocks.mockAdminUser) //?
+    let {predictions: predictions} = await predictionRoutes.getPredictions({filters: {"solNum": {value: targetSolNum }}}, mocks.mockAdminUser)
+    let targetPrediction = predictions[0]
+
+    targetPrediction.solNum //?
+    let count = await predictionRoutes.invalidate(targetPrediction.solNum) //?
+
+
+    targetPrediction.solNum //?
+
+    let {predictions:updated_predictions} = await predictionRoutes.getPredictions({ rows: 1, filters: {"solNum": {value: targetPrediction.solNum, matchMode: 'equals'}} }, mocks.mockAdminUser)
+    const targetPrediction2 = updated_predictions[0] //?
+    targetPrediction2.solNum //?
+
+    targetPrediction2.date //?
+    targetPrediction2 //?
+
+    for (const attachment of targetPrediction2.parseStatus) {
+      let notice_id = attachment.notice_id
+      let notice = await Notice.findByPk(notice_id)
+      let posted_date = notice.dataValues.date
+      posted_date //?
+
+      expect( moment(attachment.postedDate).format('MM/DD/YYYY HH:mm ZZ') ).toBe(moment(posted_date).format('MM/DD/YYYY HH:mm ZZ'))
+    }
+
+  }, 30000)
+
+  test("Predictions have feedback", async () => {
+    // make sure we have feedback
+    let solNum = await test_utils.getSolNumForTesting({offset: 12}) //?
+    surveyRoutes.updateSurveyResponse(solNum, feedback)
+    predictionRoutes.updatePredictionTable()
+
+
+    let preds = await predictionRoutes.getPredictions({"solNum": solNum}, {agency:"general services administration", userRole: "Administrator"})
+    console.log(preds.predictions[0])
+    preds.predictions[0] //?
+    let ans = preds.predictions[0].feedback[0].answer //?
+    expect (ans).toBe("Maybe") //?
+
+
+  },30000)
+
 
 })

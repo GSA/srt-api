@@ -66,7 +66,7 @@ describe('Test masquerade functionality', () => {
 
   test('Masquerade fixes agency name case sensitivity',  () => {
     let role = authRoutes.roles[ authRoutes.roleKeys["508_COORDINATOR_ROLE"]].name
-    let agency = 'department of defense'
+    let agency = 'department OF defense'
     return testSession.get(`/api/user/masquerade?role=${role}&agency=${agency}`)
       .set('Authorization', `Bearer ${adminToken}`)
       .then(async res => {

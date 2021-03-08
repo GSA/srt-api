@@ -6,7 +6,8 @@ applications:
   disk_quota: 1024M
 #  health-check-type: process # don't re-enable....move to port 8080 if you have problems
   instances: 1
-  buildpack: https://github.com/cloudfoundry/nodejs-buildpack
+  buildpacks:
+    - https://github.com/cloudfoundry/nodejs-buildpack
   env:
     NODE_ENV: production
   services:

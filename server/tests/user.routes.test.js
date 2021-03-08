@@ -6,6 +6,7 @@ const User = require('../models').User
 const userRoutes = require('../routes/user.routes')
 const {common} = require('../config/config')
 const jwt = require('jsonwebtoken')
+const db = require('../models/index')
 
 let {  userAcceptedCASData } = require('./test.data')
 
@@ -141,19 +142,24 @@ describe('User API Routes', () => {
       })
   })
 
-  test('test getUserInfo', async () => {
-    return User.findAll()
-      .then(users => {
-        let id = users[0].id
-        return request(app)
-          .post('/api/user/getUserInfo')
-          .set('Authorization', `Bearer ${token}`)
-          .send({ UserID: id })
-          .then((response) => {
-            // noinspection JSUnresolvedVariable
-            expect(response.statusCode).toBe(200)
-            return expect(response.body.email).toMatch(/[a-zA-Z]+@[a-zA-Z]+\.[a-zA-Z]+/)
-          })
-      })
-  })
+    test('test getUserInfo', async () => {
+
+        sql = `select id
+               from "Users"
+               where "lastName" = 'Crowley'
+               order by id  `
+
+        let results = await db.sequelize.query(sql, null)
+        let id = results[0][0].id //?
+        let response = await request(app)
+            .post('/api/user/getUserInfo')
+            .set('Authorization', `Bearer ${token}`)
+            .send({UserID: id})
+
+        // noinspection JSUnresolvedVariable
+        expect(response.statusCode).toBe(200)
+        return expect(response.body.email).toMatch(/[^\s]+@[a-zA-Z\-]+\.[a-zA-Z]+/)
+
+
+    })
 })

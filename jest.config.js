@@ -126,13 +126,13 @@ module.exports = {
   // setupFiles: [],
 
   // The path to a module that runs some code to configure or set up the testing framework before each test
-  "setupTestFrameworkScriptFile": "jest-extended",
+  "setupFilesAfterEnv": ["jest-extended"],
 
   // A list of paths to snapshot serializer modules Jest should use for snapshot testing
   // snapshotSerializers: [],
 
   // The test environment that will be used for testing
-  testEnvironment: 'node'
+  testEnvironment: 'node',
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
@@ -145,6 +145,9 @@ module.exports = {
   //   "**/__tests__/**/*.js?(x)",
   //   "**/?(*.)+(spec|test).js?(x)"
   // ],
+   testMatch: [
+     "**/server/tests/*.test.js",
+   ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   // testPathIgnorePatterns: [
