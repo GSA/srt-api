@@ -16,9 +16,9 @@ module.exports = {
                                               where n."createdAt" not in
                                                     (select max("createdAt") as latest
                                                      from notice
-                                                     where notice.notice_type_id = 21
+                                                     where notice.notice_type_id = (select id from notice_type where notice_type = 'Award Notice')
                                                      group by solicitation_number)
-                                                and notice_type_id = 21
+                                                and notice_type_id = (select id from notice_type where notice_type = 'Award Notice')
                                           ) `
 
             const notice_sql_delete = `delete
@@ -26,19 +26,19 @@ module.exports = {
                                        where n."createdAt" not in
                                              (select max("createdAt") as latest
                                               from notice
-                                              where notice.notice_type_id = 21
+                                              where notice.notice_type_id = (select id from notice_type where notice_type = 'Award Notice')
                                               group by solicitation_number)
-                                         and notice_type_id = 21`
+                                         and notice_type_id = (select id from notice_type where notice_type = 'Award Notice')`
 
 
-            const notice_sql_log = `select solicitation_number, notice_data 
+            const notice_sql_log = `select solicitation_number, notice_data
                                     from notice n
                                     where n."createdAt" not in
                                           (select max("createdAt") as latest
                                            from notice
-                                           where notice.notice_type_id = 21
+                                           where notice.notice_type_id = (select id from notice_type where notice_type = 'Award Notice')
                                            group by solicitation_number)
-                                      and notice_type_id = 21`
+                                      and notice_type_id = (select id from notice_type where notice_type = 'Award Notice')`
 
             let rows = await db.sequelize.query(notice_sql_log)
             for (let row of rows[0]) {
