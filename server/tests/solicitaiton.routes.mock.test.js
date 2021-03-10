@@ -32,7 +32,7 @@ describe('solicitation tests',  () => {
     return app.db.close();
   })
 
-  test('Update Not Applicable', async () => {
+  test.only('Update Not Applicable', async () => {
     // let rows = await db.sequelize.query('select "solNum" from "Predictions"  where "noticeType" = \'Solicitation\' order by id desc limit 1')
     let solNum = await testUtils.getSolNumForTesting()
     expect(solNum).toBeDefined()
@@ -59,7 +59,7 @@ describe('solicitation tests',  () => {
     let p_false = await predictionRoutes.getPredictions({ rows: 1, globalFiler: solNum, atctest: 777}, user);
     expect(p_false.predictions[0].na_flag).toBe(false)
 
-  })
+  }, 300000)
 
   test('Update Not Applicable with bad sol num', async () => {
     let res = mocks.mockResponse();

@@ -191,7 +191,8 @@ module.exports = {
     "predictionCutoffDays" : 60,
     "updatePredictionTableMaxRunTime" : 10,
     "updatePredictionTableQueueDelay": 10,
-    "logPerformance": false
+    "logPerformance": false,
+    defaultMaxPredictions: 1000
   },
   development: {
     "emailFrom": "crowley+srt@tcg.com",

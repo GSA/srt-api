@@ -349,8 +349,8 @@ async function getPredictions (filter, user) {
     await updatePredictionTable()
 
     let attributes = {
-      offset: filter.first,
-      limit: filter.rows
+      offset: filter.first || 0,
+      limit: filter.rows || configuration.getConfig("defaultMaxPredictions", 1000)
     }
 
     // filter to allowed notice types
@@ -390,7 +390,7 @@ async function getPredictions (filter, user) {
     // process dates
 
     // make sure anything we return is past the date cuttoff - unless we are asking for a specific record!
-    if ( ! filter.filters.hasOwnProperty('solNum')) {
+    if ( (!filter.filters) || (! filter.filters.hasOwnProperty('solNum'))) {
       if (configuration.getConfig("minPredictionCutoffDate")) {
         attributes.where.date = {[Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
       } else if (configuration.getConfig("predictionCutoffDays")) {
