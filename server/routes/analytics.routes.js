@@ -4,6 +4,57 @@ const logger = require('../config/winston')
 const predictionRoutes = require('./prediction.routes')
 const authRoutes = require('./auth.routes')
 
+function formatDate(d) {
+  let month = '' + (d.getMonth() + 1),
+      day = '' + d.getDate(),
+      year = d.getFullYear();
+
+  if (month.length < 2)
+    month = '0' + month;
+  if (day.length < 2)
+    day = '0' + day;
+
+  return [year, month, day].join('');
+}
+
+function calcSolicitations(allSolicitations) {
+  try {
+    let stats = {
+      totalSolicitations: 0,
+      newSolicitations: 0,
+      updatedSolicitations: 0,
+      newSolicitationsByDate: {},
+      updatedSolicitationsByDate: {},
+
+    }
+    for (let sol of allSolicitations) {
+
+      // Find out the day this was posted or updates
+      let day = formatDate(sol.date)
+
+      stats.totalSolicitations++;
+
+      // find out if any of the history.action items say something like "updated on sam"
+      // sample: [{"date"....} , {"date": "03/16/2021", "user": "", "action": "Solicitation Updated on SAM","status": "" }, {"date" ... }]
+      let wasUpdated = sol.history.map(historyLine => (historyLine.action))
+          .map(historyText => (historyText.match(/updated on sam/i) ? true : false))
+          .reduce((accumulator, nextval) => { return accumulator || nextval}, false )
+
+      if (wasUpdated) {
+        stats.updatedSolicitations++;
+        stats.updatedSolicitationsByDate[day] = (!stats.updatedSolicitationsByDate[day]) ? 1 : stats.updatedSolicitationsByDate[day] + 1;
+      } else {
+        stats.newSolicitations++;
+        stats.newSolicitationsByDate[day] = (!stats.newSolicitationsByDate[day]) ? 1 : stats.newSolicitationsByDate[day] + 1;
+      }
+    }
+
+    return stats
+  } catch (e) {
+    logger.log("error", "Error calculating stats", {tag: "calcSolicitations", error: e})
+  }
+}
+
 /**
  * Defines the functions used to process the various analytics related API routes.
  */
@@ -68,8 +119,8 @@ module.exports = {
     try {
       let params = {}
 
-      let fromPeriod = req.body.fromPeriod
-      let toPeriod = req.body.toPeriod
+      let fromPeriod = req.body.fromPeriod || req.body.startDate
+      let toPeriod = req.body.toPeriod || req.body.endDate
       let agency = req.body.agency
       let date = fromPeriod.split('/')
       let from = new Date(date[2], date[0] - 1, date[1])
@@ -85,8 +136,8 @@ module.exports = {
       // in the legacy code I have from
       // _.merge(params, {"eitLikelihood.value": "Yes"});
       params.eitLikelihood = 'Yes'
-      params.fromPeriod = fromPeriod
-      params.toPeriod = toPeriod
+      params.startDate = fromPeriod
+      params.endDate = toPeriod
       params.agency = agency
       params.first = 0
       params.rows = Number.MAX_SAFE_INTEGER
@@ -346,7 +397,11 @@ module.exports = {
             }
           }
 
+
+          let solStats = calcSolicitations(result.predictions);
+
           let analytics = {
+            solStats: solStats,
             ScannedSolicitationChart:
                             {
                               scannedData: data.ScannedSolicitation

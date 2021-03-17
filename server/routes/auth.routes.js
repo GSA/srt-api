@@ -168,26 +168,25 @@ function createMAXUser(cas_data) {
  * @param cas_data
  * @return {Promise} Promise
  */
-function createOrUpdateMAXUser (cas_data) {
+async function createOrUpdateMAXUser(cas_data) {
 
-  cas_data.maxId = cas_data['max-id'] || cas_data.maxId
+  try {
+    cas_data.maxId = cas_data['max-id'] || cas_data.maxId
 
-  if (!cas_data.maxId) {
-    logger.log('error', "Trying to make a token without a MAX ID", { cas_data: cas_data, tag: 'createOrUpdateMAXUser' })
-    return false
+    if (!cas_data.maxId) {
+      logger.log('error', "Trying to make a token without a MAX ID", {cas_data: cas_data, tag: 'createOrUpdateMAXUser'})
+      return false
+    }
+    let u = await User.findOne({where: {'maxId': cas_data["maxId"]}})
+    if (u) {
+      return updateMAXUser(cas_data, u)
+    } else {
+      return createMAXUser(cas_data)
+
+    }
+  } catch (e) {
+    logger.log("error", "Error caught in create/update MAX User", {error: e, tag: "create/update MAX User"})
   }
-  return User.findOne({ where: { 'maxId': cas_data["maxId"] } })
-    .then(async u => {
-      if (u) {
-        return updateMAXUser(cas_data, u)
-      } else {
-        return createMAXUser(cas_data)
-
-      }
-    })
-    .catch( e => {
-      logger.log("error", "Error caught in create/update MAX User", {error: e, tag: "create/update MAX User"})
-    })
 }
 
 /***
