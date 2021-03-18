@@ -4,6 +4,7 @@
 const Prediction = require('../models').Prediction
 /** @type {Solicitation} **/
 const Solicitation = require('../models').Solicitation
+const SurveyResponse = require('../models').SurveyResponse
 const Notice = require('../models').notice
 const survey_routes = require('../routes/survey.routes')
 
@@ -350,7 +351,12 @@ async function getPredictions (filter, user) {
 
     let attributes = {
       offset: filter.first || 0,
-      limit: filter.rows || configuration.getConfig("defaultMaxPredictions", 1000)
+      limit: filter.rows || configuration.getConfig("defaultMaxPredictions", 1000),
+      include: [{
+        model: SurveyResponse,
+        as: 'feedback'
+      }],
+
     }
 
     // filter to allowed notice types
@@ -446,15 +452,8 @@ async function getPredictions (filter, user) {
     let count = await Prediction.findAndCountAll(attributes)
 
 
-    //Fill in the proper survey_results (aka feedback)
-    let final_predictions = []
-    for (pred of preds) {
-      let [status, feedback] = await survey_routes.getLatestSurveyResponse(pred.solNum)
-      final_predictions.push(Object.assign(pred.dataValues, {feedback: feedback.responses}))
-    }
-
     return {
-      predictions: final_predictions,
+      predictions: preds,
       first: filter.first,
       rows: Math.min(filter.rows, preds.length),
       totalCount: count.count

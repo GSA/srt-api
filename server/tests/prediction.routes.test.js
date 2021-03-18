@@ -166,6 +166,24 @@ describe('prediction tests', () => {
       })
   }, timeout)
 
+  test.only('Predictions have feedback / survey responses included', async () => {
+
+    let solNum = await test_utils.getSolNumForTesting({has_feedback: true}) //?
+    let params = {
+      solNum: solNum,
+    }
+
+    let res = mocks.mockResponse()
+    let req = mocks.mockRequest(params, {'authorization': `bearer ${token}`})
+    await predictionRoutes.predictionFilter(req, res)
+
+    let prediction = res.send.mock.calls[0][0].predictions[0]
+
+    expect(prediction.feedback).toBeArray()
+    expect(prediction.feedback.length).toBeGreaterThan(0)
+
+  })
+
   test('Empty predictions filter', () => {
     return request(app)
       .post('/api/predictions/filter')
