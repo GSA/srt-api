@@ -434,7 +434,7 @@ async function getPredictions (filter, user) {
       // double check they aren't asking for data from before the cutoff
       const start = Date.parse(filter.startDate)
       const cutoff = Date.parse(configuration.getConfig("minPredictionCutoffDate", '1990-01-01'))
-      configuration.getConfig("minPredictionCutoffDate") //?
+      configuration.getConfig("minPredictionCutoffDate")
       if (start > cutoff) {
         attributes.where.date = { [Op.gt]: filter.startDate }
       }

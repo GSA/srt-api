@@ -17,54 +17,10 @@ function formatDate(d) {
   return [year, month, day].join('');
 }
 
-function calcSolicitations(allSolicitations) {
-  try {
-    let stats = {
-      totalSolicitations: 0,
-      newSolicitations: 0,
-      updatedSolicitations: 0,
-      newSolicitationsByDate: {},
-      updatedSolicitationsByDate: {},
-
-    }
-    for (let sol of allSolicitations) {
-
-      // Find out the day this was posted or updates
-      let day = formatDate(sol.date)
-
-      stats.totalSolicitations++;
-
-      // find out if any of the history.action items say something like "updated on sam"
-      // sample: [{"date"....} , {"date": "03/16/2021", "user": "", "action": "Solicitation Updated on SAM","status": "" }, {"date" ... }]
-      let wasUpdated = sol.history.map(historyLine => (historyLine.action))
-          .map(historyText => (historyText.match(/updated on sam/i) ? true : false))
-          .reduce((accumulator, nextval) => { return accumulator || nextval}, false )
-
-      if (wasUpdated) {
-        stats.updatedSolicitations++;
-        stats.updatedSolicitationsByDate[day] = (!stats.updatedSolicitationsByDate[day]) ? 1 : stats.updatedSolicitationsByDate[day] + 1;
-      } else {
-        stats.newSolicitations++;
-        stats.newSolicitationsByDate[day] = (!stats.newSolicitationsByDate[day]) ? 1 : stats.newSolicitationsByDate[day] + 1;
-      }
-    }
-
-    return stats
-  } catch (e) {
-    logger.log("error", "Error calculating stats", {tag: "calcSolicitations", error: e})
-  }
-}
-
-/**
- * Defines the functions used to process the various analytics related API routes.
- */
-module.exports = {
-
 /**
  *
  * Calculates total, new, and updated solicitaiton stats for the provided array of solicitations
- * If you have more solicitaitons than you can process at once, you can call with an existing stats object and
- * the function will build on top of that.
+ *
  *
  * @param allSolicitations
  * @param stats - Allows for pre-filled stats that will be added onto so we can process large datasets in chunks
@@ -90,15 +46,25 @@ function calcSolicitations(allSolicitations, stats = undefined) {
 
       // find out if any of the history.action items say something like "updated on sam"
       // sample: [{"date"....} , {"date": "03/16/2021", "user": "", "action": "Solicitation Updated on SAM","status": "" }, {"date" ... }]
-      let wasUpdated = sol.history.map(historyLine => (historyLine.action))
-          .map(historyText => (historyText.match(/updated on sam/i) ? true : false))
-          .reduce((accumulator, nextval) => { return accumulator || nextval}, false )
+      // let lastUpdate = sol.history.map(historyLine => (historyLine.action))
+      //     .map(historyText => (historyText.match(/updated on sam/i)))
+      //     .reduce((accumulator, nextval) => { return accumulator || nextval}, false )
 
-      let fromPeriod = req.body.fromPeriod || req.body.startDate
-      let toPeriod = req.body.toPeriod || req.body.endDate
-      let agency = req.body.agency
-      let date = fromPeriod.split('/')
-      let from = new Date(date[2], date[0] - 1, date[1])
+      let updatedDateArray =
+        sol.history.filter( historyLine => (historyLine.action.match(/updated on /i)))
+          .map( historyLine => (historyLine.date) )
+
+      stats.newSolicitations++
+      stats.newSolicitationsByDate[day] = (!stats.newSolicitationsByDate[day]) ? 1 : stats.newSolicitationsByDate[day] + 1
+
+      for (let d of updatedDateArray) {
+        // d is in the format mm/dd/yyyy, so reorganize it to be yyyymmdd
+        day = d.substring(6,10) + d.substring(0,2) + d.substring(3,5)
+        stats.updatedSolicitations++
+        stats.updatedSolicitationsByDate[day] = (!stats.updatedSolicitationsByDate[day]) ? 1 : stats.updatedSolicitationsByDate[day] + 1
+      }
+
+    }
 
     return stats
   } catch (e) {
@@ -107,18 +73,24 @@ function calcSolicitations(allSolicitations, stats = undefined) {
 }
 
 
-      // this code fails for me.... merge doesn't seem to be a function in underscore.js
-      // not sure what's going on here since params is always an empty array at this point
-      // in the legacy code I have from
-      // _.merge(params, {"eitLikelihood.value": "Yes"});
-      params.eitLikelihood = 'Yes'
-      params.startDate = fromPeriod
-      params.endDate = toPeriod
-      params.agency = agency
-      params.first = 0
-      params.rows = Number.MAX_SAFE_INTEGER
-      params.sortField = 'unsorted' // set to unsorted so we get all results at once.
-      let user = authRoutes.userInfoFromReq(req)
+/***
+ *
+ * params must include :
+ *   from - Date object - default 1/1/2000
+ *   to - Date object - default 2/2/2222
+ *   agency - Use Government-wide to match everything - default to the user's agency
+ *
+ *
+ * @param params
+ * @param user
+ * @returns {Promise<boolean|{solStats: {newSolicitations: number, newSolicitationsByDate: {}, totalSolicitations: number, updatedSolicitationsByDate: {}, updatedSolicitations: number}, TopAgenciesChart: {topAgencies: {}}, ComplianceRateChart: {determinedICT, compliance: number}, UndeterminedSolicitationChart: {latestNonMachineReadable: number, presolicitation: number, latestNoDocument: number, latestOtherUndetermined: number}, ConversionRateChart: {uncompliance: number, updatedCompliantICT: number}, TopSRTActionChart: {updatedNonCompliantICT: number, determinedICT, review: number, uncompliance: number, updatedCompliantICT: number, updatedICT, email: number}, ScannedSolicitationChart: {scannedData: {}}, PredictResultChart: {compliance: number, uncompliance: number}, MachineReadableChart: {machineUnreadable: number, machineReadable: number}}>}
+ */
+async function computeAnalytics (params, user) {
+  try {
+    // set some defaults
+    let from =   ( params.from ) ? params.from : new Date(2000,1,1)
+    let to = ( params.to ) ? params.to : new Date(2222,2,2)
+    let agency = ( params.agency) ? params.agency : user.agency
 
 
     let result = await predictionRoutes.getPredictions(params, user);
@@ -384,56 +356,56 @@ function calcSolicitations(allSolicitations, stats = undefined) {
     }
 
 
-          let solStats = calcSolicitations(result.predictions);
+    let solStats = calcSolicitations(result.predictions);
 
-          let analytics = {
-            solStats: solStats,
-            ScannedSolicitationChart:
-                            {
-                              scannedData: data.ScannedSolicitation
-                            },
-            MachineReadableChart:
-                            {
-                              machineReadable: data.LatestMachineReadableDocument,
-                              machineUnreadable: data.LatestMachineUnreadableDocument
-                            },
-            ComplianceRateChart:
-                            {
-                              compliance: data.FilteredComplianceSolicitation,
-                              determinedICT: data.FilteredComplianceSolicitation + data.FilteredNonComplianceSolicitation
-                            },
-            ConversionRateChart:
-                            {
-                              updatedCompliantICT: data.LatestUpdateCompliance,
-                              uncompliance: data.FilteredNonComplianceSolicitation
-                            },
-            TopSRTActionChart:
-                            {
-                              determinedICT: data.FilteredComplianceSolicitation + data.FilteredNonComplianceSolicitation,
-                              uncompliance: data.FilteredNonComplianceSolicitation,
-                              review: data.LatestReview,
-                              email: data.LatestEmail,
-                              updatedICT: data.LatestUpdateCompliance + data.LatestUpdateNonCompliance,
-                              updatedCompliantICT: data.LatestUpdateCompliance,
-                              updatedNonCompliantICT: data.LatestUpdateNonCompliance
-                            },
-            TopAgenciesChart:
-                            {
-                              topAgencies: data.topAgencies
-                            },
-            PredictResultChart:
-                            {
-                              compliance: data.LatestComplianceSolicitation,
-                              uncompliance: data.LatestNonComplianceSolicitation
-                            },
-            UndeterminedSolicitationChart:
-                            {
-                              presolicitation: data.LatestPresolicitation,
-                              latestOtherUndetermined: data.LatestOtherUndeterminedSolicitation,
-                              latestNonMachineReadable: data.LatestMachineUnreadableSolicitation_RED,
-                              latestNoDocument: data.LatestNoDocumentSolicitation
-                            }
-          }
+    let analytics = {
+      solStats: solStats,
+      ScannedSolicitationChart:
+        {
+          scannedData: data.ScannedSolicitation
+        },
+      MachineReadableChart:
+        {
+          machineReadable: data.LatestMachineReadableDocument,
+          machineUnreadable: data.LatestMachineUnreadableDocument
+        },
+      ComplianceRateChart:
+        {
+          compliance: data.FilteredComplianceSolicitation,
+          determinedICT: data.FilteredComplianceSolicitation + data.FilteredNonComplianceSolicitation
+        },
+      ConversionRateChart:
+        {
+          updatedCompliantICT: data.LatestUpdateCompliance,
+          uncompliance: data.FilteredNonComplianceSolicitation
+        },
+      TopSRTActionChart:
+        {
+          determinedICT: data.FilteredComplianceSolicitation + data.FilteredNonComplianceSolicitation,
+          uncompliance: data.FilteredNonComplianceSolicitation,
+          review: data.LatestReview,
+          email: data.LatestEmail,
+          updatedICT: data.LatestUpdateCompliance + data.LatestUpdateNonCompliance,
+          updatedCompliantICT: data.LatestUpdateCompliance,
+          updatedNonCompliantICT: data.LatestUpdateNonCompliance
+        },
+      TopAgenciesChart:
+        {
+          topAgencies: data.topAgencies
+        },
+      PredictResultChart:
+        {
+          compliance: data.LatestComplianceSolicitation,
+          uncompliance: data.LatestNonComplianceSolicitation
+        },
+      UndeterminedSolicitationChart:
+        {
+          presolicitation: data.LatestPresolicitation,
+          latestOtherUndetermined: data.LatestOtherUndeterminedSolicitation,
+          latestNonMachineReadable: data.LatestMachineUnreadableSolicitation_RED,
+          latestNoDocument: data.LatestNoDocumentSolicitation
+        }
+    }
 
     return analytics
   } catch(e) {
@@ -524,12 +496,10 @@ module.exports = {
       let to = new Date(date[2], date[0] - 1, date[1])
 
       params.agency = agency
-      params.from = from //?
-      params.to = to //?
+      params.from = from
+      params.to = to
       // params.agency = agency
       let user = authRoutes.userInfoFromReq(req)
-
-      user.agency //?
 
       let analytics = await computeAnalytics(params, user)
 

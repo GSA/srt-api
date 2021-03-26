@@ -187,6 +187,8 @@ module.exports = function (db, cas) {
   app.get('/api/reports/login', token(), admin_only(), adminReportRoutes.userLogin)
   app.get('/api/reports/feedback', token(), admin_only(), adminReportRoutes.feedback)
   app.get('/api/reports/solicitationDownloads', token(), admin_only(), adminReportRoutes.solicitationDownloads)
+  app.get('/api/reports/predictionMetrics', token(), admin_only(), adminReportRoutes.predictionReport)
+  app.get('/api/reports/noticeTypeChangeReport', token(), admin_only(), adminReportRoutes.noticeTypeChangeReport)
 
 
 

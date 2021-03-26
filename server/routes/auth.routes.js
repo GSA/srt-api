@@ -433,7 +433,7 @@ module.exports = {
     let responseJson = await tokenJsonFromCasInfo(req.session.cas_userinfo, common.jwtSecret)
     let location = `${config['srtClientUrl']}/auth?token=${responseJson}`
 
-    let rollList = roles.map( (x) => x.name) //?
+    let rollList = roles.map( (x) => x.name)
     let decoded_user_role = JSON.parse(responseJson).userRole
     if ( ! rollList.includes(decoded_user_role)) {
       logger.log('info', req.session.cas_userinfo['email-address'] + ' does not have a SRT role. Rejecting', {responseJson: responseJson, tag: 'casStage2'})

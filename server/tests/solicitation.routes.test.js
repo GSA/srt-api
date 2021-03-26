@@ -204,9 +204,7 @@ describe('solicitation tests', () => {
 
   test('get solicitation feedback (using POST of all things because that is how the UI is coded', async () => {
     let app = require('../app')()
-      const solNum = await testUtils.getSolNumForTesting({has_feedback: true})  //?
-      solNum //?
-
+      const solNum = await testUtils.getSolNumForTesting({has_feedback: true})
 
       return request(app)
           .post('/api/feedback')
@@ -260,10 +258,10 @@ describe('solicitation tests', () => {
 
 
     test('Test attachment filenames', async () => {
-        let solNum = await testUtils.getSolNumForTesting({"attachment_count": 3}) //?
+        let solNum = await testUtils.getSolNumForTesting({"attachment_count": 3})
         let files = await db.sequelize.query(`select filename from attachment join notice n on attachment.notice_id = n.id where solicitation_number = '${solNum}'`)
         let rows = await db.sequelize.query(`select id from notice where solicitation_number = '${solNum}' limit 1`)
-        let noticeId = rows[0][0].id //?
+        let noticeId = rows[0][0].id
         let res = await request(app)
             .get('/api/solicitation/' + noticeId)
             .set('Authorization', `Bearer ${token}`)

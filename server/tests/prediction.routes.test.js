@@ -168,7 +168,7 @@ describe('prediction tests', () => {
 
   test('Predictions have feedback / survey responses included', async () => {
 
-    let solNum = await test_utils.getSolNumForTesting({has_feedback: true}) //?
+    let solNum = await test_utils.getSolNumForTesting({has_feedback: true})
     let params = {
       solNum: solNum,
     }
@@ -325,7 +325,6 @@ describe('prediction tests', () => {
 
   test('Filter predictions on solicitation number', async () => {
     let solNum = await test_utils.getSolNumForTesting()
-    solNum //?
 
 
     expect(solNum).toBeDefined()
@@ -392,14 +391,12 @@ describe('prediction tests', () => {
     let month = date.getMonth() + 1
     let day = date.getDate()
     let dayPlus = day + 2  // account for rounding on the db side might
-    let start = `${month}/${day}/${year}` //?
-    let end = `${month}/${dayPlus}/${year}` //?
+    let start = `${month}/${day}/${year}`
+    let end = `${month}/${dayPlus}/${year}`
     let startBound = new Date(rows[0][0].date)
     let endBound = new Date(rows[0][0].date)
-    startBound.setDate( startBound.getDate() - 1) //?
-    endBound.setDate(endBound.getDate() + 2) //?
-    startBound //?
-    endBound //?
+    startBound.setDate( startBound.getDate() - 1)
+    endBound.setDate(endBound.getDate() + 2)
 
     let res = await request(app)
       .post('/api/predictions/filter')
@@ -414,8 +411,8 @@ describe('prediction tests', () => {
     for (let i = 0; i < res.body.predictions.length; i++) {
       console.log("*****")
       console.log (res.body.predictions[i].date)
-      res.body.predictions[i].date //?
-      new Date(res.body.predictions[i].date) //?
+      res.body.predictions[i].date
+      new Date(res.body.predictions[i].date)
       expect(new Date(res.body.predictions[i].date) > startBound).toBeTruthy() // don't forget months are 0 indexed!
       expect(new Date(res.body.predictions[i].date) < endBound).toBeTruthy()
     }
@@ -795,10 +792,10 @@ describe('prediction tests', () => {
 
   test("paging no duplicates", async () => {
 
-    for (const field of ['agency', 'date', 'solNum']) {
+    for (const field of [/*'agency',*/ 'date', 'solNum']) {
       let order1 = await predictionRoutes.getPredictions({ first: 0, rows: 50, sortField: field }, mocks.mockAdminUser)
       expect(order1.predictions[0]).toBeTruthy()
-      for (let i = 0; i < 50; i += 10) {
+      for (let i = 0; i < 50; i += 30) {
         let order = await predictionRoutes.getPredictions({ first: i, rows: 7, sortField: field }, mocks.mockAdminUser)
 
         // check that first = x is the same as the xth item when starting at 0
@@ -967,7 +964,7 @@ describe('prediction tests', () => {
     // pick a date in the middle of the two extremes
     let middle = new Date(0)
     middle.setUTCSeconds( ((oldest + newest) / 2) / 1000 )
-    process.env.minPredictionCutoffDate = middle.toISOString() //?
+    process.env.minPredictionCutoffDate = middle.toISOString()
 
     console.log (process.env.minPredictionCutoffDate)
 
@@ -1017,24 +1014,16 @@ describe('prediction tests', () => {
 
     let sql = `select * from "Predictions" where jsonb_array_length("parseStatus") > 2 limit 1`
     let results = await db.sequelize.query(sql, null)
-    let targetSolNum = results[0][0].solNum //?
+    let targetSolNum = results[0][0].solNum
 
-    let res = await predictionRoutes.getPredictions({filters: {"solNum": {value: targetSolNum }}}, mocks.mockAdminUser) //?
+    let res = await predictionRoutes.getPredictions({filters: {"solNum": {value: targetSolNum }}}, mocks.mockAdminUser)
     let {predictions: predictions} = await predictionRoutes.getPredictions({filters: {"solNum": {value: targetSolNum }}}, mocks.mockAdminUser)
     let targetPrediction = predictions[0]
 
-    targetPrediction.solNum //?
-    let count = await predictionRoutes.invalidate(targetPrediction.solNum) //?
-
-
-    targetPrediction.solNum //?
+    let count = await predictionRoutes.invalidate(targetPrediction.solNum)
 
     let {predictions:updated_predictions} = await predictionRoutes.getPredictions({ rows: 1, filters: {"solNum": {value: targetPrediction.solNum, matchMode: 'equals'}} }, mocks.mockAdminUser)
     const targetPrediction2 = updated_predictions[0] //?
-    targetPrediction2.solNum //?
-
-    targetPrediction2.date //?
-    targetPrediction2 //?
 
     for (const attachment of targetPrediction2.parseStatus) {
       let notice_id = attachment.notice_id
@@ -1047,19 +1036,18 @@ describe('prediction tests', () => {
 
   }, 30000)
 
-  test.only("Predictions have feedback", async () => {
+  test("Predictions have feedback", async () => {
     // make sure we have feedback
-    let solNum = await test_utils.getSolNumForTesting({offset: 12}) //?
+    let solNum = await test_utils.getSolNumForTesting({offset: 12})
     surveyRoutes.updateSurveyResponse(solNum, feedback)
     predictionRoutes.updatePredictionTable()
 
 
     let preds = await predictionRoutes.getPredictions({"solNum": solNum}, {agency:"general services administration", userRole: "Administrator"})
     console.log(preds.predictions[0])
-    preds.predictions[0] //?
-    let ans = preds.predictions[0].feedback[0].response[0].answer //?
-    expect (ans).toBe("Maybe") //?
-
+    preds.predictions[0]
+    let ans = preds.predictions[0].feedback[0].response[0].answer
+    expect (ans).toBe("Maybe")
 
   },30000)
 

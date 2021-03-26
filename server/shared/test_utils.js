@@ -54,7 +54,6 @@ module.exports = {
             return rows[0][0].solNum
         } catch (e) {
             e //?
-            e.sql //?
             return null
         }
     }

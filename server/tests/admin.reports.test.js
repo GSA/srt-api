@@ -133,7 +133,7 @@ describe('Tests for admin reports and charts', () => {
     let req = mocks.mockRequest({}, {'authorization': `bearer: ${token}`})
 
     await adminReportRoutes.solicitationDownloads(req, res)
-    let report = res.send.mock.calls[0][0] //?
+    let report = res.send.mock.calls[0][0]
 
     expect(typeof(report)).toBe('object')
     expect(report.newSolicitations).toBeGreaterThan(10)
@@ -143,25 +143,76 @@ describe('Tests for admin reports and charts', () => {
     expect(Object.keys(report.newSolicitationsByDate).length).toBeGreaterThan(1)
     expect(Object.keys(report.updatedSolicitationsByDate).length).toBeGreaterThan(1)
 
-  })
+  }, 60000)
 
 
-  test.only('solicitationDownloads CSV Download', async () => {
+  test('solicitationDownloads CSV Download', async () => {
 
     let res = mocks.mockResponse()
     let req = mocks.mockRequest({}, {'authorization': `bearer: ${token}`}, {'format': 'csv'})
 
     await adminReportRoutes.solicitationDownloads(req, res)
-    let report = res.send.mock.calls[0][0] //?
+    let report = res.send.mock.calls[0][0]
 
     expect(typeof(report)).toBe('string')
-    let lines = report.split('\n')//?
+    let lines = report.split('\n')
     let headers = lines[0].split(',')
     expect(Array.isArray(headers)).toBeTrue()
     expect(headers[0]).toMatch(/date/i)
     expect(headers[1]).toMatch(/new/i)
     expect(headers[2]).toMatch(/update/i)
     expect(lines.length).toBeGreaterThan(2)
+    let cell_2_0 = lines[2].split(",")[0]
+    expect(cell_2_0).toMatch(/\d\d-\d\d-\d\d\d\d/)
+
+  }, 60000)
+
+  test('predictionReport CSV Download', async () => {
+    let res = mocks.mockResponse()
+    let req = mocks.mockRequest({}, {'authorization': `bearer: ${token}`}, {'format': 'csv'})
+    await adminReportRoutes.predictionReport(req, res)
+
+    let report = res.send.mock.calls[0][0]
+
+    expect(typeof(report)).toBe('string')
+    let lines = report.split('\n')
+    let headers = lines[0].split(',')
+    expect(Array.isArray(headers)).toBeTrue()
+    expect(headers[0]).toMatch(/date/i)
+    expect(headers[1]).toMatch(/total for day/i)
+    expect(headers[2]).toMatch(/compliant all agencies/i)
+    expect(headers[3]).toMatch(/non-compliant all agencies/i)
+    expect(headers[4]).toMatch(/not applicable all agencies/i)
+
+    expect(lines[0]).toMatch(/Department of Defense compliant/i)
+    expect(lines[0]).toMatch(/Department of Defense non-compliant/i)
+    expect(lines[0]).toMatch(/Department of Defense not applicable/i)
+    expect(lines.length).toBeGreaterThan(2)
+    let cell_2_0 = lines[2].split(",")[0]
+    expect(cell_2_0).toMatch(/\d\d?.\d\d?.\d\d\d\d/)
+
+    expect(lines.length).toBeGreaterThan(10)
+
+  }, 60000)
+
+  test('noticeTypeChangeReport CSV Download', async () => {
+    let res = mocks.mockResponse()
+    let req = mocks.mockRequest({}, {'authorization': `bearer: ${token}`}, {'format': 'csv'})
+    await adminReportRoutes.noticeTypeChangeReport(req, res)
+
+    let report = res.send.mock.calls[0][0]
+
+    expect(typeof(report)).toBe('string')
+    let lines = report.split('\n')
+    let headers = lines[0].split(',')
+    expect(Array.isArray(headers)).toBeTrue()
+    expect(headers[0]).toMatch(/date/i)
+    expect(headers[1]).toMatch(/total for day/i)
+    expect(lines[0]).toMatch(/department/i);
+    expect(lines.length).toBeGreaterThan(10)
+
+    let cell_2_0 = lines[2].split(",")[0]
+    expect(cell_2_0).toMatch(/\d\d?.\d\d?.\d\d\d\d/)
 
   }, 60000)
 
