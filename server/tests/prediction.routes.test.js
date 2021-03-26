@@ -166,7 +166,7 @@ describe('prediction tests', () => {
       })
   }, timeout)
 
-  test.only('Predictions have feedback / survey responses included', async () => {
+  test('Predictions have feedback / survey responses included', async () => {
 
     let solNum = await test_utils.getSolNumForTesting({has_feedback: true}) //?
     let params = {
@@ -1047,7 +1047,7 @@ describe('prediction tests', () => {
 
   }, 30000)
 
-  test("Predictions have feedback", async () => {
+  test.only("Predictions have feedback", async () => {
     // make sure we have feedback
     let solNum = await test_utils.getSolNumForTesting({offset: 12}) //?
     surveyRoutes.updateSurveyResponse(solNum, feedback)
@@ -1057,7 +1057,7 @@ describe('prediction tests', () => {
     let preds = await predictionRoutes.getPredictions({"solNum": solNum}, {agency:"general services administration", userRole: "Administrator"})
     console.log(preds.predictions[0])
     preds.predictions[0] //?
-    let ans = preds.predictions[0].feedback[0].answer //?
+    let ans = preds.predictions[0].feedback[0].response[0].answer //?
     expect (ans).toBe("Maybe") //?
 
 

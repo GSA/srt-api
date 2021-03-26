@@ -50,7 +50,7 @@ describe('Analytics routes tests', () => {
         return User.destroy({where: {firstName: 'adminCheck-beforeAllUser'}})
     })
 
-    test.only('analytics', async () => {
+    test('analytics', async () => {
 
         adminUser = Object.assign({}, adminCASData)
         adminUser.firstName = 'adminCheck-beforeAllUser'

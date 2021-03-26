@@ -335,6 +335,24 @@ function normalizeMatchFilter(filter, field){
 /**
  * Returns all predictions that match the given filter
  *
+ *  * filter format:
+ *   {
+ *     first - offset to the first record to return
+ *     rows - number of rows to return
+ *     globalFilter - free text search
+ *     filters - object describing the filters:
+ *       {
+ *         agency -
+ *         solNum -
+ *         startDate -
+ *         endDate -
+ *         sortField
+ *         sortOrder
+ *       }
+ *     ignoreDateCutoff - if set to true, don't enforce the date cuttoff. Allows reporting on historical date
+ *   }
+
+ *
  * @param {PredictionFilter} filter Return predictions that match the given filter
  * @return {Promise<Array(Prediction)>} All predictions that match the filter
  */
@@ -396,15 +414,17 @@ async function getPredictions (filter, user) {
     // process dates
 
     // make sure anything we return is past the date cuttoff - unless we are asking for a specific record!
-    if ( (!filter.filters) || (! filter.filters.hasOwnProperty('solNum'))) {
-      if (configuration.getConfig("minPredictionCutoffDate")) {
-        attributes.where.date = {[Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
-      } else if (configuration.getConfig("predictionCutoffDays")) {
-        const numDays = configuration.getConfig("predictionCutoffDays")
-        const today = new Date()
-        let cutoff = new Date()
-        cutoff.setDate(today.getDate() - numDays)
-        attributes.where.date = {[Op.gt]: cutoff}
+    if ( ! filter.ignoreDateCutoff) {
+      if ((!filter.filters) || (!filter.filters.hasOwnProperty('solNum'))) {
+        if (configuration.getConfig("minPredictionCutoffDate")) {
+          attributes.where.date = {[Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
+        } else if (configuration.getConfig("predictionCutoffDays")) {
+          const numDays = configuration.getConfig("predictionCutoffDays")
+          const today = new Date()
+          let cutoff = new Date()
+          cutoff.setDate(today.getDate() - numDays)
+          attributes.where.date = {[Op.gt]: cutoff}
+        }
       }
     }
 

@@ -25,7 +25,7 @@ describe('Tests for admin reports and charts', () => {
   test('daily login report', async () => {
 
     let res = mocks.mockResponse()
-    let req = mocks.mockRequest({}, { 'authorization': token })
+    let req = mocks.mockRequest({}, { 'authorization': `bearer: ${token}` })
 
     let id = 112233
     let email = 'test@test.com'
@@ -69,7 +69,7 @@ describe('Tests for admin reports and charts', () => {
   test('user login report', async () => {
 
     let res = mocks.mockResponse()
-    let req = mocks.mockRequest({}, { 'authorization': token })
+    let req = mocks.mockRequest({}, { 'authorization': `bearer: ${token}` })
 
     let id = 112233
     let email = 'test@test.com'
@@ -93,11 +93,10 @@ describe('Tests for admin reports and charts', () => {
 
   })
 
-
   test('feedback report', async () => {
     
     let res = mocks.mockResponse()
-    let req = mocks.mockRequest({}, { 'authorization': token })
+    let req = mocks.mockRequest({}, { 'authorization': `bearer: ${token}` })
 
     await adminReportRoutes.feedback(req,res)
     let report = res.send.mock.calls[0][0]
@@ -127,6 +126,44 @@ describe('Tests for admin reports and charts', () => {
 
 
   })
+
+  test('solicitationDownloads route', async () => {
+
+    let res = mocks.mockResponse()
+    let req = mocks.mockRequest({}, {'authorization': `bearer: ${token}`})
+
+    await adminReportRoutes.solicitationDownloads(req, res)
+    let report = res.send.mock.calls[0][0] //?
+
+    expect(typeof(report)).toBe('object')
+    expect(report.newSolicitations).toBeGreaterThan(10)
+    expect(report.updatedSolicitations).toBeGreaterThan(10)
+    expect(typeof(report.newSolicitationsByDate)).toBe('object')
+    expect(typeof(report.updatedSolicitationsByDate)).toBe('object')
+    expect(Object.keys(report.newSolicitationsByDate).length).toBeGreaterThan(1)
+    expect(Object.keys(report.updatedSolicitationsByDate).length).toBeGreaterThan(1)
+
+  })
+
+
+  test.only('solicitationDownloads CSV Download', async () => {
+
+    let res = mocks.mockResponse()
+    let req = mocks.mockRequest({}, {'authorization': `bearer: ${token}`}, {'format': 'csv'})
+
+    await adminReportRoutes.solicitationDownloads(req, res)
+    let report = res.send.mock.calls[0][0] //?
+
+    expect(typeof(report)).toBe('string')
+    let lines = report.split('\n')//?
+    let headers = lines[0].split(',')
+    expect(Array.isArray(headers)).toBeTrue()
+    expect(headers[0]).toMatch(/date/i)
+    expect(headers[1]).toMatch(/new/i)
+    expect(headers[2]).toMatch(/update/i)
+    expect(lines.length).toBeGreaterThan(2)
+
+  }, 60000)
 
 
 })

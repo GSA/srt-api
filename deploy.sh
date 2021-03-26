@@ -202,22 +202,6 @@ function help() {
     echo ""
 }
 
-function switch_space() {
-    log "Switching to space ${SPACE} on cloud.gov"
-    log "Executing: ${CF_CLI} target -s ${SPACE}"
-    ${CF_CLI} target -s ${SPACE}
-    RESULT=${PIPESTATUS[0]}
-    if [[ "${RESULT}" -ne "0" ]]; then
-        echo "" | tee  -a ${LOG_FILE}
-        echo "" | tee  -a ${LOG_FILE}
-        echo "CLOUD.GOV CLI COMMAND FAILED WITH EXIT CODE ${RESULT}." | tee  -a ${LOG_FILE}
-        echo "" | tee  -a ${LOG_FILE}
-        echo "If you are not logged into cloud.gov use the command:" | tee  -a ${LOG_FILE}
-        echo "cf login -u [email] -o gsa-ogp-srt -a api.fr.cloud.gov --sso" | tee  -a ${LOG_FILE}
-        echo "" | tee  -a ${LOG_FILE}
-        exit
-    fi
-}
 
 function setup_repositories() {
     changedir ${TEMP_DIR}

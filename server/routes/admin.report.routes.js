@@ -3,6 +3,53 @@ const db = require('../models/index')
 const {getConfig} = require('../config/configuration')
 const moment = require('moment')
 const logger = require('../config/winston')
+const analyticsRoutes = require('../routes/analytics.routes')
+const predictionRoutes = require('./prediction.routes')
+const authRoutes = require('./auth.routes')
+const json2cvs = require('json2csv')
+
+
+function sendSolicitationDownloadsCSV(solStats, res) {
+  const dateHeader = 'Date'
+  const newHeader = 'Newly Added Solicitations'
+  const updateHeader = 'Updated Solicitations'
+
+  const solStatsOrganizedForCSV = []
+  const bothByDate = {}
+  for (key of Object.keys(solStats.newSolicitationsByDate)) {
+    bothByDate[key] = {}
+    bothByDate[key][newHeader] = solStats.newSolicitationsByDate[key]
+    bothByDate[key][updateHeader] =  0
+  }
+  for (key of Object.keys(solStats.updatedSolicitationsByDate)) {
+    if (key in bothByDate) {
+      bothByDate[key][updateHeader] = solStats.updatedSolicitationsByDate[key]
+    } else {
+      bothByDate[key] = {}
+      bothByDate[key][updateHeader] = solStats.updatedSolicitationsByDate[key]
+      bothByDate[key][newHeader] = 0
+    }
+  }
+
+  for (key of Object.keys(bothByDate)) {
+    const row = {}
+    row[dateHeader] = key
+    row[newHeader] = bothByDate[key][newHeader]
+    row[updateHeader] = bothByDate[key][updateHeader]
+    solStatsOrganizedForCSV.push(row)
+  }
+
+  const parser = new json2cvs.Parser({fields: [dateHeader, newHeader, updateHeader]})
+  const csv_data = parser.parse(solStatsOrganizedForCSV) //?
+
+
+
+  res.header('Content-Type', 'text/csv')
+  res.attachment("solicitation-report.csv")
+  res.status(200)
+  return res.send(csv_data)
+
+}
 
 module.exports = {
 
@@ -83,7 +130,43 @@ module.exports = {
       e.message //?
       return res.status(500).send({})
     }
-  }
+  },
 
+  /*
+  Gathers the solicitation download  data and returns it as an array or CSV
+   */
+  solicitationDownloads : async function (req, res) {
+    try {
+      let user = authRoutes.userInfoFromReq(req) //?
+
+      let solStats = undefined
+      let first = 0
+      let rows = 1000
+      while (true) {
+        let result = await predictionRoutes.getPredictions({'first': first, 'rows': rows, 'ignoreDateCutoff': true}, user);
+        solStats = await analyticsRoutes.calcSolicitations(result.predictions, solStats)
+        logger.log("info", `Running solicitation download report, asking for ${rows} solicitations with offset ${first}. We got ${result.rows} Total solicitations in report is ${result.totalCount} `)
+        if (result.rows == 0) {
+          break;
+        }
+        first += result.rows
+      }
+
+      if (req.query.format && req.query.format.toLocaleLowerCase()== 'csv') {
+        return sendSolicitationDownloadsCSV(solStats, res)
+      } else {
+        return res.status(200).send(solStats)
+      }
+
+
+
+    } catch (e) {
+      logger.log("error", "Error running solicitation download report", {tag: "solicitationDownloads report", "error-message": e.message, err:e } )
+      e.message //?
+      return res.status(500).send({})
+    }
+
+
+  }
 
 }
