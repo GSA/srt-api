@@ -180,7 +180,7 @@ describe('prediction tests', () => {
     let prediction = res.send.mock.calls[0][0].predictions[0]
 
     expect(prediction.feedback).toBeArray()
-    expect(prediction.feedback.length).toBeGreaterThan(0)
+    expect(prediction.feedback[0].response.length).toBeGreaterThan(0)
 
   })
 

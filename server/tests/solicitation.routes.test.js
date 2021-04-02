@@ -99,7 +99,8 @@ describe('solicitation tests', () => {
               'actionStatus': 'reviewed solicitation action requested summary',
               'actionDate': actionDate,
               'history': history,
-              'feedback': feedback
+              'feedback': feedback,
+              'newFeedbackSubmission': true
             }
           )
           .then((res) => {
