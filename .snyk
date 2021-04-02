@@ -38,7 +38,17 @@ ignore:
   SNYK-JS-Y18N-1021887:
     - sequelize-cli > yargs > y18n:
         reason: waiting for patch
-        expires: '2021-03-28T02:26:12.800Z'
+        expires: '2021-05-02T17:53:53.768Z'
+  SNYK-JS-COLORSTRING-1082939:
+    - '@albertcrowley/winston-pg-native > abstract-winston-transport > diagnostics > colorspace > color > color-string':
+        reason: None given
+        expires: '2021-05-02T17:51:02.457Z'
+    - '@albertcrowley/winston-pg-native > winston > @dabh/diagnostics > colorspace > color > color-string':
+        reason: None given
+        expires: '2021-05-02T17:51:02.457Z'
+    - winston > @dabh/diagnostics > colorspace > color > color-string:
+        reason: None given
+        expires: '2021-05-02T17:53:53.768Z'
 # patches apply the minimum changes required to fix a vulnerability
 patch:
   SNYK-JS-LODASH-567746:

@@ -67,7 +67,7 @@
     "nodemon": "^2.0.7",
     "random-words": "^1.1.1",
     "sinon": "^7.5.0",
-    "snyk": "^1.466.0",
+    "snyk": "^1.521.0",
     "supertest": "^4.0.2",
     "supertest-session": "^4.1.0"
   },
