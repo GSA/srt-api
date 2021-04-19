@@ -124,7 +124,7 @@ module.exports = {
    *
    */
   get: async (req, res) => {
-      let solNum = req.params.solNum || req.body.solNum.toString() //?
+      let solNum = req.params.solNum || req.body.solNum.toString()
       let [statusCode, send] = await getLatestSurveyResponse(solNum)
       return res.status(statusCode).send(send)
   },
@@ -139,11 +139,11 @@ module.exports = {
    */
   postResponse: async (req, res) => {
     try {
-      const solNum = req.params.solNum || req.body.solNum.toString() //?
+      const solNum = req.params.solNum || req.body.solNum.toString()
       const response = req.body.response || req.body.feedback // the current API calls this "feedback" but we should accept either.
-      const user = authRoutes.userInfoFromReq(req) //?
+      const user = authRoutes.userInfoFromReq(req)
 
-      let [statusCode, send] = await updateSurveyResponse(solNum, response, user.maxId) //?
+      let [statusCode, send] = await updateSurveyResponse(solNum, response, user.maxId)
 
       return res.status(statusCode).send(send)
     } catch (e) {

@@ -24,7 +24,7 @@ describe('Survey routes tests', () => {
 
         let res = mocks.mockResponse();
         let req = mocks.mockRequest({}, {'authorization': `bearer ${token}`})
-        await surveyRoutes.getSurveyQuestions(req, res) //?
+        await surveyRoutes.getSurveyQuestions(req, res)
 
         expect(res.status.mock.calls[0][0]).toBe(200)
         const body = res.send.mock.calls[0][0]
@@ -34,7 +34,7 @@ describe('Survey routes tests', () => {
 
     test('Save and pull a new survey result', async () => {
 
-        solNum = await getSolNumForTesting({'offset': 4, 'notice_count': 4}) //?
+        solNum = await getSolNumForTesting({'offset': 4, 'notice_count': 4})
 
         let res = mocks.mockResponse();
         let req = mocks.mockRequest({
@@ -62,7 +62,7 @@ describe('Survey routes tests', () => {
 
     test('Do we have a maxId associcated with each survey?', async () => {
 
-        solNum = await getSolNumForTesting({'offset': 2, 'notice_count': 4}) //?
+        solNum = await getSolNumForTesting({'offset': 2, 'notice_count': 4})
 
         let res = mocks.mockResponse();
         let req = mocks.mockRequest({
@@ -89,7 +89,7 @@ describe('Survey routes tests', () => {
 
     test('saving new survey results (when we have the same latest notice record) overwrites the old record', async () => {
 
-        solNum = await getSolNumForTesting({'offset': 10}) //?
+        solNum = await getSolNumForTesting({'offset': 10})
 
         async function submitOneFeedback (solNum,feedback) {
 
@@ -106,8 +106,6 @@ describe('Survey routes tests', () => {
 
             expect(rows[0][0].maxId).toBe(coordinatorCASData["max-id"])
             expect(rows[0][0].response[0].answer).toBe(feedback[0].answer )
-            feedback[0].answer //?
-            feedback.length //?
             expect(rows[0][0].response.length).toBe(feedback.length)
         }
 

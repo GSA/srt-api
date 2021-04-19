@@ -5,7 +5,10 @@ let predictionRoutes = require('../routes/prediction.routes')
 const Notice = require('../models/index').notice
 // noinspection JSUnresolvedVariable
 const Prediction = require('../models/index').Prediction
+const SurveyResponse = require('../models/index').SurveyResponse
 const moment = require('moment')
+const Op = require('sequelize').Op
+const test_utils = require('../shared/test_utils')
 
 describe('Predictions table Test', () => {
     beforeAll(() => {
@@ -13,6 +16,24 @@ describe('Predictions table Test', () => {
 
     afterAll(() => {
         return app.db.close();
+    })
+
+    test('Test prediction -> feedback association', async () => {
+
+        let solNum = await test_utils.getSolNumForTesting({'has_feedback': true})
+
+        let preds = await Prediction.findAll({
+            include: [{
+                model: SurveyResponse,
+                as: 'feedback'
+            }],
+            where: {solNum: {[Op.eq]: solNum}}
+
+        });
+
+        expect(preds[0]).toContainKey('feedback')
+        expect(preds[0].feedback).toBeArray()
+        expect(preds[0].feedback.length).toBeGreaterThan(0)
     })
 
     test('solicitation table update', async () => {
