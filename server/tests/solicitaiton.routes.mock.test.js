@@ -59,7 +59,7 @@ describe('solicitation tests',  () => {
     let p_false = await predictionRoutes.getPredictions({ rows: 1, globalFiler: solNum, atctest: 777}, user);
     expect(p_false.predictions[0].na_flag).toBe(false)
 
-  })
+  }, 300000)
 
   test('Update Not Applicable with bad sol num', async () => {
     let res = mocks.mockResponse();
@@ -84,7 +84,7 @@ describe('solicitation tests',  () => {
 
   // noinspection DuplicatedCode
   test('Agency User can update Not Applicable for any solicitations in their agency', async () => {
-    let dbName = authRoutes.translateCASAgencyName(coordinatorCASData["org-agency-name"]) //?
+    let dbName = authRoutes.translateCASAgencyName(coordinatorCASData["org-agency-name"])
     let sql = `select solicitation_number from notice where agency = '${dbName}' order by solicitation_number desc limit 1`
     let rows = await db.sequelize.query(sql)
     let solNum = rows[0][0].solicitation_number
@@ -123,7 +123,7 @@ describe('solicitation tests',  () => {
   test('Solicitation details include inactive field', async () => {
 
     let rows = await db.sequelize.query('select "solNum" from "Predictions"  where "noticeType" = \'Solicitation\' order by id desc limit 1;')
-    let solNum = rows[0][0]['solNum'] //?
+    let solNum = rows[0][0]['solNum']
     await db.sequelize.query(`update solicitations set active = true, "updatedAt" = current_timestamp where "solNum" = '${solNum}' ` )
 
     let res1 = mocks.mockResponse();
@@ -131,7 +131,7 @@ describe('solicitation tests',  () => {
     req1.body = {"filters": { ["solNum"]: { "value": solNum, "matchMode": "equals" } } }
     await predictionRoutes.predictionFilter(req1, res1)
     expect(res1.status.mock.calls[0][0]).toBe(200)
-    let prediction = res1.send.mock.calls[0][0]['predictions'] //?
+    let prediction = res1.send.mock.calls[0][0]['predictions']
     expect(prediction[0].solNum).toBe(solNum)
     expect(prediction[0]['active']).toBe(true)
 
@@ -143,7 +143,7 @@ describe('solicitation tests',  () => {
     req2.body = {"filters": { ["solNum"]: { "value": solNum, "matchMode": "equals" } } }
     await predictionRoutes.predictionFilter(req2, res2)
     expect(res2.status.mock.calls[0][0]).toBe(200)
-    prediction = res2.send.mock.calls[0][0]['predictions'] //?
+    prediction = res2.send.mock.calls[0][0]['predictions']
     expect(prediction[0].solNum).toBe(solNum)
     expect(prediction[0]['active']).toBe(false)
 
