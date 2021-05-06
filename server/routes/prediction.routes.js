@@ -4,6 +4,7 @@
 const Prediction = require('../models').Prediction
 /** @type {Solicitation} **/
 const Solicitation = require('../models').Solicitation
+const SurveyResponse = require('../models').SurveyResponse
 const Notice = require('../models').notice
 const survey_routes = require('../routes/survey.routes')
 
@@ -334,6 +335,24 @@ function normalizeMatchFilter(filter, field){
 /**
  * Returns all predictions that match the given filter
  *
+ *  * filter format:
+ *   {
+ *     first - offset to the first record to return
+ *     rows - number of rows to return
+ *     globalFilter - free text search
+ *     filters - object describing the filters:
+ *       {
+ *         agency -
+ *         solNum -
+ *         startDate -
+ *         endDate -
+ *         sortField
+ *         sortOrder
+ *       }
+ *     ignoreDateCutoff - if set to true, don't enforce the date cuttoff. Allows reporting on historical date
+ *   }
+
+ *
  * @param {PredictionFilter} filter Return predictions that match the given filter
  * @return {Promise<Array(Prediction)>} All predictions that match the filter
  */
@@ -349,8 +368,13 @@ async function getPredictions (filter, user) {
     await updatePredictionTable()
 
     let attributes = {
-      offset: filter.first,
-      limit: filter.rows
+      offset: filter.first || 0,
+      limit: filter.rows || configuration.getConfig("defaultMaxPredictions", 1000),
+      include: [{
+        model: SurveyResponse,
+        as: 'feedback'
+      }],
+
     }
 
     // filter to allowed notice types
@@ -390,15 +414,17 @@ async function getPredictions (filter, user) {
     // process dates
 
     // make sure anything we return is past the date cuttoff - unless we are asking for a specific record!
-    if ( ! filter.filters.hasOwnProperty('solNum')) {
-      if (configuration.getConfig("minPredictionCutoffDate")) {
-        attributes.where.date = {[Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
-      } else if (configuration.getConfig("predictionCutoffDays")) {
-        const numDays = configuration.getConfig("predictionCutoffDays")
-        const today = new Date()
-        let cutoff = new Date()
-        cutoff.setDate(today.getDate() - numDays)
-        attributes.where.date = {[Op.gt]: cutoff}
+    if ( ! filter.ignoreDateCutoff) {
+      if ((!filter.filters) || (!filter.filters.hasOwnProperty('solNum'))) {
+        if (configuration.getConfig("minPredictionCutoffDate")) {
+          attributes.where.date = {[Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
+        } else if (configuration.getConfig("predictionCutoffDays")) {
+          const numDays = configuration.getConfig("predictionCutoffDays")
+          const today = new Date()
+          let cutoff = new Date()
+          cutoff.setDate(today.getDate() - numDays)
+          attributes.where.date = {[Op.gt]: cutoff}
+        }
       }
     }
 
@@ -408,7 +434,7 @@ async function getPredictions (filter, user) {
       // double check they aren't asking for data from before the cutoff
       const start = Date.parse(filter.startDate)
       const cutoff = Date.parse(configuration.getConfig("minPredictionCutoffDate", '1990-01-01'))
-      configuration.getConfig("minPredictionCutoffDate") //?
+      configuration.getConfig("minPredictionCutoffDate")
       if (start > cutoff) {
         attributes.where.date = { [Op.gt]: filter.startDate }
       }
@@ -446,15 +472,8 @@ async function getPredictions (filter, user) {
     let count = await Prediction.findAndCountAll(attributes)
 
 
-    //Fill in the proper survey_results (aka feedback)
-    let final_predictions = []
-    for (pred of preds) {
-      let [status, feedback] = await survey_routes.getLatestSurveyResponse(pred.solNum)
-      final_predictions.push(Object.assign(pred.dataValues, {feedback: feedback.responses}))
-    }
-
     return {
-      predictions: final_predictions,
+      predictions: preds,
       first: filter.first,
       rows: Math.min(filter.rows, preds.length),
       totalCount: count.count

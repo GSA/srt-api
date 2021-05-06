@@ -191,7 +191,8 @@ module.exports = {
     "predictionCutoffDays" : 60,
     "updatePredictionTableMaxRunTime" : 10,
     "updatePredictionTableQueueDelay": 10,
-    "logPerformance": false
+    "logPerformance": false,
+    defaultMaxPredictions: 1000
   },
   development: {
     "emailFrom": "crowley+srt@tcg.com",
@@ -210,7 +211,7 @@ module.exports = {
       "port": 3000
     },
     "srtClientUrl": "http://localhost:4200",
-    "logStdOut" : true,
+    "logStdOut" : false,
     "logStdOutLevel" : "debug",
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",

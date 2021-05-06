@@ -168,26 +168,25 @@ function createMAXUser(cas_data) {
  * @param cas_data
  * @return {Promise} Promise
  */
-function createOrUpdateMAXUser (cas_data) {
+async function createOrUpdateMAXUser(cas_data) {
 
-  cas_data.maxId = cas_data['max-id'] || cas_data.maxId
+  try {
+    cas_data.maxId = cas_data['max-id'] || cas_data.maxId
 
-  if (!cas_data.maxId) {
-    logger.log('error', "Trying to make a token without a MAX ID", { cas_data: cas_data, tag: 'createOrUpdateMAXUser' })
-    return false
+    if (!cas_data.maxId) {
+      logger.log('error', "Trying to make a token without a MAX ID", {cas_data: cas_data, tag: 'createOrUpdateMAXUser'})
+      return false
+    }
+    let u = await User.findOne({where: {'maxId': cas_data["maxId"]}})
+    if (u) {
+      return updateMAXUser(cas_data, u)
+    } else {
+      return createMAXUser(cas_data)
+
+    }
+  } catch (e) {
+    logger.log("error", "Error caught in create/update MAX User", {error: e, tag: "create/update MAX User"})
   }
-  return User.findOne({ where: { 'maxId': cas_data["maxId"] } })
-    .then(async u => {
-      if (u) {
-        return updateMAXUser(cas_data, u)
-      } else {
-        return createMAXUser(cas_data)
-
-      }
-    })
-    .catch( e => {
-      logger.log("error", "Error caught in create/update MAX User", {error: e, tag: "create/update MAX User"})
-    })
 }
 
 /***
@@ -434,7 +433,7 @@ module.exports = {
     let responseJson = await tokenJsonFromCasInfo(req.session.cas_userinfo, common.jwtSecret)
     let location = `${config['srtClientUrl']}/auth?token=${responseJson}`
 
-    let rollList = roles.map( (x) => x.name) //?
+    let rollList = roles.map( (x) => x.name)
     let decoded_user_role = JSON.parse(responseJson).userRole
     if ( ! rollList.includes(decoded_user_role)) {
       logger.log('info', req.session.cas_userinfo['email-address'] + ' does not have a SRT role. Rejecting', {responseJson: responseJson, tag: 'casStage2'})

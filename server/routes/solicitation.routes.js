@@ -108,7 +108,7 @@ module.exports = function (db, userRoutes) {
               // but for consistency we should set the ID number to the one requested rather than to
               // a pseudo-random choice
                 result.predictions[0].id = parseInt(req.params.id)
-                result.predictions[0].active //?
+                result.predictions[0].active
 
               return res.status(200).send(result.predictions[0])
             })
@@ -269,7 +269,6 @@ module.exports = function (db, userRoutes) {
     solicitationFeedback: async (req, res) => {
 
         const [statusCode, data] = await surveyRoutes.getLatestSurveyResponse(req.body.solNum)
-        data //?
         return res.status(statusCode).send(data)
 
       // // translate mongo formatted parameters to postgres

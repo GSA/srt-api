@@ -150,7 +150,7 @@ describe('User API Routes', () => {
                order by id  `
 
         let results = await db.sequelize.query(sql, null)
-        let id = results[0][0].id //?
+        let id = results[0][0].id
         let response = await request(app)
             .post('/api/user/getUserInfo')
             .set('Authorization', `Bearer ${token}`)

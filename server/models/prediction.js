@@ -27,8 +27,13 @@ module.exports = (sequelize, DataTypes) => {
       active: { type: DataTypes.BOOLEAN }
     }, {} );
 
-  Prediction.associate = function(models) {
-    // associations can be defined here
+    Prediction.associate = function (models) {
+        // associations can be defined here
+        Prediction.hasMany(models.SurveyResponse, {
+            sourceKey: 'solNum',
+            foreignKey: 'solNum',
+            as: 'feedback'
+        })
   }
 
   return Prediction

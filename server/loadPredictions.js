@@ -12,11 +12,19 @@ let clearAfterDate = (process.argv.length > 2 && process.argv[2] === '--fast') ?
 // Run this cron job function first since it will clean up the db
 cleanAwardNotices()
 
-// now update the prediction table so it doesn't stick when running tests.
-predictionRoutes.updatePredictionTable(clearAfterDate)
-  .then( () => {
-    // process.exit(0)
-    console.log ("loadPredications.js complete")
-    process.exit(0)
-  })
+async function update () {
+    let updateCount = await predictionRoutes.updatePredictionTable(clearAfterDate)
+    console.log(`${updateCount} solicitations updated so far.`)
+    if (updateCount < 10) {
+        console.log("loadPredications.js complete")
+        process.exit(0)
+    } else {
+        setTimeout( update, config.updatePredictionTableMaxRunTime || 10)
+    }
+}
+
+console.log("Updating.....")
+update();
+
+
 
