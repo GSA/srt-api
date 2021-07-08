@@ -36,28 +36,29 @@ describe('Predictions table Test', () => {
         expect(preds[0].feedback.length).toBeGreaterThan(0)
     })
 
-    test('solicitation table update', async () => {
-
-        await predictionRoutes.updatePredictionTable()
-
-        let result = await db.sequelize.query(`
-        select "solNum", date 
-        from "Predictions"
-        order by date desc
-        limit 1 `, null)
-        let solNum = result[0][0]['solNum']
-
-        await db.sequelize.query(`delete from "solicitations" where "solNum" = '${solNum}' `, null)
-
-        await predictionRoutes.prepareSolicitationTable()
-
-        let result2 = await db.sequelize.query(`
-        select "solNum" 
-        from solicitations where "solNum" = '${solNum}' `, null)
-
-        expect(solNum).toBe(result2[0][0]['solNum'])
-
-
-    })
+    // TODO: remove this after completing the move to solicitation table.
+    // test('solicitation table update', async () => {
+    //
+    //     await predictionRoutes.updatePredictionTable()
+    //
+    //     let result = await db.sequelize.query(`
+    //     select "solNum", date
+    //     from "Predictions"
+    //     order by date desc
+    //     limit 1 `, null)
+    //     let solNum = result[0][0]['solNum']
+    //
+    //     await db.sequelize.query(`delete from "solicitations" where "solNum" = '${solNum}' `, null)
+    //
+    //     await predictionRoutes.prepareSolicitationTable()
+    //
+    //     let result2 = await db.sequelize.query(`
+    //     select "solNum"
+    //     from solicitations where "solNum" = '${solNum}' `, null)
+    //
+    //     expect(solNum).toBe(result2[0][0]['solNum'])
+    //
+    //
+    // })
 
 })

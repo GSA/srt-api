@@ -3,6 +3,7 @@
 const logger = require('../config/winston')
 // noinspection JSUnresolvedVariable
 const Notice = require('../models').notice
+const Solicitation = require('../models').Solicitation
 const predictionRoute = require('../routes/prediction.routes')
 const authRoutes = require('../routes/auth.routes')
 const surveyRoutes = require('../routes/survey.routes')
@@ -27,42 +28,44 @@ module.exports = function (db, userRoutes) {
     }
   }
 
-  function auditSolicitationChange (notice_orig, notice_updated, req) {
-    let actions = cloneDeep(notice_orig.action,true)
+  function auditSolicitationChange (sol_original, sol_updated, req) {
+    let actions = cloneDeep(sol_original.action,true)
+    let action_status = sol_original.actionStatus
 
     if (actions === null) {
-      console.log ('null action')
       actions = []
     }
 
     try {
-      if (notice_orig.history && notice_updated.history) {
-        let orig_hist_len = notice_orig.history.length
-        let up_hist_len = notice_updated.history.length
+      if (sol_original.history && sol_updated.history) {
+        let orig_hist_len = sol_original.history.length
+        let up_hist_len = sol_updated.history.length
 
         if (up_hist_len > orig_hist_len) {
-          if (notice_updated.history[up_hist_len - 1].action === getConfig('constants:EMAIL_ACTION')) {
+          if (sol_updated.history[up_hist_len - 1].action === getConfig('constants:EMAIL_ACTION')) {
             actions.push(buildAction(req, getConfig('constants:EMAIL_ACTION')))
           }
         }
       }
 
       // do we have feedback in the updated entry? If so, we may want to update the actions to say feedback added
-      if (Array.isArray(notice_updated.feedback) && notice_updated.feedback.length > 0) {
-        const orig_feedback = notice_orig.feedback || []
-        if (notice_updated.feedback.length !== orig_feedback.length) {
-          logger.log("debug", "Set feedback action to " + getConfig('constants:FEEDBACK_ACTION'), { tag: "auditSolicitationChange", notice_updated: notice_updated, notice_orig: notice_orig })
+      if (Array.isArray(sol_updated.feedback) && sol_updated.feedback.length > 0) {
+        const orig_feedback = sol_original.feedback || []
+        if (sol_updated.feedback.length !== orig_feedback.length) {
+          logger.log("debug", "Set feedback action to " + getConfig('constants:FEEDBACK_ACTION'), { tag: "auditSolicitationChange", notice_updated: sol_updated, notice_orig: sol_original })
           actions.push(buildAction(req, getConfig('constants:FEEDBACK_ACTION')))
         }
       }
 
       // na_flag may sometimes be undefined. For those cases we need a || construct to
       // set it to false so we can make a fair comparison
-      if( (notice_orig.na_flag || false) !== (notice_updated.na_flag || false)) {
-        if (notice_updated.na_flag) {
+      if( (sol_original.na_flag || false) !== (sol_updated.na_flag || false)) {
+        if (sol_updated.na_flag) {
           actions.push(buildAction(req, getConfig('constants:NA_ACTION')))
+          action_status = "Solicitation marked not applicable"
         } else {
           actions.push(buildAction(req, getConfig('constants:UNDO_NA_ACTION')))
+          action_status = "Not applicable status removed"
         }
       }
 
@@ -71,7 +74,7 @@ module.exports = function (db, userRoutes) {
     }
 
 
-    return actions;
+    return [actions, action_status];
   }
 
   return {
@@ -95,29 +98,21 @@ module.exports = function (db, userRoutes) {
          * @param res
          * @return Promise
          */
-    get: function (req, res) {
-      return Notice.findByPk(req.params.id)
-        .then((notice) => {
-          if ( ! notice ) {  // no notice found with that ID
-            return res.status(404).send({})
-          }
-          let user = authRoutes.userInfoFromReq(req)
-          return predictionRoute.getPredictions({ solNum: notice.solicitation_number }, user)
-            .then(result => {
-              // we should only have one 'prediction' since they will all merge by solicitation number
-              // but for consistency we should set the ID number to the one requested rather than to
-              // a pseudo-random choice
-                result.predictions[0].id = parseInt(req.params.id)
-                result.predictions[0].active
+    get: async function (req, res) {
 
-              return res.status(200).send(result.predictions[0])
-            })
-        })
-        .catch((e) => {
-          e //?
-          logger.log('error', 'error in: solicitation get', { error:e.message, tag: 'solicitation get' })
-          return res.status(500).send('Error finding solicitation')
-        })
+      try {
+        let user = authRoutes.userInfoFromReq(req)
+        let preds = await predictionRoute.getPredictions({filters : {id: { matchMode: "equals", value: req.params.id}}}, user)
+        if (preds && preds.predictions.length > 0) {
+          return res.status(200).send(preds.predictions[0])
+        } else {
+          return res.status(404).send({})
+        }
+      } catch (e) {
+        e //?
+        logger.log('error', 'error in: solicitation get', {error: e.message, tag: 'solicitation get'})
+        return res.status(500).send('Error finding solicitation')
+      }
     },
 
 
@@ -133,59 +128,59 @@ module.exports = function (db, userRoutes) {
      * @return {Promise<T>|*}
      */
 
-    update: function(req, res) {
+    update: async function(req, res) {
       // Be a GSA Admin or update sol from your org.
 
-      let userInfo = authRoutes.userInfoFromReq(req)
-      if (userInfo == null) {
-        return res.status(401).send({ msg: 'Not authorized' })
+      try {
+        let userInfo = authRoutes.userInfoFromReq(req)
+        if (userInfo == null) {
+          return res.status(401).send({msg: 'Not authorized'})
+        }
+
+        let solicitation = await Solicitation.findOne({where: {solNum: req.body.solicitation.solNum}})
+        if (solicitation == null) {
+          logger.log('error', req.body, {tag: 'postSolicitation - solicitation not found'})
+          return res.status(404).send({msg: 'solicitation not found'})
+        }
+
+        if (userInfo.userRole !== 'Administrator' && userInfo.agency !== solicitation.agency) {
+          return res.status(401).send({msg: 'Not authorized'})
+        }
+
+        // keep a clean copy to calculate NA changes for action status
+        let original_sol = cloneDeep(solicitation.dataValues, true)
+
+        if (solicitation.na_flag !== req.body.solicitation.na_flag) {
+          let updated_action = []
+          let updated_action_status = ""
+          solicitation.na_flag = req.body.solicitation.na_flag;
+          // setting the na_flag means we need to change the prediction (stored in reviewReq) to NA
+          if (solicitation.na_flag) {
+            solicitation.reviewRec = "Not Applicable"
+            solicitation.history.push({date: formatDateAsString(new Date(), {zeroPad: true}), user: userInfo.firstName + ' ' + userInfo.lastName, action: "Solicitation marked as Not Applicable", status:""})
+            solicitation.changed('history', true)
+          } else {
+            solicitation.reviewRec = (solicitation.predictions.value == "red") ? "Non-compliant (Action Required)" : "Compliant"
+            solicitation.history.push({date: formatDateAsString(new Date(), {zeroPad: true}), user: userInfo.firstName + ' ' + userInfo.lastName, action: "Not Applicable marker removed", status:""})
+            solicitation.changed('history', true)
+          }
+          [updated_action, updated_action_status] = auditSolicitationChange(original_sol, solicitation, req);
+          solicitation.action =  updated_action;
+          solicitation.actionStatus = updated_action_status
+        }
+
+        await solicitation.save()
+        logger.log("info",
+          `Updated solicitation ${solicitation.solNum}`,
+          {
+            tag: 'solicitation update',
+            test_flag: req.body.solicitation.na_flag,
+            na_flag: (solicitation.na_flag) ? "true" : "false"
+          })
+        return res.status(200).send(solicitation)
+      } catch (error) {
+        logger.log("error", "Error in solicitation update", {tag: 'solicitation update', error: error})
       }
-
-      return Notice.findAll({
-        where: {solicitation_number: req.body.solicitation.solNum},
-        order: [['date', 'desc']]
-      })
-        .then( (notices) => {
-          // we are only going to work with the first entry - which is the newest row having the given notice_number
-          let notice = (notices.length > 0) ? notices[0] : null
-          if (notice == null) {
-            logger.log('error', req.body, { tag: 'postSolicitation - solicitation not found' })
-            return res.status(404).send({ msg: 'solicitation not found' })
-          }
-
-          // check that we are allowed to update this one
-          if (userInfo.userRole !== 'Administrator' && userInfo.agency !== notice.agency ) {
-            return res.status(401).send({ msg: 'Not authorized' })
-          }
-
-          // keep a clean copy to calculate NA changes for action status
-          let original_notice = cloneDeep(notice.dataValues, true)
-
-          if (notice.na_flag !== req.body.solicitation.na_flag) {
-            notice.na_flag = req.body.solicitation.na_flag
-            notice.action = auditSolicitationChange(original_notice, notice, req)
-          }
-
-
-
-
-          return notice.save()
-            .then( async (n) => {
-              // noinspection JSUnresolvedVariable
-              logger.log("info",
-                `Updated Notice row for solicitation ${notice.solicitation_number}`,
-                {
-                      tag: 'solicitation update',
-                      test_flag: req.body.solicitation.na_flag,
-                      na_flag: (n.na_flag) ? "true" : "false"
-                })
-              return res.status(200).send(await predictionRoute.makeOnePrediction(n))
-            })
-            .catch (error => {
-              logger.log("error", "Error in solicitation update", {tag: 'solicitation update', error: error})
-            })
-
-        })
     },
 
     auditSolicitationChange: auditSolicitationChange,
@@ -205,40 +200,40 @@ module.exports = function (db, userRoutes) {
          * @return {Promise}
          */
     postSolicitation: async function (req, res) {
+      let rest = null
+
+
+        //TODO: verify conversion to solicitations table.
 
         try {
 
-            let notices = await Notice.findAll({
-                where: {solicitation_number: req.body.solNum.toString()},
-                order: [['date', 'desc']]
+            let solicitation = await Solicitation.findOne({
+                where: {solNum: req.body.solNum.toString()},
             })
 
-            // we are only going to work with the first entry - which is the newest row having the given notice_number
-            /** @var Notice notice */
-            let notice = (notices.length > 0) ? notices[0] : null
-            if (notice == null) {
+            if (solicitation == null) {
                 logger.log('error', req.body, {tag: 'postSolicitation - solicitation not found'})
                 return res.status(404).send({msg: 'solicitation not found'})
             }
 
             // first do the audit
-            if (!Array.isArray(notice.action)) {
-                notice.action = []
+            if (!Array.isArray(solicitation.action)) {
+                solicitation.action = []
             }
-            notice.action = auditSolicitationChange(notice, req.body, req)
+            [solicitation.action, ...rest] = auditSolicitationChange(solicitation, req.body, req)
 
             //now that audit is done, we can update.
-            notice.history = req.body.history
+            solicitation.history = req.body.history
 
 
             try {
-                let doc = await notice.save()
+                let doc = await solicitation.save()
                 let feedback = cloneDeep(req.body.feedback) || []
                 if (req.body.newFeedbackSubmission && Array.isArray(feedback) && (feedback.length > 0)) {
                     await surveyRoutes.updateSurveyResponse(notice.solicitation_number, feedback, authRoutes.userInfoFromReq(req).maxId)
                 }
 
-                return res.status(200).send(await predictionRoute.makeOnePrediction(doc))
+                return res.status(200).send(solicitation)
             } catch (e) {
                 logger.log('error', 'error in: postSolicitation - error on save', {error: e, tag: 'postSolicitation - error on save' })
                 res.status(400).send({msg: 'error updating solicitation'})

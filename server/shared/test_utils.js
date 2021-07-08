@@ -19,33 +19,39 @@ module.exports = {
             let join = " "
             let where = " "
             let offset = ("offset" in options) ? options.offset : 1
+            let with_clause = ''
 
 
-            if ("notice_count" in options) {
-                join += ` join notice n on n.solicitation_number = p."solNum" `
-                where += ` and n.solicitation_number in (select solicitation_number from notice group by solicitation_number having count(*) = ${options.notice_count} ) `
+            if ("update_count" in options) {
+                let update_count = options['update_count']
+                with_clause += ` 
+                    with history as (select id, "solNum", jsonb_array_elements(history) as line from solicitations order by id ),
+                         history_count as (select "solNum", count(*) from history
+                                           where  lower(line->>'action') like 'solicitation updated on%' and "solNum" is not null and "solNum" != ''
+                                           group by "solNum" having count(*) > ${update_count}
+                         )`
+                where += ` and s."solNum" in (select "solNum" from history_count `
             }
 
             if ("has_feedback" in options) {
-                join += ` join survey_responses sr on p."solNum" = sr."solNum" `
-                where += ` and p."solNum" in (select distinct "solNum" from survey_responses where jsonb_typeof(response) = 'array' ) `
+                join += ` join survey_responses sr on s."solNum" = sr."solNum" `
+                where += ` and s."solNum" in (select distinct "solNum" from survey_responses where jsonb_typeof(response) = 'array' ) `
             }
 
             if ("attachment_count" in options) {
                 join += ` join (select count(*) as c, solicitation_number from attachment a 
                                 join notice n on a.notice_id = n.id 
                                 group by solicitation_number having count(*) = ${options.attachment_count}) attachment_counts 
-                                on attachment_counts.solicitation_number = p."solNum" `
+                                on attachment_counts.solicitation_number = s."solNum" `
             }
 
-            let sql = `select p."solNum"
-                   from "Predictions" p
-                            join solicitations s on p."solNum" = s."solNum"
+            let sql = `${with_clause} select s."solNum"
+                   from solicitations s 
                             ${join}
                    where "noticeType" = 'Solicitation'
                      and s.active
                      ${where}
-                   order by p.date desc
+                   order by s.date desc
                    limit 1 offset ${offset}`
             let rows = await db.sequelize.query(sql, null);
 
@@ -56,8 +62,11 @@ module.exports = {
             e //?
             return null
         }
+    },
+
+    solNumToSolicitationID : async (solNum)=> {
+        let sql = `select id from solicitation where "solNum" = ?`
+        let rows = await db.sequelize.query(sql, {replacements: [solNum]})
+        return rows[0][0].id
     }
-
-
-
 }

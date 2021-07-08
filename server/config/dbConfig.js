@@ -9,7 +9,7 @@ let dbConfig = {
     "host": "localhost",
     "port": 5432,
     "dialect": "postgres",
-    "logging": false,
+    "logging": true,
     "pool": {
       max: 95,
       min: 0,
@@ -25,7 +25,7 @@ let dbConfig = {
     "host": "localhost",
     "port": 5432,
     "dialect": "postgres",
-    "logging": false,
+    "logging": true,
   }
 }
 

@@ -602,7 +602,9 @@ describe('prediction tests', () => {
     expect(predictions['pred10'].parseStatus.length).toBe(p10.parseStatus.length) // p11.parseStatus is undefined
   }, timeout)
 
-  test('Test attachment association', () => {
+  // skip this because we don't work with notice rows anymore!
+  // TODO: remove this after completing the migration to the solicitations table.
+  test.skip('Test attachment association', () => {
     return db.sequelize.query(`select notice_id from attachment where attachment_url is not null and attachment_url != '' limit 1`)
       .then((rows) => {
         let noticeId = rows[0][0].notice_id
@@ -1012,7 +1014,7 @@ describe('prediction tests', () => {
 
   test("Attachments have posted dates", async () => {
 
-    let sql = `select * from "Predictions" where jsonb_array_length("parseStatus") > 2 limit 1`
+    let sql = `select * from srt.public."solicitations" where jsonb_array_length("parseStatus") > 2 limit 1`
     let results = await db.sequelize.query(sql, null)
     let targetSolNum = results[0][0].solNum
 
@@ -1024,17 +1026,11 @@ describe('prediction tests', () => {
 
     let {predictions:updated_predictions} = await predictionRoutes.getPredictions({ rows: 1, filters: {"solNum": {value: targetPrediction.solNum, matchMode: 'equals'}} }, mocks.mockAdminUser)
     const targetPrediction2 = updated_predictions[0] //?
-
     for (const attachment of targetPrediction2.parseStatus) {
-      let notice_id = attachment.notice_id
-      let notice = await Notice.findByPk(notice_id)
-      let posted_date = notice.dataValues.date
-      posted_date //?
-
-      expect( moment(attachment.postedDate).format('MM/DD/YYYY HH:mm ZZ') ).toBe(moment(posted_date).format('MM/DD/YYYY HH:mm ZZ'))
+      expect(attachment.postedDate.length).toBeGreaterThan(8)
     }
 
-  }, 30000)
+  }, 300000)
 
   test("Predictions have feedback", async () => {
     // make sure we have feedback

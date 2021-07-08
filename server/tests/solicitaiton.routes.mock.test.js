@@ -99,9 +99,9 @@ describe('solicitation tests',  () => {
 
   // noinspection DuplicatedCode
   test('Agency User can NOT update Not Applicable for any solicitations for another agency', async () => {
-    let sql = `select solicitation_number from notice where agency != '${coordinatorCASData["org-agency-name"]}' order by solicitation_number desc limit 1`
+    let sql = `select "solNum" from solicitations where agency != '${coordinatorCASData["org-agency-name"]}' order by "solNum" desc limit 1`
     let rows = await db.sequelize.query(sql)
-    let solNum = rows[0][0].solicitation_number
+    let solNum = rows[0][0].solNum
     expect(solNum).toBeDefined()
 
     let res = mocks.mockResponse();

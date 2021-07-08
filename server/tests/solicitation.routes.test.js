@@ -127,9 +127,11 @@ describe('solicitation tests', () => {
       })
   },77000)
 
-  test('solicitation get', () => {
+  test.only('solicitation get', () => {
 
-    return db.sequelize.query(`select id, solicitation_number from notice where  notice.solicitation_number = '${sample_sol_num}'`)
+    let sql = `select id, solicitation_number from notice where  notice.solicitation_number = '${sample_sol_num}'`
+
+    return db.sequelize.query(sql)
       .then((rows) => {
         let id = rows[0][0].id
         let solNum = rows[0][0].solicitation_number
@@ -149,7 +151,7 @@ describe('solicitation tests', () => {
             return expect(res.body.agency).toBeDefined()
           })
       })
-  })
+  }, 60000)
 
   test('sending an non-existing ID to get solicitation', () => {
     return db.sequelize.query('select id from notice order by id desc limit 1')

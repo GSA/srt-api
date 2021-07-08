@@ -9,5 +9,5 @@ do
   sleep 1
   echo "waiting for postgres startup"
 done
-sleep 1
+sleep 10
 psql < ./sql/srt-database-export.sql
