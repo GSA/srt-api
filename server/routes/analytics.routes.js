@@ -91,6 +91,9 @@ async function computeAnalytics (params, user) {
     let from =   ( params.from ) ? params.from : new Date(2000,1,1)
     let to = ( params.to ) ? params.to : new Date(2222,2,2)
     let agency = ( params.agency) ? params.agency : user.agency
+    if (!params.rows) {
+      params.rows = Number.MAX_SAFE_INTEGER
+    }
 
 
     let result = await predictionRoutes.getPredictions(params, user);
@@ -185,7 +188,7 @@ async function computeAnalytics (params, user) {
         if (latest) data.LatestNonPresolicitation++
         data.TotalNonPresolicitation++
 
-        if (predictions[i].parseStatus.length !== 0) {
+        if (  predictions[i].parseStatus && predictions[i].parseStatus.length !== 0) {
           // Machine Readable Document
           for (let j = 0; j < predictions[i].parseStatus.length; j++) {
             if (latest) {
@@ -223,7 +226,7 @@ async function computeAnalytics (params, user) {
               break
             }
           }
-        } else if (predictions[i].parseStatus.length === 0 && predictions[i].numDocs === '0') {
+        } else if (predictions[i].parseStatus && predictions[i].parseStatus.length === 0 && predictions[i].numDocs === '0') {
           if (predictions[i].predictions.value === 'red') {
             if (latest) {
               data.LatestNoDocumentSolicitation_RED++

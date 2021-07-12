@@ -9,6 +9,7 @@ module.exports = {
      * offset - if you don't want the most recent solicitation for *every* test, use this to grab one offset rows back in the list
      * notice_count - Only return a solicitation with exactly notice_count notices matching the solication number
      * has_feedback - Only return a solicitation with feedback
+     * has_history - Only return a solicitation with history
      * attachment_count - Only return a solicitation with exactly attachment_count attachments
      *
      * @param options
@@ -18,7 +19,7 @@ module.exports = {
         try {
             let join = " "
             let where = " "
-            let offset = ("offset" in options) ? options.offset : 1
+            let offset = ("offset" in options) ? options.offset : 0
             let with_clause = ''
 
 
@@ -38,6 +39,11 @@ module.exports = {
                 where += ` and s."solNum" in (select distinct "solNum" from survey_responses where jsonb_typeof(response) = 'array' ) `
             }
 
+            if ("has_history" in options) {
+                where += ` and  (history is not null) and (history::varchar != '[]') `
+            }
+
+
             if ("attachment_count" in options) {
                 join += ` join (select count(*) as c, solicitation_number from attachment a 
                                 join notice n on a.notice_id = n.id 
@@ -48,7 +54,7 @@ module.exports = {
             let sql = `${with_clause} select s."solNum"
                    from solicitations s 
                             ${join}
-                   where "noticeType" = 'Solicitation'
+                   where ("noticeType" = 'Solicitation' or "noticeType" =  'Combined Synopsis/Solicitation') 
                      and s.active
                      ${where}
                    order by s.date desc
@@ -65,7 +71,7 @@ module.exports = {
     },
 
     solNumToSolicitationID : async (solNum)=> {
-        let sql = `select id from solicitation where "solNum" = ?`
+        let sql = `select id from solicitations where "solNum" = ?`
         let rows = await db.sequelize.query(sql, {replacements: [solNum]})
         return rows[0][0].id
     }

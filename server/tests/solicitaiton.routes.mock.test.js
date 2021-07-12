@@ -21,6 +21,9 @@ let coordinatorToken = ""
 describe('solicitation tests',  () => {
   beforeAll(async () => {
     process.env.MAIL_ENGINE = 'nodemailer-mock'
+    // tests can give false failure if the time cuttoff removes all the useful test data
+    process.env.minPredictionCutoffDate = '1990-01-01';
+
     app = require('../app')() // don't load the app till the mock is configured
 
     adminToken = await mockToken(adminCASData, common['jwtSecret'])

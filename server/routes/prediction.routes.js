@@ -362,6 +362,8 @@ function normalizeMatchFilter(filter, field){
 async function getPredictions (filter, user) {
 
   try {
+    let first = filter.first || 0
+    let max_fetch_rows = filter.rows || configuration.getConfig("defaultMaxPredictions", 1000)
 
     let update_rows = await db.sequelize.query(`
             update solicitations
@@ -376,8 +378,8 @@ async function getPredictions (filter, user) {
     // await updatePredictionTable()
 
     let attributes = {
-      offset: filter.first || 0,
-      limit: filter.rows || configuration.getConfig("defaultMaxPredictions", 1000),
+      offset: first,
+      limit: max_fetch_rows,
       include: [{
         model: SurveyResponse,
         as: 'feedback'
@@ -442,7 +444,6 @@ async function getPredictions (filter, user) {
       // double check they aren't asking for data from before the cutoff
       const start = Date.parse(filter.startDate)
       const cutoff = Date.parse(configuration.getConfig("minPredictionCutoffDate", '1990-01-01'))
-      configuration.getConfig("minPredictionCutoffDate")
       if (start > cutoff) {
         attributes.where.date = { [Op.gt]: filter.startDate }
       }
@@ -474,17 +475,20 @@ async function getPredictions (filter, user) {
 
     // always end with id sort to keep the newest first (all else being equal)
     attributes.order.push(['id', 'DESC'])
+
+    attributes.raw = true // return as plan data not Sequelize object
+    attributes.nest = true
+
     // noinspection JSUnresolvedFunction
     let preds = await Solicitation.findAll(attributes)
     // noinspection JSUnresolvedFunction
-    0/0
     let count = await Solicitation.findAndCountAll(attributes)
 
 
     return {
       predictions: preds,
-      first: filter.first,
-      rows: Math.min(filter.rows, preds.length),
+      first: first,
+      rows: Math.min(max_fetch_rows, preds.length),
       totalCount: count.count
     }
   } catch (e) {

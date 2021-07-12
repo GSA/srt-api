@@ -230,10 +230,18 @@ module.exports = function (db, userRoutes) {
                 let doc = await solicitation.save()
                 let feedback = cloneDeep(req.body.feedback) || []
                 if (req.body.newFeedbackSubmission && Array.isArray(feedback) && (feedback.length > 0)) {
-                    await surveyRoutes.updateSurveyResponse(notice.solicitation_number, feedback, authRoutes.userInfoFromReq(req).maxId)
+                    await surveyRoutes.updateSurveyResponse(solicitation.solNum, feedback, authRoutes.userInfoFromReq(req).maxId)
+                    solicitation.actionStatus = getConfig("constants:FEEDBACK_ACTION")
                 }
 
-                return res.status(200).send(solicitation)
+                solicitation.save()
+
+                let sol_plus_feedback = cloneDeep(solicitation.dataValues)
+                let updated_feedback = await surveyRoutes.getLatestSurveyResponse(solicitation.solNum);
+                sol_plus_feedback.feedback = updated_feedback[1].responses
+                // solicitation.feedback = await surveyRoutes.getLatestSurveyResponse(solicitation.solNum)
+
+                return res.status(200).send(sol_plus_feedback)
             } catch (e) {
                 logger.log('error', 'error in: postSolicitation - error on save', {error: e, tag: 'postSolicitation - error on save' })
                 res.status(400).send({msg: 'error updating solicitation'})

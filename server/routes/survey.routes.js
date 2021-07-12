@@ -10,6 +10,7 @@ const Survey = require('../models').Survey
 const Notice = require('../models').notice
 const User = require('../models').User
 const SurveyResponse = require('../models').SurveyResponse
+const SurveyResponseArchive = require('../models').SurveyResponseArchive
 const authRoutes = require('../routes/auth.routes')
 // const memoize = require('memoizee')
 
@@ -32,30 +33,38 @@ function makeOneSurvey (s) {
   }
 }
 
+/***
+ * Always add a new row to the survey_responses table so we have a timestamp of when each response was made
+ * and we can connect it to the state of the solicitation / attachments at that time.
+ * @param solNum
+ * @param response
+ * @param maxId
+ * @returns {Promise<(number|{})[]|(number|*)[]|(number|*[])[]>}
+ */
 async function updateSurveyResponse(solNum, response, maxId = null) {
   try {
     if (!Array.isArray(response)) {
-      return [500, []];
+      return [500, []]; // got something of the wrong type, return error
     }
-
     if (response.length == 0) {
-      // don't save a blank.
-      return [200, []];
+      return [200, []]; // don't save a blank.
     }
 
-    let notice = await Notice.findOne({"where": {"solicitation_number": solNum}, "order": [["createdAt", "DESC"]]})
-
-    let survey_response = await SurveyResponse.findOne({"where": {"solNum": solNum,"contemporary_notice_id": notice.id}})
-
-    if (survey_response == null) {
-      survey_response = await SurveyResponse.create({"solNum": solNum,"response": response,"contemporary_notice_id": notice.id, maxId: maxId})
-    } else {
-      survey_response.response = response
-      survey_response.maxId = maxId
-
-      await survey_response.save()
+    let orig_survey_response = await SurveyResponse.findOne({"where": {"solNum": solNum}})
+    if (orig_survey_response) {
+      await SurveyResponseArchive.create(
+        {
+          "solNum": orig_survey_response.solNum,
+          "response": orig_survey_response.response,
+          "maxId": orig_survey_response.maxId,
+          "original_created_at": orig_survey_response.createdAt,
+          "contemporary_notice_id": orig_survey_response.contemporary_notice_id
+        });
+      orig_survey_response.destroy();
     }
+    survey_response = await SurveyResponse.create({"solNum": solNum,"response": response,  maxId: maxId})
     return [200, survey_response]
+
 
   } catch (e){
     logger.log("error", "Error updating survey response", {tag: "survey_response", "error-message": e.message, err:e } )
@@ -67,14 +76,11 @@ async function getLatestSurveyResponse(solNum) {
   try {
     // logger.log("debug", `Getting feedback for ${solNum}.  Results will be cached for 1 second`)
     logger.log("debug", `Getting feedback for ${solNum}.`)
-    let notices = await Notice.findAll({"where": {"solicitation_number": solNum}, "order": [["createdAt", "DESC"]]})
-    for (let notice of notices) {
-      let survey_response = await SurveyResponse.findOne({ "where": { "solNum": solNum,"contemporary_notice_id": notice.id}})
-      if (survey_response) {
-        let user = await User.findOne( {"where": {"maxId": survey_response.maxId}})
+    let survey_response = await SurveyResponse.findOne({ "where": { "solNum": solNum}, "order": [["createdAt", "DESC"]]})
+    if (survey_response) {
+      let user = await User.findOne( {"where": {"maxId": survey_response.maxId}})
 
-        return [200, {responses: survey_response.response, solNum: solNum, date: survey_response.updatedAt, maxId: survey_response.maxId, name: `${user.firstName} ${user.lastName}`, email: user.email}]
-      }
+      return [200, {responses: survey_response.response, solNum: solNum, date: survey_response.updatedAt, maxId: survey_response.maxId, name: `${user.firstName} ${user.lastName}`, email: user.email}]
     }
     return [404, []]
 

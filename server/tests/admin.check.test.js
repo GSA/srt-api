@@ -19,6 +19,9 @@ let coordinatorToken = {}
 describe('Tests for admin check', () => {
 
   beforeAll(async () => {
+    // tests can give false failure if the time cuttoff removes all the useful test data
+    process.env.minPredictionCutoffDate = '1990-01-01';
+
     testSession = supertestSession(app)
 
     adminUser = Object.assign({}, adminCASData)

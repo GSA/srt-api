@@ -98,9 +98,12 @@ let predictionTemplate = {
 describe('prediction tests', () => {
   beforeAll( async () => {
 
-
     jest.setTimeout(10000) // some of these tests are slow
     process.env.MAIL_ENGINE = 'nodemailer-mock'
+
+    // tests can give false failure if the time cuttoff removes all the useful test data
+    process.env.minPredictionCutoffDate = '1990-01-01';
+
     app = require('../app')() // don't load the app till the mock is configured
 
     myUser = Object.assign({}, userAcceptedCASData)
@@ -109,16 +112,17 @@ describe('prediction tests', () => {
     myUser.id = user.id
     token = await mockToken(myUser, common['jwtSecret'])
 
-    let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",")
-    let sql = `select solicitation_number
-                from notice
-                join notice_type on notice.notice_type_id = notice_type.id
-                where notice_type.notice_type in (${allowed_types}) and
-                      notice_data->>'office' is not null
-                order by notice.id desc
-                limit 1`
-    let rows = await db.sequelize.query(sql, null)
-    sample_sol_num = rows[0][0].solicitation_number
+    // let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",")
+    // let sql = `select solicitation_number
+    //             from notice
+    //             join notice_type on notice.notice_type_id = notice_type.id
+    //             where notice_type.notice_type in (${allowed_types}) and
+    //                   notice_data->>'office' is not null
+    //             order by notice.id desc
+    //             limit 1`
+    // let rows = await db.sequelize.query(sql, null)
+    // sample_sol_num = rows[0][0].solicitation_number
+    sample_sol_num = await test_utils.getSolNumForTesting()
 
   })
 
@@ -179,8 +183,8 @@ describe('prediction tests', () => {
 
     let prediction = res.send.mock.calls[0][0].predictions[0]
 
-    expect(prediction.feedback).toBeArray()
-    expect(prediction.feedback[0].response.length).toBeGreaterThan(0)
+    expect(prediction.feedback.response).toBeArray()
+    expect(prediction.feedback.response.length).toBeGreaterThan(0)
 
   })
 
@@ -284,7 +288,7 @@ describe('prediction tests', () => {
 
   test('Filter predictions on multiple dimensions', () => {
     // noinspection JSTestFailedLine
-    return db.sequelize.query(`select agency from "Predictions" where "solNum" = '${sample_sol_num}'  limit 1;`, null)
+    return db.sequelize.query(`select agency from solicitations where "solNum" = '${sample_sol_num}'  limit 1;`, null)
       .then((rows) => {
         let agency = rows[0][0].agency
         return request(app)
@@ -315,7 +319,7 @@ describe('prediction tests', () => {
                 expect(res.body.predictions[0].title).toBeDefined()
 
                 for (let i = 0; i < res.body.predictions.length; i++) {
-                  expect(res.body.predictions[i].eitLikelihood.value).toBe('Yes')
+                  expect(res.body.predictions[i].eitLikelihood.value.toLocaleLowerCase()).toBe('yes')
                   expect(res.body.predictions[i].agency).toBe(agency)
                 }
               })
@@ -836,7 +840,7 @@ describe('prediction tests', () => {
 
   }
 
-  test("prediction global filter", async () => {
+  test.only("prediction global filter", async () => {
     // pick a word out of the titles.
     let {predictions} = await predictionRoutes.getPredictions({ first: 33, rows: 200 }, mocks.mockAdminUser)
 
@@ -853,6 +857,7 @@ describe('prediction tests', () => {
       let word = null
       for (const p of predictions) {
         word = word || p[x.field].match(x.regex)  // pick out a word from the field
+        if (word) {break}
       }
       word = word[0] // grab the first match string
       await globalFilterTest(word)

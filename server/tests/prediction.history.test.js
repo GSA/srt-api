@@ -7,6 +7,7 @@ let testSolNum = null
 const configuration = require('../config/configuration')
 const {config_keys} = require('../config/config')
 const mocks = require('./mocks')
+const testUtils = require('../shared/test_utils')
 
 let n1 = {
   date: '2019-01-10T00:01:00.000Z',
@@ -24,19 +25,23 @@ let n3 = {
 
 describe('Prediction History', () => {
   beforeAll( async () => {
+    // tests can give false failure if the time cuttoff removes all the useful test data
+    process.env.minPredictionCutoffDate = '1990-01-01';
+
     process.env.MAIL_ENGINE = 'nodemailer-mock'
     app = require('../app')() // don't load the app till the mock is configured
 
-    let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",")
-    let sql = `select solicitation_number 
-                from notice
-                join notice_type on notice.notice_type_id = notice_type.id
-                where notice_type.notice_type in (${allowed_types}) 
-                order by notice.id desc
-                limit 1`
-    let rows = await db.sequelize.query(sql)
-    testSolNum = rows[0][0].solicitation_number
+    // let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",")
+    // let sql = `select solicitation_number
+    //             from notice
+    //             join notice_type on notice.notice_type_id = notice_type.id
+    //             where notice_type.notice_type in (${allowed_types})
+    //             order by notice.id desc
+    //             limit 1`
+    // let rows = await db.sequelize.query(sql)
+    // testSolNum = rows[0][0].solicitation_number
 
+    testSolNum = await testUtils.getSolNumForTesting()
 
   })
 
