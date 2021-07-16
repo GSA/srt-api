@@ -2,47 +2,14 @@
 version: v1.14.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
-  SNYK-JS-LODASH-450202:
-    - lodash:
-        reason: No upgrade currently available
-        expires: '2019-08-02T13:10:53.461Z'
-    - express-winston > lodash:
-        reason: None given
-        expires: '2019-08-02T13:10:53.461Z'
-    - sequelize > lodash:
-        reason: None given
-        expires: '2019-08-02T13:10:53.461Z'
-    - sequelize-cli > lodash:
-        reason: None given
-        expires: '2019-08-02T13:10:53.461Z'
-    - winston > async > lodash:
-        reason: None given
-        expires: '2019-08-02T13:10:53.461Z'
-  SNYK-JS-MINIMIST-559764:
-    - multer > mkdirp > minimist:
-        reason: no fix available
-        expires: '2020-04-11T19:27:49.529Z'
-    - sequelize-cli > js-beautify > mkdirp > minimist:
-        reason: no fix available
-        expires: '2020-04-11T19:27:49.529Z'
-  SNYK-JS-LODASH-567746:
-    - random-words > mocha > yargs-unparser > lodash:
-        reason: Patch applied but no update available yet
-        expires: '2020-09-04T14:11:08.724Z'
-    - '@albertcrowley/winston-pg-native@github:albertcrowley/winston-pg-native#867fac4b3a49570bfd71ea80408e26a6d940cc2e > node-sql-2@0.79.0 > lodash@4.17.15':
-        reason: Module patched but no full update is available yet
-        expires: '2020-09-04T14:11:08.724Z'
-    - '@albertcrowley/winston-pg-native@github:albertcrowley/winston-pg-native#867fac4b3a49570bfd71ea80408e26a6d940cc2e > winston@3.2.1 > async@2.6.3 > lodash@4.17.15':
-        reason: Module patched but no full update is available yet
-        expires: '2020-09-04T14:11:08.724Z'
-  SNYK-JS-Y18N-1021887:
-    - sequelize-cli > yargs > y18n:
-        reason: waiting for patch
-        expires: '2021-05-02T17:53:53.768Z'
   SNYK-JS-COLORSTRING-1082939:
     - '*':
         reason: None Given
-        expires: 2021-05-02T18:27:27.839Z
+        expires: 2021-12-02T18:27:27.839Z
+  SNYK-JS-PATHPARSE-1077067:
+    - '*':
+        reason: used by sequlize-cli during setup only
+        expires: 2029-12-02T18:27:27.839Z
 # patches apply the minimum changes required to fix a vulnerability
 patch:
   SNYK-JS-LODASH-567746:
