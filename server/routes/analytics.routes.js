@@ -58,8 +58,13 @@ function calcSolicitations(allSolicitations, stats = undefined) {
       stats.newSolicitationsByDate[day] = (!stats.newSolicitationsByDate[day]) ? 1 : stats.newSolicitationsByDate[day] + 1
 
       for (let d of updatedDateArray) {
-        // d is in the format mm/dd/yyyy, so reorganize it to be yyyymmdd
-        day = d.substring(6,10) + d.substring(0,2) + d.substring(3,5)
+        if (d.match(/^[0-9]+\/ [0-9]+\/[0-9]+/))
+          // d is in the format mm/dd/yyyy, so reorganize it to be yyyymmdd
+          day = d.substring(6,10) + d.substring(0,2) + d.substring(3,5)
+        else {
+          // lets assume d is in the yyyy-mm-yy format, so reorganize it to be yyyymmdd
+          day = d.substring(0,4) + d.substring(5,7) + d.substring(8,10)
+        }
         stats.updatedSolicitations++
         stats.updatedSolicitationsByDate[day] = (!stats.updatedSolicitationsByDate[day]) ? 1 : stats.updatedSolicitationsByDate[day] + 1
       }
