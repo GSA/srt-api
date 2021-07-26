@@ -251,7 +251,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Filter predictions to only return a certain office', () => {
-    return db.sequelize.query(`select notice_data->>'office' as office from notice where solicitation_number = '${sample_sol_num}' limit 1;`, null)
+    return db.sequelize.query(`select office from solicitations where "solNum" = '${sample_sol_num}' limit 1;`, null)
       .then((rows) => {
         let office = rows[0][0].office
 
@@ -388,7 +388,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Test prediction date filters', async () => {
-    let rows = await db.sequelize.query('select date from notice order by date desc, agency desc limit 1', null)
+    let rows = await db.sequelize.query('select date from solicitations order by date desc, agency desc limit 1', null)
 
     let date = rows[0][0].date //?
     let year = date.getFullYear()
@@ -399,15 +399,15 @@ describe('prediction tests', () => {
     let end = `${month}/${dayPlus}/${year}`
     let startBound = new Date(rows[0][0].date)
     let endBound = new Date(rows[0][0].date)
-    startBound.setDate( startBound.getDate() - 1)
+    startBound.setDate( startBound.getDate() - 2)
     endBound.setDate(endBound.getDate() + 2)
 
     let res = await request(app)
       .post('/api/predictions/filter')
       .set('Authorization', `Bearer ${token}`)
       .send({
-        startDate: start,
-        endDate: end
+        startDate: startBound,
+        endDate: endBound
       })
     // noinspection JSUnresolvedVariable
     expect(res.statusCode).toBe(200)
@@ -824,6 +824,7 @@ describe('prediction tests', () => {
       found = p.title.toLowerCase().match(word.toLowerCase()) ||
               p.noticeType.toLowerCase().match(word.toLowerCase()) ||
               p.solNum.toLowerCase().match(word.toLowerCase()) ||
+              p.agency.toLowerCase().match(word.toLowerCase()) ||
               p.office.toLowerCase().match(word.toLowerCase()) ||
               p.reviewRec.toLowerCase().match(word.toLowerCase()) ||
               found
@@ -840,7 +841,7 @@ describe('prediction tests', () => {
 
   }
 
-  test.only("prediction global filter", async () => {
+  test("prediction global filter", async () => {
     // pick a word out of the titles.
     let {predictions} = await predictionRoutes.getPredictions({ first: 33, rows: 200 }, mocks.mockAdminUser)
 
@@ -1037,17 +1038,15 @@ describe('prediction tests', () => {
 
   }, 300000)
 
-  test("Predictions have feedback", async () => {
+  test("Save new feedback using API and then and then verify it in the database.", async () => {
     // make sure we have feedback
     let solNum = await test_utils.getSolNumForTesting({offset: 12})
-    surveyRoutes.updateSurveyResponse(solNum, feedback)
-    predictionRoutes.updatePredictionTable()
+    await surveyRoutes.updateSurveyResponse(solNum, feedback)
+    // predictionRoutes.updatePredictionTable()
 
 
     let preds = await predictionRoutes.getPredictions({"solNum": solNum}, {agency:"general services administration", userRole: "Administrator"})
-    console.log(preds.predictions[0])
-    preds.predictions[0]
-    let ans = preds.predictions[0].feedback[0].response[0].answer
+    let ans = preds.predictions[0].feedback.response[0].answer
     expect (ans).toBe("Maybe")
 
   },30000)

@@ -9,6 +9,7 @@ const configuration = require('../config/configuration')
 const {getConfig} = require('../config/configuration')
 let solicitationRoutes = null
 const predictionRoutes = require('../routes/prediction.routes')
+const {getSolNumForTesting} = require('../shared/test_utils')
 
 const cloneDeep = require('clone-deep')
 
@@ -42,14 +43,7 @@ describe('solicitation tests', () => {
 
     let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",")
 
-    let sql = `select solicitation_number 
-                from notice
-                join notice_type on notice.notice_type_id = notice_type.id
-                where notice_type.notice_type in (${allowed_types})
-                order by notice.id desc
-                limit 1`
-    let rows = await db.sequelize.query(sql)
-    sample_sol_num = rows[0][0].solicitation_number
+    sample_sol_num = getSolNumForTesting();
   })
 
   afterAll(() => {
@@ -141,15 +135,14 @@ describe('solicitation tests', () => {
         // noinspection JSUnresolvedVariable
         expect(res.statusCode).toBe(200)
         expect(res.body.solNum).toBeDefined()
-        res.body
-        res.body.solNum
         expect(res.body.solNum).toBe(solNum)
+
         return expect(res.body.agency).toBeDefined()
       })
   }, 60000)
 
   test('sending an non-existing ID to get solicitation', () => {
-    return db.sequelize.query('select id from notice order by id desc limit 1')
+    return db.sequelize.query('select id from solicitations order by id desc limit 1')
       .then((rows) => {
         let id = rows[0][0].id + 9999
         expect(id).toBeDefined()
@@ -256,7 +249,7 @@ describe('solicitation tests', () => {
 
 
     test('Test attachment filenames', async () => {
-        let solNum = await testUtils.getSolNumForTesting({"attachment_count": 3})
+        let solNum = await testUtils.getSolNumForTesting({"attachment_count": 1})
         let solId = await testUtils.solNumToSolicitationID(solNum)
         let files = await db.sequelize.query(`select filename from attachment where solicitation_id = '${solId}'`)
         let res = await request(app)

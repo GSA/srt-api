@@ -45,10 +45,7 @@ module.exports = {
 
 
             if ("attachment_count" in options) {
-                join += ` join (select count(*) as c, solicitation_number from attachment a 
-                                join notice n on a.notice_id = n.id 
-                                group by solicitation_number having count(*) = ${options.attachment_count}) attachment_counts 
-                                on attachment_counts.solicitation_number = s."solNum" `
+                where += ` and jsonb_array_length("parseStatus") = ${options.attachment_count} `
             }
 
             let sql = `${with_clause} select s."solNum"
