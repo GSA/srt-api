@@ -40,7 +40,7 @@ let background_count = 0
  * @property {string} solNum Solicitation number. Also known as notice number
  * @property {string} startDate Date in YYYY-MM-DD format
  * @property {string} endDate Date in YYYY-MM-DD format
- * @property {string} eitLikelihood - "Yes" or "No" value indicating if you want to receive IT Solicitation or non IT solicitations
+ * @property {string} category_list - "Yes" or "No" value indicating if you want to receive IT Solicitation or non IT solicitations
  *
  *
  */
@@ -58,7 +58,7 @@ let background_count = 0
  * @property {string} date - Date the solicitation was last updated in the database
  * @property {string} office - Office associated with the solicitation
  * @property {Object} predictions - Has one element named value of "RED" or "GREEN" for non / compliant solicitations. Don't know why it's a plural noun.
- * @property {EIT} eitLikelihood - Is the solicitation an IT solicitation?
+ * @property {EIT} category_list - Is the solicitation an IT solicitation?
  * @property {Number} undetermined - Boolean representation showing if the solicitation has an undetermined prediction. 0 for false (determined) and 1 for true (undetermined)
  * @property {action} action - Date/status of the last action. (quirk of the legacy code causes this to not be set until the second action occurs_
  * @property {string} actionStatus
@@ -150,7 +150,7 @@ async function makeOnePrediction (notice) {
     } else {
       o.reviewRec = (notice.compliant === 1) ? 'Compliant' : 'Non-compliant (Action Required)'
     }
-    o.eitLikelihood = {
+    o.category_list = {
       naics: notice.naics,
       value: 'Yes'
     }
@@ -554,7 +554,7 @@ module.exports = {
     let keys = Object.keys(req.body)
 
     // verify that only supported filter params are used
-    let validKeys = ['agency', 'office', 'numDocs', 'solNum', 'eitLikelihood', 'startDate', 'fromPeriod', 'endDate', 'toPeriod']
+    let validKeys = ['agency', 'office', 'numDocs', 'solNum', 'category_list', 'startDate', 'fromPeriod', 'endDate', 'toPeriod']
     // add in the keys used by the PrimeNG table lazy loader
     validKeys.push('first', 'filters', 'globalFilter', 'multiSortMeta', 'rows', 'sortField', 'sortOrder')
     for (let i = 0; i < keys.length; i++) {
@@ -576,10 +576,6 @@ module.exports = {
     req.body.first = (req.body.first !== undefined) ? req.body.first : 0
     req.body.rows = (req.body.rows !== undefined) ? req.body.rows : 100
     let user = authRoutes.userInfoFromReq(req)
-
-  logger.log("debug", "PREDS - req body " + JSON.stringify(req.body))
-  logger.log("debug", "PREDS - user " + JSON.stringify(user))
-
 
     return getPredictions(req.body, user)
       .then((predictions) => {

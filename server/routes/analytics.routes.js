@@ -483,7 +483,7 @@ module.exports = {
      *
      * @param {Request} req
      * @param {Object} req.body
-     * @param {string} req.body.eitLikelihood - If provided, should always be "Yes"
+     * @param {string} req.body.category_list - If provided, should always be "Yes"
      * @param {string} req.body.agency - Name of agency or "Government-wide"
      * @param {string} req.body.fromPeriod - Start date for analysis
      * @param {string} req.body.toPeriod - End date for analysis

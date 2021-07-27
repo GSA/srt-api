@@ -121,7 +121,7 @@ describe('solicitation tests', () => {
     expect(updated_solicitation.feedback.response[1].answer).toMatch("second answer")
   },77000)
 
-  test('solicitation get', async () => {
+  test.only('solicitation get', async () => {
 
     let solNum = await testUtils.getSolNumForTesting()
     let id = await testUtils.solNumToSolicitationID(solNum)
@@ -136,6 +136,8 @@ describe('solicitation tests', () => {
         expect(res.statusCode).toBe(200)
         expect(res.body.solNum).toBeDefined()
         expect(res.body.solNum).toBe(solNum)
+
+        expect(res.body.noticeData.psc).toBeDefined()
 
         return expect(res.body.agency).toBeDefined()
       })
@@ -282,7 +284,7 @@ describe('solicitation tests', () => {
         "contactInfo": { "contact": "BERNIE CAGUIAT 8316566948", "email": "", "name": "Contact Name", "position": "Position" },
         "createdAt": "2020-01-16T18:13:41.875Z",
         "date": "2019-03-29T12:05:31.000Z",
-        "eitLikelihood": { "value": "Yes" },
+        "category_list": { "value": "Yes" },
         "feedback": [],
         "history": [{
                       "action": "reviewed solicitation action requested summary",

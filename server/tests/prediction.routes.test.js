@@ -44,7 +44,7 @@ let predictionTemplate = {
   reviewRec: 'Compliant', // one of "Compliant", "Non-compliant (Action Required)", or "Undetermined"
   date: '2019-01-10T09:02:15.895Z',
   numDocs: 3,
-  eitLikelihood: {
+  category_list: {
     naics: 'naics here', // initial version uses NAICS code to determine
     value: '45'
   },
@@ -295,7 +295,7 @@ describe('prediction tests', () => {
           .post('/api/predictions/filter')
           .set('Authorization', `Bearer ${token}`)
           .send({
-            eitLikelihood: 'Yes',
+            category_list: 'Yes',
             agency: agency,
             numDocs: 2
           })
@@ -308,7 +308,7 @@ describe('prediction tests', () => {
               .post('/api/predictions/filter')
               .set('Authorization', `Bearer ${token}`)
               .send({
-                eitLikelihood: 'Yes',
+                category_list: 'Yes',
                 agency: agency
               })
               .then((res) => {
@@ -319,7 +319,7 @@ describe('prediction tests', () => {
                 expect(res.body.predictions[0].title).toBeDefined()
 
                 for (let i = 0; i < res.body.predictions.length; i++) {
-                  expect(res.body.predictions[i].eitLikelihood.value.toLocaleLowerCase()).toBe('yes')
+                  expect(res.body.predictions[i].category_list.value.toLocaleLowerCase()).toBe('yes')
                   expect(res.body.predictions[i].agency).toBe(agency)
                 }
               })
@@ -574,8 +574,8 @@ describe('prediction tests', () => {
     expect(predictions['noMatch1'].numDocs).toBe(p3.numDocs)
 
     // test prediction.prediction
-    // test prediction.eitLikelihood
-    for (let key of ['predictions', 'eitLikelihood']) {
+    // test prediction.category_list
+    for (let key of ['predictions', 'category_list']) {
       expect(predictions['pred1'][key].value).toBe(p3[key].value)
       expect(predictions['pred6'][key].value).toBe(p6[key].value)
     }
