@@ -26,7 +26,7 @@ function formatDate(d) {
  * @param stats - Allows for pre-filled stats that will be added onto so we can process large datasets in chunks
  * @returns {{newSolicitations: number, newSolicitationsByDate: {}, totalSolicitations: number, updatedSolicitationsByDate: {}, updatedSolicitations: number}}
  */
-function calcSolicitations(allSolicitations, stats = undefined) {
+function calcSolicitationsAddedOrUpdatedByDate(allSolicitations, stats = undefined) {
   try {
     if (!stats) {
       stats = {
@@ -364,7 +364,7 @@ async function computeAnalytics (params, user) {
     }
 
 
-    let solStats = calcSolicitations(result.predictions);
+    let solStats = calcSolicitationsAddedOrUpdatedByDate(result.predictions);
 
     let analytics = {
       solStats: solStats,
@@ -431,7 +431,7 @@ async function computeAnalytics (params, user) {
  */
 module.exports = {
 
-  calcSolicitations: calcSolicitations,
+  calcSolicitations: calcSolicitationsAddedOrUpdatedByDate,
 
   computeAnalytics: computeAnalytics,
 
