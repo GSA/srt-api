@@ -27,7 +27,7 @@
 //   numDocs: {
 //     type: String
 //   },
-//   eitLikelihood: { // is the solicitation ICT?  is 508 required?
+//   category_list: { // is the solicitation ICT?  is 508 required?
 //     naics: String,  // initial version uses NAICS code to determine
 //     value: String
 //   },

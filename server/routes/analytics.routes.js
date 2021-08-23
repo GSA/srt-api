@@ -26,7 +26,7 @@ function formatDate(d) {
  * @param stats - Allows for pre-filled stats that will be added onto so we can process large datasets in chunks
  * @returns {{newSolicitations: number, newSolicitationsByDate: {}, totalSolicitations: number, updatedSolicitationsByDate: {}, updatedSolicitations: number}}
  */
-function calcSolicitations(allSolicitations, stats = undefined) {
+function calcSolicitationsAddedOrUpdatedByDate(allSolicitations, stats = undefined) {
   try {
     if (!stats) {
       stats = {
@@ -58,8 +58,13 @@ function calcSolicitations(allSolicitations, stats = undefined) {
       stats.newSolicitationsByDate[day] = (!stats.newSolicitationsByDate[day]) ? 1 : stats.newSolicitationsByDate[day] + 1
 
       for (let d of updatedDateArray) {
-        // d is in the format mm/dd/yyyy, so reorganize it to be yyyymmdd
-        day = d.substring(6,10) + d.substring(0,2) + d.substring(3,5)
+        if (d.match(/^[0-9]+\/ [0-9]+\/[0-9]+/))
+          // d is in the format mm/dd/yyyy, so reorganize it to be yyyymmdd
+          day = d.substring(6,10) + d.substring(0,2) + d.substring(3,5)
+        else {
+          // lets assume d is in the yyyy-mm-yy format, so reorganize it to be yyyymmdd
+          day = d.substring(0,4) + d.substring(5,7) + d.substring(8,10)
+        }
         stats.updatedSolicitations++
         stats.updatedSolicitationsByDate[day] = (!stats.updatedSolicitationsByDate[day]) ? 1 : stats.updatedSolicitationsByDate[day] + 1
       }
@@ -91,6 +96,9 @@ async function computeAnalytics (params, user) {
     let from =   ( params.from ) ? params.from : new Date(2000,1,1)
     let to = ( params.to ) ? params.to : new Date(2222,2,2)
     let agency = ( params.agency) ? params.agency : user.agency
+    if (!params.rows) {
+      params.rows = Number.MAX_SAFE_INTEGER
+    }
 
 
     let result = await predictionRoutes.getPredictions(params, user);
@@ -185,7 +193,7 @@ async function computeAnalytics (params, user) {
         if (latest) data.LatestNonPresolicitation++
         data.TotalNonPresolicitation++
 
-        if (predictions[i].parseStatus.length !== 0) {
+        if (  predictions[i].parseStatus && predictions[i].parseStatus.length !== 0) {
           // Machine Readable Document
           for (let j = 0; j < predictions[i].parseStatus.length; j++) {
             if (latest) {
@@ -223,7 +231,7 @@ async function computeAnalytics (params, user) {
               break
             }
           }
-        } else if (predictions[i].parseStatus.length === 0 && predictions[i].numDocs === '0') {
+        } else if (predictions[i].parseStatus && predictions[i].parseStatus.length === 0 && predictions[i].numDocs === '0') {
           if (predictions[i].predictions.value === 'red') {
             if (latest) {
               data.LatestNoDocumentSolicitation_RED++
@@ -356,7 +364,7 @@ async function computeAnalytics (params, user) {
     }
 
 
-    let solStats = calcSolicitations(result.predictions);
+    let solStats = calcSolicitationsAddedOrUpdatedByDate(result.predictions);
 
     let analytics = {
       solStats: solStats,
@@ -423,7 +431,7 @@ async function computeAnalytics (params, user) {
  */
 module.exports = {
 
-  calcSolicitations: calcSolicitations,
+  calcSolicitations: calcSolicitationsAddedOrUpdatedByDate,
 
   computeAnalytics: computeAnalytics,
 
@@ -475,7 +483,7 @@ module.exports = {
      *
      * @param {Request} req
      * @param {Object} req.body
-     * @param {string} req.body.eitLikelihood - If provided, should always be "Yes"
+     * @param {string} req.body.category_list - If provided, should always be "Yes"
      * @param {string} req.body.agency - Name of agency or "Government-wide"
      * @param {string} req.body.fromPeriod - Start date for analysis
      * @param {string} req.body.toPeriod - End date for analysis

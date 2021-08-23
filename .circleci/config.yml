@@ -109,7 +109,6 @@ jobs:
       - run: gzip -d srt-database.sql.gz
       - run: export PGPASSWORD=srtpass && psql -h "localhost"  srt circleci < srt-database.sql
       - run: ./node_modules/.bin/sequelize --config ./server/config/dbConfig.js db:migrate
-      - run: node ./server/loadPredictions.js
 
       - run:
           name: SNYK test

@@ -15,6 +15,8 @@ describe('/api/agencies', () => {
   let acronym = 'def'
 
   beforeAll( async () => {
+    // tests can give false failure if the time cuttoff removes all the useful test data
+    process.env.minPredictionCutoffDate = '1990-01-01';
     token = await mockToken(userAcceptedCASData, common['jwtSecret'])
   })
 

@@ -5,8 +5,10 @@ const Prediction = require('../models').Prediction
 /** @type {Solicitation} **/
 const Solicitation = require('../models').Solicitation
 const SurveyResponse = require('../models').SurveyResponse
+const notice_type = require('../models').notice_type
 const Notice = require('../models').notice
 const survey_routes = require('../routes/survey.routes')
+const notice_type_utils = require('../shared/notice_type_utils')
 
 /**
  * Prediction routes
@@ -38,7 +40,7 @@ let background_count = 0
  * @property {string} solNum Solicitation number. Also known as notice number
  * @property {string} startDate Date in YYYY-MM-DD format
  * @property {string} endDate Date in YYYY-MM-DD format
- * @property {string} eitLikelihood - "Yes" or "No" value indicating if you want to receive IT Solicitation or non IT solicitations
+ * @property {string} category_list - "Yes" or "No" value indicating if you want to receive IT Solicitation or non IT solicitations
  *
  *
  */
@@ -56,7 +58,7 @@ let background_count = 0
  * @property {string} date - Date the solicitation was last updated in the database
  * @property {string} office - Office associated with the solicitation
  * @property {Object} predictions - Has one element named value of "RED" or "GREEN" for non / compliant solicitations. Don't know why it's a plural noun.
- * @property {EIT} eitLikelihood - Is the solicitation an IT solicitation?
+ * @property {EIT} category_list - Is the solicitation an IT solicitation?
  * @property {Number} undetermined - Boolean representation showing if the solicitation has an undetermined prediction. 0 for false (determined) and 1 for true (undetermined)
  * @property {action} action - Date/status of the last action. (quirk of the legacy code causes this to not be set until the second action occurs_
  * @property {string} actionStatus
@@ -148,7 +150,7 @@ async function makeOnePrediction (notice) {
     } else {
       o.reviewRec = (notice.compliant === 1) ? 'Compliant' : 'Non-compliant (Action Required)'
     }
-    o.eitLikelihood = {
+    o.category_list = {
       naics: notice.naics,
       value: 'Yes'
     }
@@ -360,25 +362,33 @@ function normalizeMatchFilter(filter, field){
 async function getPredictions (filter, user) {
 
   try {
+    let first = filter.first || 0
+    let max_fetch_rows = filter.rows || configuration.getConfig("defaultMaxPredictions", 1000)
+
+    let update_rows = await db.sequelize.query(`
+            update solicitations
+            set "noticeType" = (select COALESCE (notice_type, 'other') from notice_type where id = solicitations.notice_type_id)
+            where "noticeType" is null or "noticeType" = ''; `)
+
     if ( user === undefined || user.agency === undefined || user.userRole === undefined ) {
       return []
     }
 
     logger.debug("Entering getPredictions")
-    await updatePredictionTable()
+    // await updatePredictionTable()
 
     let attributes = {
-      offset: filter.first || 0,
-      limit: filter.rows || configuration.getConfig("defaultMaxPredictions", 1000),
+      offset: first,
+      limit: max_fetch_rows,
       include: [{
         model: SurveyResponse,
         as: 'feedback'
       }],
-
     }
 
     // filter to allowed notice types
     let types = configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation'])
+
     attributes.where = {
       noticeType: {
         [Op.in]: types
@@ -389,7 +399,7 @@ async function getPredictions (filter, user) {
     if (filter.globalFilter) {
       attributes.where.searchText = { [Op.like]: `%${filter.globalFilter.toLowerCase()}%` }
     }
-    for (let f of ['office', 'agency', 'title', 'solNum', 'reviewRec']) {
+    for (let f of ['office', 'agency', 'title', 'solNum', 'reviewRec', 'id']) {
       normalizeMatchFilter(filter, f)
     }
 
@@ -398,7 +408,7 @@ async function getPredictions (filter, user) {
     if (filter.filters) {
       for (let f in filter.filters) {
         if (filter.filters.hasOwnProperty(f) && filter.filters[f].matchMode === 'equals') {
-          attributes.where[f] = { [Op.eq]: filter.filters[f].value}
+          attributes.where[f] = {[Op.eq]: filter.filters[f].value}
         }
       }
     }
@@ -434,7 +444,6 @@ async function getPredictions (filter, user) {
       // double check they aren't asking for data from before the cutoff
       const start = Date.parse(filter.startDate)
       const cutoff = Date.parse(configuration.getConfig("minPredictionCutoffDate", '1990-01-01'))
-      configuration.getConfig("minPredictionCutoffDate")
       if (start > cutoff) {
         attributes.where.date = { [Op.gt]: filter.startDate }
       }
@@ -466,16 +475,20 @@ async function getPredictions (filter, user) {
 
     // always end with id sort to keep the newest first (all else being equal)
     attributes.order.push(['id', 'DESC'])
+
+    attributes.raw = true // return as plan data not Sequelize object
+    attributes.nest = true
+
     // noinspection JSUnresolvedFunction
-    let preds = await Prediction.findAll(attributes)
+    let preds = await Solicitation.findAll(attributes)
     // noinspection JSUnresolvedFunction
-    let count = await Prediction.findAndCountAll(attributes)
+    let count = await Solicitation.findAndCountAll(attributes)
 
 
     return {
       predictions: preds,
-      first: filter.first,
-      rows: Math.min(filter.rows, preds.length),
+      first: first,
+      rows: Math.min(max_fetch_rows, preds.length),
       totalCount: count.count
     }
   } catch (e) {
@@ -541,7 +554,7 @@ module.exports = {
     let keys = Object.keys(req.body)
 
     // verify that only supported filter params are used
-    let validKeys = ['agency', 'office', 'numDocs', 'solNum', 'eitLikelihood', 'startDate', 'fromPeriod', 'endDate', 'toPeriod']
+    let validKeys = ['agency', 'office', 'numDocs', 'solNum', 'category_list', 'startDate', 'fromPeriod', 'endDate', 'toPeriod']
     // add in the keys used by the PrimeNG table lazy loader
     validKeys.push('first', 'filters', 'globalFilter', 'multiSortMeta', 'rows', 'sortField', 'sortOrder')
     for (let i = 0; i < keys.length; i++) {
@@ -563,10 +576,6 @@ module.exports = {
     req.body.first = (req.body.first !== undefined) ? req.body.first : 0
     req.body.rows = (req.body.rows !== undefined) ? req.body.rows : 100
     let user = authRoutes.userInfoFromReq(req)
-
-  logger.log("debug", "PREDS - req body " + JSON.stringify(req.body))
-  logger.log("debug", "PREDS - user " + JSON.stringify(user))
-
 
     return getPredictions(req.body, user)
       .then((predictions) => {
@@ -598,99 +607,100 @@ async function prepareSolicitationTable() {
 }
 
 async function updatePredictionTable  (clearAllAfterDate, background = false) {
-  performance.mark("updatePredictionTable-start")
-
-  let fetch_limit = 10
-
-  if (background) {
-    background_count -= 1
-    logger.info (`starting a background job.  background count is now ${background_count} in the queue`)
-  }
-
-  logger.debug(`starting updatePredictionTable. Clear all after date set to ${clearAllAfterDate}`, {tag: "updatePredictionTable"})
-
-  if (clearAllAfterDate) {
-    let sql = `delete from "Predictions" where "updatedAt" > '${clearAllAfterDate}' `
-    logger.debug(`Clearing all predictions after ${clearAllAfterDate}`, {tag: "updatePredictionTable", sql: sql})
-    // noinspection JSUnresolvedFunction
-    await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
-  }
-
-  await prepareSolicitationTable()
-
-  // lets try only running for max number of seconds before returning
-  const maxSeconds = getConfig("updatePredictionTableMaxRunTime", 10)
-  const queueDelaySeconds = getConfig("updatePredictionTableQueueDelay", 30)
-
-
-  const start = new Date()
-  const startSeconds = Math.round(start.getTime() / 1000)
-  let now = new Date()
-  let nowSeconds = Math.round(now.getTime() / 1000)
-
-  let actualCount = 0
-  let outdatedPredictions = await getOutdatedPrediction(fetch_limit)
-  let msg = (outdatedPredictions.length < fetch_limit)
-    ? `${outdatedPredictions.length}`
-    : `${outdatedPredictions.length}+`
-    logger.debug(`there are ${msg} outdated predictions to update`)
-
-  let timeout = false
-  while (outdatedPredictions && outdatedPredictions.length > 0 ) {
-    if ((nowSeconds - startSeconds) > maxSeconds) {
-      timeout = true
-      break
-    }
-    now = new Date()
-    nowSeconds = Math.round(now.getTime() / 1000)
-    actualCount ++
-    let pred = outdatedPredictions.pop()
-    pred.actionDate = makeDate(pred.actionDate)
-    pred.date = makeDate(pred.date)
-
-
-    try {
-      // get it's active/inactive status from the solicitations table
-      let sol_row = await db.sequelize.query(`select active from solicitations where "solNum" = :sn`, { replacements: {"sn": pred.solNum}, type: db.sequelize.QueryTypes.SELECT })
-      pred.active = sol_row[0]['active']
-
-      logger.log("debug", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
-      delete (pred.id) // remove the id since that should be auto-increment
-      // noinspection JSCheckFunctionSignatures
-      await Prediction.destroy({ where: { solNum: pred.solNum } }) // delete any outdated prediction
-      // noinspection JSUnresolvedFunction
-      await Prediction.create(pred);
-
-      // await prepareSolicitationTable()
-
-    } catch(e) {
-      logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', "error-message": e.message, error: e})
-    }
-
-    // we only get a few at a time so check to see if there are more when we run out of the current batch
-    if (outdatedPredictions.length === 0) {
-      outdatedPredictions = await getOutdatedPrediction(fetch_limit)
-    }
-
-    if ((actualCount % 100) === 0) {
-      logger.log("info", `Updated ${actualCount} prediction records.`)
-    }
-  }
-  if (actualCount > 0) {
-    logger.log("info", `Updated ${actualCount} prediction records`)
-  }
-
-  if (timeout && background_count == 0) {
-    background_count += 1
-    const queueDelayMilliseconds = queueDelaySeconds * 1000
-    logger.log("info", `Prediction update hit time of ${maxSeconds} seconds limit - queuing another round of updates in ${queueDelaySeconds}. ${background_count} in the queue`)
-    setTimeout( function() { updatePredictionTable(null, true) } , queueDelayMilliseconds)
-  }
-
-  performance.mark("updatePredictionTable-end")
-  performance.measure("updatePredictionTable", "updatePredictionTable-start", "updatePredictionTable-end")
-
-    return actualCount
+  return;
+  // performance.mark("updatePredictionTable-start")
+  //
+  // let fetch_limit = 10
+  //
+  // if (background) {
+  //   background_count -= 1
+  //   logger.info (`starting a background job.  background count is now ${background_count} in the queue`)
+  // }
+  //
+  // logger.debug(`starting updatePredictionTable. Clear all after date set to ${clearAllAfterDate}`, {tag: "updatePredictionTable"})
+  //
+  // if (clearAllAfterDate) {
+  //   let sql = `delete from "Predictions" where "updatedAt" > '${clearAllAfterDate}' `
+  //   logger.debug(`Clearing all predictions after ${clearAllAfterDate}`, {tag: "updatePredictionTable", sql: sql})
+  //   // noinspection JSUnresolvedFunction
+  //   await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
+  // }
+  //
+  // await prepareSolicitationTable()
+  //
+  // // lets try only running for max number of seconds before returning
+  // const maxSeconds = getConfig("updatePredictionTableMaxRunTime", 10)
+  // const queueDelaySeconds = getConfig("updatePredictionTableQueueDelay", 30)
+  //
+  //
+  // const start = new Date()
+  // const startSeconds = Math.round(start.getTime() / 1000)
+  // let now = new Date()
+  // let nowSeconds = Math.round(now.getTime() / 1000)
+  //
+  // let actualCount = 0
+  // let outdatedPredictions = await getOutdatedPrediction(fetch_limit)
+  // let msg = (outdatedPredictions.length < fetch_limit)
+  //   ? `${outdatedPredictions.length}`
+  //   : `${outdatedPredictions.length}+`
+  //   logger.debug(`there are ${msg} outdated predictions to update`)
+  //
+  // let timeout = false
+  // while (outdatedPredictions && outdatedPredictions.length > 0 ) {
+  //   if ((nowSeconds - startSeconds) > maxSeconds) {
+  //     timeout = true
+  //     break
+  //   }
+  //   now = new Date()
+  //   nowSeconds = Math.round(now.getTime() / 1000)
+  //   actualCount ++
+  //   let pred = outdatedPredictions.pop()
+  //   pred.actionDate = makeDate(pred.actionDate)
+  //   pred.date = makeDate(pred.date)
+  //
+  //
+  //   try {
+  //     // get it's active/inactive status from the solicitations table
+  //     let sol_row = await db.sequelize.query(`select active from solicitations where "solNum" = :sn`, { replacements: {"sn": pred.solNum}, type: db.sequelize.QueryTypes.SELECT })
+  //     pred.active = sol_row[0]['active']
+  //
+  //     logger.log("debug", `Rebuilding prediction ${pred.solNum}`, {tag:'updatePredictionTable', prediction: pred})
+  //     delete (pred.id) // remove the id since that should be auto-increment
+  //     // noinspection JSCheckFunctionSignatures
+  //     await Prediction.destroy({ where: { solNum: pred.solNum } }) // delete any outdated prediction
+  //     // noinspection JSUnresolvedFunction
+  //     await Prediction.create(pred);
+  //
+  //     // await prepareSolicitationTable()
+  //
+  //   } catch(e) {
+  //     logger.log("error", "problem updating the prediction table", {tag: 'updatePredictionTable', "error-message": e.message, error: e})
+  //   }
+  //
+  //   // we only get a few at a time so check to see if there are more when we run out of the current batch
+  //   if (outdatedPredictions.length === 0) {
+  //     outdatedPredictions = await getOutdatedPrediction(fetch_limit)
+  //   }
+  //
+  //   if ((actualCount % 100) === 0) {
+  //     logger.log("info", `Updated ${actualCount} prediction records.`)
+  //   }
+  // }
+  // if (actualCount > 0) {
+  //   logger.log("info", `Updated ${actualCount} prediction records`)
+  // }
+  //
+  // if (timeout && background_count == 0) {
+  //   background_count += 1
+  //   const queueDelayMilliseconds = queueDelaySeconds * 1000
+  //   logger.log("info", `Prediction update hit time of ${maxSeconds} seconds limit - queuing another round of updates in ${queueDelaySeconds}. ${background_count} in the queue`)
+  //   setTimeout( function() { updatePredictionTable(null, true) } , queueDelayMilliseconds)
+  // }
+  //
+  // performance.mark("updatePredictionTable-end")
+  // performance.measure("updatePredictionTable", "updatePredictionTable-start", "updatePredictionTable-end")
+  //
+  //   return actualCount
 }
 
 async function getOutdatedPrediction(fetch_limit = 500) {

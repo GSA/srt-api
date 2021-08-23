@@ -44,7 +44,7 @@ let predictionTemplate = {
   reviewRec: 'Compliant', // one of "Compliant", "Non-compliant (Action Required)", or "Undetermined"
   date: '2019-01-10T09:02:15.895Z',
   numDocs: 3,
-  eitLikelihood: {
+  category_list: {
     naics: 'naics here', // initial version uses NAICS code to determine
     value: '45'
   },
@@ -98,9 +98,12 @@ let predictionTemplate = {
 describe('prediction tests', () => {
   beforeAll( async () => {
 
-
     jest.setTimeout(10000) // some of these tests are slow
     process.env.MAIL_ENGINE = 'nodemailer-mock'
+
+    // tests can give false failure if the time cuttoff removes all the useful test data
+    process.env.minPredictionCutoffDate = '1990-01-01';
+
     app = require('../app')() // don't load the app till the mock is configured
 
     myUser = Object.assign({}, userAcceptedCASData)
@@ -109,16 +112,17 @@ describe('prediction tests', () => {
     myUser.id = user.id
     token = await mockToken(myUser, common['jwtSecret'])
 
-    let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",")
-    let sql = `select solicitation_number
-                from notice
-                join notice_type on notice.notice_type_id = notice_type.id
-                where notice_type.notice_type in (${allowed_types}) and
-                      notice_data->>'office' is not null
-                order by notice.id desc
-                limit 1`
-    let rows = await db.sequelize.query(sql, null)
-    sample_sol_num = rows[0][0].solicitation_number
+    // let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",")
+    // let sql = `select solicitation_number
+    //             from notice
+    //             join notice_type on notice.notice_type_id = notice_type.id
+    //             where notice_type.notice_type in (${allowed_types}) and
+    //                   notice_data->>'office' is not null
+    //             order by notice.id desc
+    //             limit 1`
+    // let rows = await db.sequelize.query(sql, null)
+    // sample_sol_num = rows[0][0].solicitation_number
+    sample_sol_num = await test_utils.getSolNumForTesting()
 
   })
 
@@ -179,8 +183,8 @@ describe('prediction tests', () => {
 
     let prediction = res.send.mock.calls[0][0].predictions[0]
 
-    expect(prediction.feedback).toBeArray()
-    expect(prediction.feedback[0].response.length).toBeGreaterThan(0)
+    expect(prediction.feedback.response).toBeArray()
+    expect(prediction.feedback.response.length).toBeGreaterThan(0)
 
   })
 
@@ -247,7 +251,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Filter predictions to only return a certain office', () => {
-    return db.sequelize.query(`select notice_data->>'office' as office from notice where solicitation_number = '${sample_sol_num}' limit 1;`, null)
+    return db.sequelize.query(`select office from solicitations where "solNum" = '${sample_sol_num}' limit 1;`, null)
       .then((rows) => {
         let office = rows[0][0].office
 
@@ -284,14 +288,14 @@ describe('prediction tests', () => {
 
   test('Filter predictions on multiple dimensions', () => {
     // noinspection JSTestFailedLine
-    return db.sequelize.query(`select agency from "Predictions" where "solNum" = '${sample_sol_num}'  limit 1;`, null)
+    return db.sequelize.query(`select agency from solicitations where "solNum" = '${sample_sol_num}'  limit 1;`, null)
       .then((rows) => {
         let agency = rows[0][0].agency
         return request(app)
           .post('/api/predictions/filter')
           .set('Authorization', `Bearer ${token}`)
           .send({
-            eitLikelihood: 'Yes',
+            category_list: 'Yes',
             agency: agency,
             numDocs: 2
           })
@@ -304,7 +308,7 @@ describe('prediction tests', () => {
               .post('/api/predictions/filter')
               .set('Authorization', `Bearer ${token}`)
               .send({
-                eitLikelihood: 'Yes',
+                category_list: 'Yes',
                 agency: agency
               })
               .then((res) => {
@@ -315,7 +319,7 @@ describe('prediction tests', () => {
                 expect(res.body.predictions[0].title).toBeDefined()
 
                 for (let i = 0; i < res.body.predictions.length; i++) {
-                  expect(res.body.predictions[i].eitLikelihood.value).toBe('Yes')
+                  expect(res.body.predictions[i].category_list.value.toLocaleLowerCase()).toBe('yes')
                   expect(res.body.predictions[i].agency).toBe(agency)
                 }
               })
@@ -384,7 +388,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Test prediction date filters', async () => {
-    let rows = await db.sequelize.query('select date from notice order by date desc, agency desc limit 1', null)
+    let rows = await db.sequelize.query('select date from solicitations order by date desc, agency desc limit 1', null)
 
     let date = rows[0][0].date //?
     let year = date.getFullYear()
@@ -395,15 +399,15 @@ describe('prediction tests', () => {
     let end = `${month}/${dayPlus}/${year}`
     let startBound = new Date(rows[0][0].date)
     let endBound = new Date(rows[0][0].date)
-    startBound.setDate( startBound.getDate() - 1)
+    startBound.setDate( startBound.getDate() - 2)
     endBound.setDate(endBound.getDate() + 2)
 
     let res = await request(app)
       .post('/api/predictions/filter')
       .set('Authorization', `Bearer ${token}`)
       .send({
-        startDate: start,
-        endDate: end
+        startDate: startBound,
+        endDate: endBound
       })
     // noinspection JSUnresolvedVariable
     expect(res.statusCode).toBe(200)
@@ -570,8 +574,8 @@ describe('prediction tests', () => {
     expect(predictions['noMatch1'].numDocs).toBe(p3.numDocs)
 
     // test prediction.prediction
-    // test prediction.eitLikelihood
-    for (let key of ['predictions', 'eitLikelihood']) {
+    // test prediction.category_list
+    for (let key of ['predictions', 'category_list']) {
       expect(predictions['pred1'][key].value).toBe(p3[key].value)
       expect(predictions['pred6'][key].value).toBe(p6[key].value)
     }
@@ -602,7 +606,9 @@ describe('prediction tests', () => {
     expect(predictions['pred10'].parseStatus.length).toBe(p10.parseStatus.length) // p11.parseStatus is undefined
   }, timeout)
 
-  test('Test attachment association', () => {
+  // skip this because we don't work with notice rows anymore!
+  // TODO: remove this after completing the migration to the solicitations table.
+  test.skip('Test attachment association', () => {
     return db.sequelize.query(`select notice_id from attachment where attachment_url is not null and attachment_url != '' limit 1`)
       .then((rows) => {
         let noticeId = rows[0][0].notice_id
@@ -818,6 +824,7 @@ describe('prediction tests', () => {
       found = p.title.toLowerCase().match(word.toLowerCase()) ||
               p.noticeType.toLowerCase().match(word.toLowerCase()) ||
               p.solNum.toLowerCase().match(word.toLowerCase()) ||
+              p.agency.toLowerCase().match(word.toLowerCase()) ||
               p.office.toLowerCase().match(word.toLowerCase()) ||
               p.reviewRec.toLowerCase().match(word.toLowerCase()) ||
               found
@@ -851,6 +858,7 @@ describe('prediction tests', () => {
       let word = null
       for (const p of predictions) {
         word = word || p[x.field].match(x.regex)  // pick out a word from the field
+        if (word) {break}
       }
       word = word[0] // grab the first match string
       await globalFilterTest(word)
@@ -1012,7 +1020,7 @@ describe('prediction tests', () => {
 
   test("Attachments have posted dates", async () => {
 
-    let sql = `select * from "Predictions" where jsonb_array_length("parseStatus") > 2 limit 1`
+    let sql = `select * from srt.public."solicitations" where jsonb_array_length("parseStatus") > 2 limit 1`
     let results = await db.sequelize.query(sql, null)
     let targetSolNum = results[0][0].solNum
 
@@ -1024,29 +1032,21 @@ describe('prediction tests', () => {
 
     let {predictions:updated_predictions} = await predictionRoutes.getPredictions({ rows: 1, filters: {"solNum": {value: targetPrediction.solNum, matchMode: 'equals'}} }, mocks.mockAdminUser)
     const targetPrediction2 = updated_predictions[0] //?
-
     for (const attachment of targetPrediction2.parseStatus) {
-      let notice_id = attachment.notice_id
-      let notice = await Notice.findByPk(notice_id)
-      let posted_date = notice.dataValues.date
-      posted_date //?
-
-      expect( moment(attachment.postedDate).format('MM/DD/YYYY HH:mm ZZ') ).toBe(moment(posted_date).format('MM/DD/YYYY HH:mm ZZ'))
+      expect(attachment.postedDate.length).toBeGreaterThan(8)
     }
 
-  }, 30000)
+  }, 300000)
 
-  test("Predictions have feedback", async () => {
+  test("Save new feedback using API and then and then verify it in the database.", async () => {
     // make sure we have feedback
     let solNum = await test_utils.getSolNumForTesting({offset: 12})
-    surveyRoutes.updateSurveyResponse(solNum, feedback)
-    predictionRoutes.updatePredictionTable()
+    await surveyRoutes.updateSurveyResponse(solNum, feedback)
+    // predictionRoutes.updatePredictionTable()
 
 
     let preds = await predictionRoutes.getPredictions({"solNum": solNum}, {agency:"general services administration", userRole: "Administrator"})
-    console.log(preds.predictions[0])
-    preds.predictions[0]
-    let ans = preds.predictions[0].feedback[0].response[0].answer
+    let ans = preds.predictions[0].feedback.response[0].answer
     expect (ans).toBe("Maybe")
 
   },30000)

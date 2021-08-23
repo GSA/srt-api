@@ -47,7 +47,7 @@
  * @property {string} office
  * @property {Object} predictions
  * @property {boolean} na_flag
- * @property {Object} eitLikelihood
+ * @property {Object} category_list
  * @property {Object} undetermined
  * @property {Object} action
  * @property {string} actionStatus

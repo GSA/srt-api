@@ -33,6 +33,8 @@ describe('Analytics routes tests', () => {
     // })
 
     beforeAll(async () => {
+        // tests can give false failure if the time cuttoff removes all the useful test data
+        process.env.minPredictionCutoffDate = '1990-01-01';
 
         try {
             adminUser = Object.assign({}, adminCASData)
@@ -64,6 +66,7 @@ describe('Analytics routes tests', () => {
 
         let stats = res.send.mock.calls[0][0];
 
+        expect(res.status.mock.calls[0][0]).toBe(200)
         expect (stats.solStats).toBeObject()
         for (let key of ["totalSolicitations", "newSolicitations", "updatedSolicitations", "newSolicitationsByDate", "updatedSolicitationsByDate"]) {
             expect(stats.solStats).toContainKey(key)
