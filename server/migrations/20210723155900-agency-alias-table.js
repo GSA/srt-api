@@ -5,6 +5,7 @@ const migrationUtils = require('../migrationUtil')
 // the auto generated Record Created action status to be Solicitation Posted
 
 let upSql = [
+  `drop table if exists agency_alias`,
   `create table agency_alias
    (
        id serial not null
