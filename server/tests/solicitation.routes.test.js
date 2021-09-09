@@ -9,6 +9,7 @@ const configuration = require('../config/configuration')
 const {getConfig} = require('../config/configuration')
 let solicitationRoutes = null
 const predictionRoutes = require('../routes/prediction.routes')
+const {getSolNumForTesting} = require('../shared/test_utils')
 
 const cloneDeep = require('clone-deep')
 
@@ -27,6 +28,8 @@ let sample_sol_num = ''
 
 describe('solicitation tests', () => {
   beforeAll( async () => {
+    // tests can give false failure if the time cuttoff removes all the useful test data
+    process.env.minPredictionCutoffDate = '1990-01-01';
     process.env.MAIL_ENGINE = 'nodemailer-mock'
     app = require('../app')() // don't load the app till the mock is configured
 
@@ -40,14 +43,7 @@ describe('solicitation tests', () => {
 
     let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",")
 
-    let sql = `select solicitation_number 
-                from notice
-                join notice_type on notice.notice_type_id = notice_type.id
-                where notice_type.notice_type in (${allowed_types})
-                order by notice.id desc
-                limit 1`
-    let rows = await db.sequelize.query(sql)
-    sample_sol_num = rows[0][0].solicitation_number
+    sample_sol_num = getSolNumForTesting();
   })
 
   afterAll(() => {
@@ -55,47 +51,48 @@ describe('solicitation tests', () => {
       .then( () => { app.db.close(); })
   })
 
+  /***
+   * This test checks that a solicitation is properly updated when feedback is added
+   */
   test('solicitation post', async () => {
 
-    await predictionRoutes.updatePredictionTable()
+    let user = { agency: "General Services Administration", userRole: "Administrator" }
+    let solNum =  await testUtils.getSolNumForTesting({"has_history": true})
+    let solicitations = await predictionRoutes.getPredictions({ rows: 1, filters: {"solNum": {value: solNum, matchMode: 'equals'}} }, user)
+    let solicitation = solicitations.predictions[0]
 
-    return db.sequelize.query('select count(*), solicitation_number from (select * from notice where history is not null) notice where history is not null and solicitation_number is not null and solicitation_number != \'\' group by solicitation_number having count(*) > 5 limit 1')
-      .then( async (result) => {
+    let word2 = randomWords.wordList[Math.floor(Math.random() * randomWords.wordList.length)]
+    let actionDate = new Date().toLocaleString()
+    let history = cloneDeep(solicitation.history)
+    while (history.length < 2) {
+      history.push({ action: 'fake history' })
+    }
+    history.push ({
+      'date': actionDate,
+      'action': 'again reviewed solicitation action requested summary',
+      'user': word2,
+      'status': 'submitted'
+    })
 
-        let rows = await db.sequelize.query(`select * from notice where history is not null and  solicitation_number = '${result[0][0].solicitation_number}' order by feedback `)
-        let noticeNum = rows[0][0].solicitation_number
-        expect(noticeNum).toBeDefined()
-
-        let word2 = randomWords.wordList[Math.floor(Math.random() * randomWords.wordList.length)]
-        let actionDate = new Date().toLocaleString()
-
-        let history = cloneDeep(rows[0][0].history)
-        while (history.length < 2) {
-          history.push({ action: 'fake history' })
-        }
-        history.push ({
-          'date': actionDate,
-          'action': 'again reviewed solicitation action requested summary',
-          'user': word2,
-          'status': 'submitted'
-        })
-        let feedback = cloneDeep(rows[0][0].feedback)
-        if ( (! Array.isArray(feedback)) ){
-          feedback = []
-        }
-        feedback.push(    {
-            'questionID': feedback.length + 1,
-            'question': 'Is this an acceptable solicitation?',
-            'answer': 'Yes'
-          }
-        )
-
-        return request(app)
+    let feedback = []
+    feedback.push(    {
+        'questionID': 1,
+        'question': 'Is this an acceptable solicitation?',
+        'answer': 'Sure is'
+      }
+    )
+    feedback.push(    {
+        'questionID': 2,
+        'question': 'second question?',
+        'answer': 'second answer'
+      }
+    )
+    let res = await request(app)
           .post('/api/solicitation')
           .set('Authorization', `Bearer ${token}`)
           .send(
             {
-              'solNum': noticeNum,
+              'solNum': solNum,
               'actionStatus': 'reviewed solicitation action requested summary',
               'actionDate': actionDate,
               'history': history,
@@ -103,56 +100,51 @@ describe('solicitation tests', () => {
               'newFeedbackSubmission': true
             }
           )
-          .then((res) => {
-            // noinspection JSUnresolvedVariable
-            expect(res.statusCode).toBe(200)
 
-            expect(res.body.feedback[ res.body.feedback.length - 1].questionID).toBe(res.body.feedback.length)
-            expect (res.body.actionStatus).toBe(getConfig("constants:FEEDBACK_ACTION"))
+    // noinspection JSUnresolvedVariable
+    expect(res.statusCode).toBe(200)
 
-            return expect(res.body.history[ res.body.history.length-1 ].user).toBe(word2)
-          })
-          .then(() => {
-            // make sure that we actually updated the correct one. Should be the latest
-            let sql = ` select a.history from notice a
-                                    left outer join notice b on (a.solicitation_number = b.solicitation_number and a.date < b.date)
-                                    where b.id is null and a.solicitation_number = '${noticeNum}'`
-            return db.sequelize.query(sql)
-              .then((rows) => {
-                let hist = rows[0][0].history
-                expect(hist.length).toBeGreaterThan(2)
-                return expect(hist[ hist.length-1 ].action).toMatch(/again reviewed solicitation/)
-              })
-          })
-      })
+    expect(res.body.feedback[ res.body.feedback.length - 1].questionID).toBe(res.body.feedback.length)
+    expect (res.body.actionStatus).toBe(getConfig("constants:FEEDBACK_ACTION"))
+
+    expect(res.body.history[ res.body.history.length-1 ].user).toBe(word2)
+
+    // make sure that we actually updated the correct one. Should be the latest
+
+    let updated_solicitations = await predictionRoutes.getPredictions({ rows: 1, filters: {"solNum": {value: solNum, matchMode: 'equals'}} }, user)
+    let updated_solicitation = updated_solicitations.predictions[0]
+
+    let hist = updated_solicitation.history
+    expect(hist.length).toBeGreaterThan(2)
+    expect(hist[ hist.length-1 ].action).toMatch(/again reviewed solicitation/)
+
+    expect(updated_solicitation.feedback.response[1].answer).toMatch("second answer")
   },77000)
 
-  test('solicitation get', () => {
+  test.only('solicitation get', async () => {
 
-    return db.sequelize.query(`select id, solicitation_number from notice where  notice.solicitation_number = '${sample_sol_num}'`)
-      .then((rows) => {
-        let id = rows[0][0].id
-        let solNum = rows[0][0].solicitation_number
-        expect(id).toBeDefined()
+    let solNum = await testUtils.getSolNumForTesting()
+    let id = await testUtils.solNumToSolicitationID(solNum)
+    expect(id).toBeDefined()
 
-        return request(app)
-          .get('/api/solicitation/' + id)
-          .set('Authorization', `Bearer ${token}`)
-          .send({})
-          .then((res) => {
-            // noinspection JSUnresolvedVariable
-            expect(res.statusCode).toBe(200)
-            expect(res.body.solNum).toBeDefined()
-            res.body
-            res.body.solNum
-            expect(res.body.solNum).toBe(solNum)
-            return expect(res.body.agency).toBeDefined()
-          })
+    return request(app)
+      .get('/api/solicitation/' + id)
+      .set('Authorization', `Bearer ${token}`)
+      .send({})
+      .then((res) => {
+        // noinspection JSUnresolvedVariable
+        expect(res.statusCode).toBe(200)
+        expect(res.body.solNum).toBeDefined()
+        expect(res.body.solNum).toBe(solNum)
+
+        expect(res.body.noticeData.psc).toBeDefined()
+
+        return expect(res.body.agency).toBeDefined()
       })
-  })
+  }, 60000)
 
   test('sending an non-existing ID to get solicitation', () => {
-    return db.sequelize.query('select id from notice order by id desc limit 1')
+    return db.sequelize.query('select id from solicitations order by id desc limit 1')
       .then((rows) => {
         let id = rows[0][0].id + 9999
         expect(id).toBeDefined()
@@ -175,7 +167,7 @@ describe('solicitation tests', () => {
       .send({})
       .then((res) => {
         // noinspection JSUnresolvedVariable
-        return expect(res.statusCode).toBe(500)
+        return expect(res.statusCode).toBe(404)  // not found
       })
   })
 
@@ -259,12 +251,11 @@ describe('solicitation tests', () => {
 
 
     test('Test attachment filenames', async () => {
-        let solNum = await testUtils.getSolNumForTesting({"attachment_count": 3})
-        let files = await db.sequelize.query(`select filename from attachment join notice n on attachment.notice_id = n.id where solicitation_number = '${solNum}'`)
-        let rows = await db.sequelize.query(`select id from notice where solicitation_number = '${solNum}' limit 1`)
-        let noticeId = rows[0][0].id
+        let solNum = await testUtils.getSolNumForTesting({"attachment_count": 1})
+        let solId = await testUtils.solNumToSolicitationID(solNum)
+        let files = await db.sequelize.query(`select filename from attachment where solicitation_id = '${solId}'`)
         let res = await request(app)
-            .get('/api/solicitation/' + noticeId)
+            .get('/api/solicitation/' + solId)
             .set('Authorization', `Bearer ${token}`)
             .send({})
 
@@ -279,9 +270,10 @@ describe('solicitation tests', () => {
             }
         }
         return expect(found).toBeTruthy()
-    })
+    },99999)
 
   test('Solicitation audit', () => {
+    let rest, actions;
     let mock_notice = {
         "action": [{ "action": "fake action", "date": "2019-03-29T08:05:31.307Z", "status": "complete", "user": "" },
                    { "action": "fake action 2", "date": "2020-01-16T13:07:53.575Z", "status": "complete" },
@@ -292,7 +284,7 @@ describe('solicitation tests', () => {
         "contactInfo": { "contact": "BERNIE CAGUIAT 8316566948", "email": "", "name": "Contact Name", "position": "Position" },
         "createdAt": "2020-01-16T18:13:41.875Z",
         "date": "2019-03-29T12:05:31.000Z",
-        "eitLikelihood": { "value": "Yes" },
+        "category_list": { "value": "Yes" },
         "feedback": [],
         "history": [{
                       "action": "reviewed solicitation action requested summary",
@@ -322,9 +314,9 @@ describe('solicitation tests', () => {
         "url": "https://www.fbo.gov/notices/dc4237c5d3da6f60db3d5de14b8c14b8"
       }
 
-    let updated_notice = cloneDeep(mock_notice, true)
+    let updated_notice = cloneDeep(mock_notice, true);
 
-    let actions = solicitationRoutes.auditSolicitationChange(mock_notice, updated_notice, null)
+    [actions, ...rest] = solicitationRoutes.auditSolicitationChange(mock_notice, updated_notice, null)
     expect(actions.length).toBe(2)
 
     updated_notice = cloneDeep(mock_notice, true)
@@ -333,10 +325,10 @@ describe('solicitation tests', () => {
       "date": "1/16/2020",
       "status": "Email Sent to POC",
       "user": "MAX CAS Test User"
-    })
+    });
 
     // test email
-    actions = solicitationRoutes.auditSolicitationChange(mock_notice, updated_notice, null)
+    [actions, ...rest] = solicitationRoutes.auditSolicitationChange(mock_notice, updated_notice, null)
     let datestr = formatDateAsString(new Date())
     expect(actions.length).toBeGreaterThan(2)
     expect(actions[actions.length-1].action).toBe(getConfig("constants:EMAIL_ACTION"))
@@ -346,8 +338,8 @@ describe('solicitation tests', () => {
 
     // test feedback
     updated_notice = cloneDeep(mock_notice, true)
-    updated_notice.feedback = [1,2,3]
-    actions = solicitationRoutes.auditSolicitationChange(mock_notice, updated_notice, null)
+    updated_notice.feedback = [1,2,3];
+    [actions, ...rest] = solicitationRoutes.auditSolicitationChange(mock_notice, updated_notice, null)
     expect(actions.length).toBeGreaterThan(2)
     expect(actions[actions.length-1].action).toBe(getConfig("constants:FEEDBACK_ACTION"))
     expect(actions[actions.length-1].date).toBe(datestr)
@@ -357,14 +349,14 @@ describe('solicitation tests', () => {
     let na_false = cloneDeep(mock_notice, true)
     na_false['na_flag'] = false
     let na_true = cloneDeep(mock_notice, true)
-    na_true['na_flag'] = true
-    actions = solicitationRoutes.auditSolicitationChange(na_false, na_true, null)
+    na_true['na_flag'] = true;
+    [actions, ...rest] = solicitationRoutes.auditSolicitationChange(na_false, na_true, null)
     expect(actions[actions.length-1].action).toBe(getConfig("constants:NA_ACTION"))
     expect(actions[actions.length-1].date).toBe(datestr)
-    expect(actions[actions.length-1].user).toBe(myUser.email)
+    expect(actions[actions.length-1].user).toBe(myUser.email);
 
     // test undo NA
-    actions = solicitationRoutes.auditSolicitationChange(na_true, na_false, null)
+    [actions, ...rest] = solicitationRoutes.auditSolicitationChange(na_true, na_false, null)
     expect(actions[actions.length-1].action).toBe(getConfig("constants:UNDO_NA_ACTION"))
     expect(actions[actions.length-1].date).toBe(datestr)
     expect(actions[actions.length-1].user).toBe(myUser.email)

@@ -22,6 +22,8 @@ let targetEmail = 'abc883@example.com'
 
 describe('/api/auth/', () => {
   beforeAll(async () => {
+    // tests can give false failure if the time cuttoff removes all the useful test data
+    process.env.minPredictionCutoffDate = '1990-01-01';
 
     let casConfig = config['maxCas']
     casConfig.dev_mode_info = common['casDevModeData']

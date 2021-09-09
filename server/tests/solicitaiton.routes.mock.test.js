@@ -21,6 +21,9 @@ let coordinatorToken = ""
 describe('solicitation tests',  () => {
   beforeAll(async () => {
     process.env.MAIL_ENGINE = 'nodemailer-mock'
+    // tests can give false failure if the time cuttoff removes all the useful test data
+    process.env.minPredictionCutoffDate = '1990-01-01';
+
     app = require('../app')() // don't load the app till the mock is configured
 
     adminToken = await mockToken(adminCASData, common['jwtSecret'])
@@ -99,9 +102,9 @@ describe('solicitation tests',  () => {
 
   // noinspection DuplicatedCode
   test('Agency User can NOT update Not Applicable for any solicitations for another agency', async () => {
-    let sql = `select solicitation_number from notice where agency != '${coordinatorCASData["org-agency-name"]}' order by solicitation_number desc limit 1`
+    let sql = `select "solNum" from solicitations where agency != '${coordinatorCASData["org-agency-name"]}' order by "solNum" desc limit 1`
     let rows = await db.sequelize.query(sql)
-    let solNum = rows[0][0].solicitation_number
+    let solNum = rows[0][0].solNum
     expect(solNum).toBeDefined()
 
     let res = mocks.mockResponse();

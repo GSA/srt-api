@@ -235,17 +235,17 @@ module.exports = {
              jsonb_array_elements(response) -> 'question'::varchar as question,
              jsonb_array_elements(response) -> 'answer'::varchar   as answer,
              jsonb_array_elements(response) -> 'questionID'::varchar   as questionID,
-             notice_data->'subject'::varchar as title,
+             s."noticeData"->'subject'::varchar as title,
              to_char(date, 'MM/DD/YYYY') as notice_date,
              to_char(sr."updatedAt", 'MM/DD/YYYY') as survey_response_date,
-             n.agency,
+             s.agency,
              sr."maxId",
              email,
              "lastName",
              "firstName",
-             n.id as notice_id
+             s.id as solicitation_id
       from survey_responses sr
-             left join "notice" n on sr.contemporary_notice_id = n.id
+             left join solicitations s on sr."solNum" = s."solNum"
              left join "Users" u on sr."maxId" = u."maxId"
       order by survey_response_date desc, "solNum", jsonb_array_elements(response) -> 'questionID'
     `

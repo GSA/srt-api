@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       office: { type: DataTypes.STRING },
       predictions: { type: DataTypes.JSONB },
       na_flag: { type: DataTypes.BOOLEAN },
-      eitLikelihood: { type: DataTypes.JSONB },
+      category_list: { type: DataTypes.JSONB },
       undetermined: { type: DataTypes.BOOLEAN },
       action: { type: DataTypes.JSONB },
       actionStatus: { type: DataTypes.STRING },

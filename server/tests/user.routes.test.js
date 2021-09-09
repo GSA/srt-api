@@ -16,6 +16,9 @@ describe('User API Routes', () => {
   let token = {}
 
   beforeAll(async () => {
+    // tests can give false failure if the time cuttoff removes all the useful test data
+    process.env.minPredictionCutoffDate = '1990-01-01';
+
     userAcceptedCASData = Object.assign({}, userAcceptedCASData, { "email-address": 'crowley+accepted-user@tcg.com', firstName: 'beforeAllUser' })
     process.env.MAIL_ENGINE = 'nodemailer-mock'
     app = require('../app')() // don't load the app till the mock is configured
