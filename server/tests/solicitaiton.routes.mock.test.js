@@ -125,8 +125,12 @@ describe('solicitation tests',  () => {
 
   test('Solicitation details include inactive field', async () => {
 
-    let rows = await db.sequelize.query('select "solNum" from "Predictions"  where "noticeType" = \'Solicitation\' order by id desc limit 1;')
-    let solNum = rows[0][0]['solNum']
+    // let rows = await db.sequelize.query('select "solNum" from "Predictions"  where "noticeType" = \'Solicitation\' order by id desc limit 1;')
+    // let solNum = rows[0][0]['solNum']
+
+    solNum = await testUtils.getSolNumForTesting()
+
+
     await db.sequelize.query(`update solicitations set active = true, "updatedAt" = current_timestamp where "solNum" = '${solNum}' ` )
 
     let res1 = mocks.mockResponse();
