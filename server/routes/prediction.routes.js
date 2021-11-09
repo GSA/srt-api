@@ -365,10 +365,6 @@ async function getPredictions (filter, user) {
     let first = filter.first || 0
     let max_fetch_rows = filter.rows || configuration.getConfig("defaultMaxPredictions", 1000)
 
-    let update_rows = await db.sequelize.query(`
-            update solicitations
-            set "noticeType" = (select COALESCE (notice_type, 'other') from notice_type where id = solicitations.notice_type_id)
-            where "noticeType" is null or "noticeType" = ''; `)
 
     if ( user === undefined || user.agency === undefined || user.userRole === undefined ) {
       return []
