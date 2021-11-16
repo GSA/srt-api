@@ -258,7 +258,7 @@ module.exports = {
           Object.assign({
             note: r.note, answer: r.answer, question: r.question, questionID: r.questionid, date: r.survey_response_date,
             solicitation_number: r.solNum, email: `${r.name || ''} ${r.email || ''}`, title: r.title, id: r.notice_id,
-            agency: r.agency
+            agency: r.agency, id: r.solicitation_id
           }))
       }
       return res.status(200).send(result)
