@@ -1,22 +1,22 @@
 ## Sprint 10 Release Notes - January 2022
-###Bug Fixes
+### Bug Fixes
 * Send the solicitiaton ID number in the return result of the feedback report
 * Remove unnecessary notice type adjustment
 * Fix test case to use proper solNum as the sample
-###Security Updates
+### Security Updates
 * snyk package updates
 
 ## Sprint 9 Release Notes - September 2021
-###Features
+### Features
 * Converting database tables to reflect SAM.gov changes
 * Now use the Solicitation table as the source of truth for Solicititations
 * Improved data processing/formatting
 
-###Security Updates
+### Security Updates
 * SNYK flagged package updates
 
 ## Sprint 8 Release Notes - April 2021
-###Features
+### Features
 * Added Sequelize model relationship between survey_results and the Prediction table
 * Performance improvement for the Prediction model creation
 * Modified the system analytics to include both the new and updated solicitations for the Scanned Solicitations chart
@@ -24,7 +24,7 @@
 * Added ability to download a CSV of the Scanned Solicitations data
 * Added Predictions Metrics by Date and Agency report
 * Added Notice Type Change Metrics report.
-###Security updates
+### Security updates
 * Reduced production memory usage for the API from 2 Gb to 1GB
 * Bug fix - Updated the default max predictions returned by the API
 * Bug fix - add missing 'active' parameter for the Solicitation constructor
@@ -32,8 +32,8 @@
 
 ## Sprint 7 Release Notes 
 
-###Features
- * Added user login reports API call
+### Features
+* Added user login reports API call
 * Added user feedback report API call
 * Added unit tests for admin reports
 * Agency names are now normalized between SAM.gov data, FedBizOps data, and MAX login data
@@ -48,10 +48,10 @@
 * Updated test dataset with additional solicitation data
 * Run CI tests in parallel
 * Use cloud.gov service accounts specific to each environemnt for build/deploy
-###Security
+### Security
 * Removed unused NPM modules
 * Moved some NPM modules into the to development only category
-###Fixes
+### Fixes
 * Changed the loadPredictions script to not invalidate cached predictions by default
 * Modified unit tests to be more stable on different test data or re-runs on a single dataset
 * Removed unicode characters from solicitation history
