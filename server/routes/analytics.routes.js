@@ -58,10 +58,10 @@ function calcSolicitationsAddedOrUpdatedByDate(allSolicitations, stats = undefin
       stats.newSolicitationsByDate[day] = (!stats.newSolicitationsByDate[day]) ? 1 : stats.newSolicitationsByDate[day] + 1
 
       for (let d of updatedDateArray) {
-        if (d.match(/^[0-9]+\/ [0-9]+\/[0-9]+/))
+        if (d.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
           // d is in the format mm/dd/yyyy, so reorganize it to be yyyymmdd
           day = d.substring(6,10) + d.substring(0,2) + d.substring(3,5)
-        else {
+        } else {
           // lets assume d is in the yyyy-mm-yy format, so reorganize it to be yyyymmdd
           day = d.substring(0,4) + d.substring(5,7) + d.substring(8,10)
         }

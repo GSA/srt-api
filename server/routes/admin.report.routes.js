@@ -21,9 +21,9 @@ async function runGenericMetricReport (user, report_function) {
     while (true) {
       let result = await predictionRoutes.getPredictions({'first': first, 'rows': rows, 'ignoreDateCutoff': true, 'sortField': 'date'}, user);
       solStats = await report_function(result.predictions, solStats)
-      logger.log("info", `Running solicitation download report, asking for ${rows} solicitations with offset ${first}. We got ${result.rows} Total solicitations in report is ${result.totalCount} `)
-
-      if (result.rows == 0) {
+      logger.log("info", `Running solicitation download report, asking for ${rows} solicitations with offset ${first}. We got ${result.rows}. Total solicitations in report is ${result.totalCount} `)
+      
+      if (result.rows == 0 || result.predictions.length === 0) {
         break;
       }
       first += result.rows
@@ -278,6 +278,7 @@ module.exports = {
       let solStats = await runGenericMetricReport(user, analyticsRoutes.calcSolicitations)
 
       if (req.query.format && req.query.format.toLocaleLowerCase()== 'csv') {
+        logger.debug(`Solicitation Statitiscs to be sent as CSV - ${solStats}`)
         return sendSolicitationDownloadsCSV(solStats, res)
       } else {
         return res.status(200).send(solStats)
