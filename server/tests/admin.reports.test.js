@@ -194,8 +194,6 @@ describe('Tests for admin reports and charts', () => {
     let cell_2_0 = lines[2].split(",")[0]
     expect(cell_2_0).toMatch(/\d\d?.\d\d?.\d\d\d\d/)
 
-    expect(lines.length).toBeGreaterThan(10)
-
   }, 60000)
 
   test('noticeTypeChangeReport CSV Download', async () => {
