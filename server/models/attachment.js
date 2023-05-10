@@ -1,7 +1,10 @@
 /* jshint indent: 2 */
 
+const { Association } = require("sequelize");
+
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('attachment', {
+  const Attachment =  sequelize.define('attachment', 
+  {
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -47,8 +50,31 @@ module.exports = function(sequelize, DataTypes) {
     trained: {
       type: DataTypes.BOOLEAN,
       allowNull: true
-    }
+    },
+    solicitation_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'solicitation',
+        key: 'id'
+      }
+    },
+    createdAt: { type: DataTypes.DATE, allowNull: false },
+    updatedAt: { type: DataTypes.DATE },
+    machine_readable: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true
+    },
+    filename: { type: DataTypes.TEXT, allowNull: false },
   }, {
     tableName: 'attachment'
   });
+
+  Attachment.associate = function(models) {
+      // associations can be defined here
+      Attachment.belongsTo(models.Solicitation, { foreignKey: 'solicitation_id' });
+  }
+
+
+  return Attachment
+
 };
