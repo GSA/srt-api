@@ -9,7 +9,7 @@ const notice_type = require('../models').notice_type
 const Notice = require('../models').notice
 const survey_routes = require('../routes/survey.routes')
 const notice_type_utils = require('../shared/notice_type_utils')
-
+const lodash = require('lodash');
 /**
  * Prediction routes
  */
@@ -384,7 +384,7 @@ async function getPredictions (filter, user) {
 
     // filter to allowed notice types
     let types = configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation'])
-
+    
     attributes.where = {
       noticeType: {
         [Op.in]: types
@@ -474,18 +474,22 @@ async function getPredictions (filter, user) {
 
     attributes.raw = true // return as plan data not Sequelize object
     attributes.nest = true
+    // Debugging Queries:
+    //attributes.logging = console.log
 
+    // Removing where checks if values are not provided. where column = {} leads to sequelize issues
+    attributes.where = removeEmptyFrom(attributes.where)
+    
     // noinspection JSUnresolvedFunction
-    let preds = await Solicitation.findAll(attributes)
-    // noinspection JSUnresolvedFunction
-    let count = await Solicitation.findAndCountAll(attributes)
+    let preds = await Solicitation.findAndCountAll(attributes)
+
 
 
     return {
-      predictions: preds,
+      predictions: preds.rows,
       first: first,
-      rows: Math.min(max_fetch_rows, preds.length),
-      totalCount: count.count
+      rows: Math.min(max_fetch_rows, preds.count),
+      totalCount: preds.count
     }
   } catch (e) {
     logger.log("error", "Error in getPredictions", {tag: "getPredictions", error: e, "error-message": e.message, stack: e.stack})
@@ -779,3 +783,16 @@ function makeDate(x) {
   return moment(d).format('MM/DD/YYYY HH:mm ZZ')
 }
 
+function removeEmptyFrom(where) {
+  // Loop through the where object and remove any empty objects
+  for (let key in where) {
+    // Looking at the individual sequelize.Op objects
+    for (let o in where[key]) {
+      if (lodash.isEmpty(where[key][o])) {
+        logger.debug("Deleting key " + key)
+        delete where[key];
+      }
+    }
+  }
+  return where;
+}
