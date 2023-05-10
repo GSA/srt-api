@@ -639,7 +639,7 @@ describe('prediction tests', () => {
 
     let event = {
       filters: {},
-      first: 55,
+      first: 36,
       rows: 5,
       globalFilter: null,
       multiSortMeta: undefined,
@@ -647,61 +647,61 @@ describe('prediction tests', () => {
       sortOrder: -1
     }
 
-    // get rows 55 to 59
+    // get rows 36 to 40
     let res = mocks.mockResponse()
     let req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[0][0]).toBe(200);
     let predictions0 = res.send.mock.calls[0][0].predictions
     // expect(predictions0.length).toBe(15);
-    let pred59 = predictions0[4]
+    let pred40 = predictions0[4]
 
-    // get rows 59 and 60
-    event.first = 59
+    // get rows 40 and 41
+    event.first = 40
     event.rows = 2
     event.sortOrder = -1
     req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[1][0]).toBe(200);
     let predictions1 = res.send.mock.calls[1][0].predictions
-    let pred59clone1 = predictions1[0]
+    let pred40clone1 = predictions1[0]
     expect(predictions1.length).toBe(2)
-    expect(pred59.solNum).toBe(pred59clone1.solNum)
+    expect(pred40.solNum).toBe(pred40clone1.solNum)
 
-    event.first = 59
+    event.first = 40
     event.rows = 1
     event.sortOrder = -1
     req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[2][0]).toBe(200);
     let predictions2 = res.send.mock.calls[2][0].predictions
-    let pred59clone2 = predictions2[0]
+    let pred40clone2 = predictions2[0]
     expect(predictions2.length).toBe(1)
-    expect(pred59clone1.solNum).toBe(pred59clone2.solNum)
+    expect(pred40clone1.solNum).toBe(pred40clone2.solNum)
 
 
     event.sortField = 'reviewRec'
     event.sortOrder = 1
     event.first = 0
-    event.rows = 60
+    event.rows = 40
     req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[3][0]).toBe(200);
     let predictions3 = res.send.mock.calls[3][0].predictions
-    let pred59clone3 = predictions3[0]
-    expect(predictions3.length).toBe(60)
+    let pred40clone3 = predictions3[0]
+    expect(predictions3.length).toBe(40)
     // we changed the sort so they should not be equal anymore
-    expect(pred59clone2.solNum !== pred59clone3.solNum).toBeTruthy()
+    expect(pred40clone2.solNum !== pred40clone3.solNum).toBeTruthy()
 
     event.sortOrder = -1
     req = mocks.mockRequest(event, {'authorization': `bearer ${token}`})
     await predictionRoutes.predictionFilter(req, res)
     expect(res.status.mock.calls[4][0]).toBe(200);
     let predictions4 = res.send.mock.calls[4][0].predictions
-    let pred59clone4 = predictions4[0]
-    expect(predictions4.length).toBe(60)
+    let pred40clone4 = predictions4[0]
+    expect(predictions4.length).toBe(40)
     // we changed the sort direction so they should not be equal anymore
-    expect(pred59clone3.solNum !== pred59clone4.solNum).toBeTruthy()
+    expect(pred40clone3.solNum !== pred40clone4.solNum).toBeTruthy()
 
   })
 
@@ -758,7 +758,7 @@ describe('prediction tests', () => {
       event.sortField = field
       event.sortOrder = -1;
       event.first = 0
-      event.rows = 10
+      event.rows = 50
       let predictions = await getPredictions(event)
       let first = predictions[0][event.sortField]
 
