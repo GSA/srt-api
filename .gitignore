@@ -45,3 +45,4 @@ srt*.sql.gz
 srt*.sql
 deploy-log*
 
+winston.log.json

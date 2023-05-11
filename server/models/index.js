@@ -118,7 +118,12 @@ const env = process.env.NODE_ENV || 'development'
 const config = require(path.join(__dirname, '/../config/dbConfig.js'))[env]
 const db = {}
 
-let sequelize = new Sequelize(config.database, config.username, config.password, config)
+let sequelize = new Sequelize(
+  config.database, 
+  config.username, 
+  config.password,
+  config
+  )
 
 // Now run any database outstanding migrations using umzug
 const umzug = new Umzug({
