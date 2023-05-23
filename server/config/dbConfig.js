@@ -3,9 +3,9 @@
 // node ./node_modules/.bin/sequelize -c server/config/dbConfig.js
 let dbConfig = {
   "development": {
-    "username": "circleci",
-    "password": "srtpass",
-    "database": "srt",
+    "username": "briannamcgowan",
+    "password": "",
+    "database": "briannamcgowan",
     "host": "localhost",
     "port": 5432,
     "dialect": "postgres",
@@ -19,9 +19,9 @@ let dbConfig = {
     }
   },
   "circle": {
-    "username": "circleci",
-    "password": "srtpass",
-    "database": "srt",
+    "username": "briannamcgowan",
+    "password": "",
+    "database": "briannamcgowan",
     "host": "localhost",
     "port": 5432,
     "dialect": "postgres",
