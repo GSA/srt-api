@@ -46,3 +46,4 @@ srt*.sql
 deploy-log*
 
 winston.log.json
+data/*
