@@ -16,7 +16,6 @@ let upSql = [
        "createdAt" timestamp,
        "updatedAt" timestamp
    )`,
-  `alter table solicitations add column agency_id int`,
   `insert into agency_alias (agency_id, alias)  select id, 'AGRICULTURE, DEPARTMENT OF' from "Agencies" where agency = 'Department of Agriculture';`,
   `insert into agency_alias (agency_id, alias)  select id, 'COMMERCE, DEPARTMENT OF' from "Agencies" where agency = 'Department of Commerce';`,
   `insert into agency_alias (agency_id, alias)  select id, 'DEPT OF DEFENSE' from "Agencies" where agency = 'Department of Defense';`,
@@ -53,8 +52,6 @@ let upSql = [
 
 let downSql = [
   `drop table agency_alias`,
-  `alter table solicitations drop column agency_id`,
-
 ]
 
 
