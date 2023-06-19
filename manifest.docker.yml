@@ -1,0 +1,13 @@
+---
+applications:
+- name: srt-server-test-docker
+  memory: 512M
+  disk_quota: 512M
+#  health-check-type: process # don't re-enable....move to port 8080 if you have problems
+  instances: 1
+  docker-image: adambuckingham/srt-api:test_docker
+  env:
+    NODE_ENV: clouddev
+  services:
+    - srt-postgres-test
+
