@@ -1,15 +1,14 @@
 ---
 applications:
 - name: srt-server-staging
-  command: node server/server.js
   memory: 1024M
-  disk_quota: 512M
+  disk_quota: 2048M
 #  health-check-type: process # don't re-enable....move to port 8080 if you have problems
   instances: 1
-  buildpacks:
-    - https://github.com/cloudfoundry/nodejs-buildpack
   env:
     NODE_ENV: cloudstaging
+  routes:
+    - route: http://srt-server-staging.app.cloud.gov
   services:
     - srt-postgres-staging
 

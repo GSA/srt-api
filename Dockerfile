@@ -9,7 +9,8 @@ COPY package*.json ./
 COPY .sequelizerc ./
 COPY .snyk ./
 
-# Use to get it to run locally: ENV JWT_SECRET=abc123
+# Running it locally you need to set the JWT_SECRET environment variable: 
+# ENV JWT_SECRET=abc123
 
 RUN touch winston.log.json
 
