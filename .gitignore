@@ -47,3 +47,4 @@ deploy-log*
 
 winston.log.json
 data/
+docker/db/scripts/init.sql

@@ -1,15 +1,15 @@
 ---
 applications:
 - name: srt-server-dev
-  command: node server/server.js
   memory: 512M
-  disk_quota: 512M
+  disk_quota: 2048M
 #  health-check-type: process # don't re-enable....move to port 8080 if you have problems
   instances: 1
-  buildpacks:
-    - https://github.com/cloudfoundry/nodejs-buildpack
   env:
     NODE_ENV: clouddev
+  routes:
+    - route: http://srt-server-dev.app.cloud.gov
   services:
     - srt-postgres-dev
+    - dev-server-deploy-service-account
 
