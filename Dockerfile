@@ -16,6 +16,13 @@ RUN touch winston.log.json
 
 RUN npm cache clean --force
 
+# Get environment argument passed in
+ARG environment
+ARG default_environment=development
+
+# Set NODE_ENV environment variable
+ENV NODE_ENV=${environment:-$default_environment}
+
 # Check environment and install dependencies
 # Note: When the NODE_ENV environment variable is set to 'production' npm 
 #       will not install modules listed in devDependencies
