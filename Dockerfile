@@ -23,6 +23,10 @@ ARG default_environment=development
 # Set NODE_ENV environment variable
 ENV NODE_ENV=${environment:-$default_environment}
 
+# Set SNYK TOKEN environment variable
+ARG SNYK_TOKEN
+ENV SNYK_TOKEN ${SNYK_TOKEN}
+
 # Check environment and install dependencies
 # Note: When the NODE_ENV environment variable is set to 'production' npm 
 #       will not install modules listed in devDependencies
