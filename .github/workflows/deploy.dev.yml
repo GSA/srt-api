@@ -39,7 +39,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/srt-api:dev-${{ steps.current-time.outputs.formattedTime }}
           build-args: |
-            "SNYK_TOKEN=${{ secrets.SNYK_TOKEN }}}"
+            SNYK_TOKEN=${{ secrets.SNYK_TOKEN }}
   
   cloudgov:
     name: Deploying to Cloud.gov
