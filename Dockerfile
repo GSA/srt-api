@@ -27,7 +27,7 @@ ENV NODE_ENV=${environment:-$default_environment}
 ARG SNYK_TOKEN
 ENV SNYK_TOKEN ${SNYK_TOKEN}
 RUN npm install snyk@latest -g
-RUN snyk auth <SNYK_API_TOKEN>
+RUN snyk auth ${SNYK_TOKEN}
 
 
 # Check environment and install dependencies
