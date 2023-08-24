@@ -20,7 +20,7 @@ else
     sudo apt-get install npm
   
     echo "Installing postgres..."
-    sudo apt-get install postgresql postgresql-contrib
+    sudo apt-get install postgresql postgresql-contrib libpq-dev
 
     echo "Installing nvm..."
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
