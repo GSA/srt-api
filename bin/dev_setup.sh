@@ -36,16 +36,20 @@ sudo -u postgres psql -c "ALTER USER circleci WITH CREATEROLE;"
 sudo -u postgres psql -c "ALTER USER circleci WITH CREATEDB;"
 
 # Create srt database
+echo "Creating srt database..."
 createdb srt -O circleci
 
 # Navigate to srt-api directory
+echo "Navigating to srt-api directory..."
 cd ..
 psql -d srt -f db/init/tables.sql
 
 
 # Install node 16 with nvm
+echo "Installing node 16..."
 nvm install 16
 nvm use 16
 
 # Install node modules
+echo "Installing node modules..."
 npm install
