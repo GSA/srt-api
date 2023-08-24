@@ -33,7 +33,7 @@ sudo -u postgres psql -c "CREATE USER circleci WITH PASSWORD 'srtpass';"
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO circleci;"
 sudo -u postgres psql -c "ALTER USER circleci WITH Superuser;"
 sudo -u postgres psql -c "ALTER USER circleci WITH CREATEROLE;"
-sudo -u postgres psql -c "ALTER USER circleci WITH CREATEUSER;"
+sudo -u postgres psql -c "ALTER USER circleci WITH CREATEDB;"
 
 # Create srt database
 createdb srt -O circleci
