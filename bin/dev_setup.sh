@@ -11,11 +11,14 @@ if [uname -a | grep -q "Darwin"]; then
     echo "Installing postgres..."
     brew install postgresql
 
-    echo "Installing curl..."
-    brew install curl
-
     echo "Installing nvm..."
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+    brew install nvm
+
+    mkdir ~/.nvm 
+
+    echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bash_profile
+    echo '[ -s "/usr/local/opt/nvm/nvm.sh" ] && \. "/usr/local/opt/nvm/nvm.sh"' >> ~/.bash_profile
+    echo '[ -s "/usr/local/opt/nvm/etc/bash_completion" ] && \. "/usr/local/opt/nvm/etc/bash_completion"' >> ~/.bash_profile
 
 else
     # Linux
@@ -30,6 +33,8 @@ else
 
     echo "Installing nvm..."
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+
+    source ~/.bashrc 
 fi
 
 
