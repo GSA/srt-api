@@ -11,6 +11,9 @@ if [uname -a | grep -q "Darwin"]; then
     echo "Installing postgres..."
     brew install postgresql
 
+    echo "Installing curl..."
+    brew install curl
+
     echo "Installing nvm..."
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 
@@ -21,6 +24,9 @@ else
   
     echo "Installing postgres..."
     sudo apt-get install postgresql postgresql-contrib libpq-dev
+
+    echo "Installing curl..."
+    sudo apt-get install curl
 
     echo "Installing nvm..."
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
