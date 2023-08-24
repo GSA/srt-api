@@ -3,6 +3,8 @@
 # Install packages if not one your system (check for linux or mac)
 # Install npm based on if it is mac or linux
 if [uname -a | grep -q "Darwin"]; then
+    echo "Detected Mac OS"
+
     # Mac
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     echo "Installing npm..."
@@ -21,6 +23,8 @@ if [uname -a | grep -q "Darwin"]; then
     echo '[ -s "/usr/local/opt/nvm/etc/bash_completion" ] && \. "/usr/local/opt/nvm/etc/bash_completion"' >> ~/.bash_profile
 
 else
+    echo "Detected Linux"
+
     # Linux
     echo "Installing npm..."
     sudo apt-get install npm
