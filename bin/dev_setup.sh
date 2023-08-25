@@ -21,6 +21,9 @@ if [uname -a | grep -q "Darwin"]; then
     echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bash_profile
     echo '[ -s "/usr/local/opt/nvm/nvm.sh" ] && \. "/usr/local/opt/nvm/nvm.sh"' >> ~/.bash_profile
     echo '[ -s "/usr/local/opt/nvm/etc/bash_completion" ] && \. "/usr/local/opt/nvm/etc/bash_completion"' >> ~/.bash_profile
+    
+    source ~/.bash_profile 
+    
 
     # Make Sure Postgres is started
     echo "Starting postgres..."
@@ -90,3 +93,5 @@ snyk auth
 echo "Installing node modules..."
 cd ..
 npm install
+
+echo "Start API Server by running 'npm run dev'"
