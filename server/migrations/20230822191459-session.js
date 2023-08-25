@@ -1,7 +1,7 @@
 'use strict'
 const migrationUtils = require('../migrationUtil')
 
-// This migration is to force a rebuild of the Predictions table
+// This migration will create a session table for storing session data
 
 let upSql = [
   ` CREATE TABLE "session" (
