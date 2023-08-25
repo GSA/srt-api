@@ -22,10 +22,14 @@ if [uname -a | grep -q "Darwin"]; then
     echo '[ -s "/usr/local/opt/nvm/nvm.sh" ] && \. "/usr/local/opt/nvm/nvm.sh"' >> ~/.bash_profile
     echo '[ -s "/usr/local/opt/nvm/etc/bash_completion" ] && \. "/usr/local/opt/nvm/etc/bash_completion"' >> ~/.bash_profile
 
-else
-    echo "Detected Linux"
+    # Make Sure Postgres is started
+    echo "Starting postgres..."
+    pg_ctl start
 
-    # Linux
+else
+    echo "Detected Ubuntu"
+
+    # Ubuntu
     echo "Installing npm..."
     sudo apt-get install npm
   
@@ -39,25 +43,35 @@ else
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 
     source ~/.bashrc 
+
+    # Make Sure Postgres is started
+    echo "Starting postgres..."
+    sudo systemctl start postgresql.service
+    
 fi
 
 
 
 # Create circleci User in postgresql
-sudo -u postgres psql -c "CREATE USER circleci WITH PASSWORD 'srtpass';"
+sudo -u postgres createuser circleci
+sudo -u postgres psql -c "ALTER USER circleci WITH password 'srtpass';"
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO circleci;"
 sudo -u postgres psql -c "ALTER USER circleci WITH Superuser;"
 sudo -u postgres psql -c "ALTER USER circleci WITH CREATEROLE;"
 sudo -u postgres psql -c "ALTER USER circleci WITH CREATEDB;"
 
+sudo -u postgres createuser $USER
+sudo -u postgres psql -c "ALTER USER $USER WITH Superuser;"
+sudo -u postgres psql -c "ALTER USER $USER WITH CREATEDB;"
+
+
 # Create srt database
 echo "Creating srt database..."
-createdb srt -O circleci
+sudo -u postgres createdb srt -O circleci
 
 # Navigate to srt-api directory
 echo "Navigating to srt-api directory..."
-cd ..
-psql -d srt -f db/init/tables.sql
+psql -d srt -f ../db/init/tables.sql
 
 
 # Install node 16 with nvm
@@ -65,6 +79,14 @@ echo "Installing node 16..."
 nvm install 16
 nvm use 16
 
+# Need snyk auth for npm install
+echo "Installing snyk..."
+npm install snyk -g
+
+echo "Authenticating snyk..."
+snyk auth
+
 # Install node modules
 echo "Installing node modules..."
+cd ..
 npm install
