@@ -49,7 +49,7 @@
     "sequelize-cli": "^6.3.0",
     "@snyk/protect": "^1.1196.0",
     "umzug": "^2.3.0",
-    "winston": "^3.8.2"
+    "winston": "^3.10.0"
   },
   "devDependencies": {
     "cryptify": "^3.0.3",
