@@ -46,7 +46,7 @@
     "pg": "^8.10.0",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.6.5",
-    "sequelize-cli": "^6.3.0",
+    "sequelize-cli": "^6.6.1",
     "@snyk/protect": "^1.657.0",
     "umzug": "^2.3.0",
     "winston": "^3.8.2"
@@ -68,7 +68,7 @@
     "nodemailer-mock": "^1.5.3",
     "nodemon": "^2.0.7",
     "random-words": "^1.1.1",
-    "sequelize-cli": "^6.6.0",
+    "sequelize-cli": "^6.6.1",
     "sinon": "^7.5.0",
     "snyk": "^1.1154.0",
     "supertest": "^4.0.2",
