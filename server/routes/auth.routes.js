@@ -69,7 +69,7 @@ function updateMAXUser(cas_data, user) {
 
 
 /**
- * @typedef {Object} express-session
+ * @typedef {Object} cookie-session
  * @property {function}  destroy
  * @property {function}  get
  */
@@ -79,7 +79,7 @@ function updateMAXUser(cas_data, user) {
  * If one was not used, log that and wipe the session so the
  * cas-authentication module won't auto-login the user
  *
- * @param  {express-session} session
+ * @param  {cookie-session} session
  * @return {boolean}
  */
 function verifyPIVUsed(session) {
