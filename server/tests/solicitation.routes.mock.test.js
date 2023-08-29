@@ -74,7 +74,7 @@ describe('solicitation tests',  () => {
 
   // noinspection DuplicatedCode
   test('GSA Admins can Update Not Applicable for any sol num', async () => {
-    let rows = await db.sequelize.query('select solicitation_number from notice join notice_type nt on notice.notice_type_id = nt.id where nt.notice_type = \'Solicitation\' order by notice.id desc limit 1')
+    let rows = await db.sequelize.query('select "solNum" as solicitation_number from solicitations where na_flag=False and "noticeType"=\'Solicitation\' limit 1')
     let solNum = rows[0][0].solicitation_number
     expect(solNum).toBeDefined()
 
@@ -83,21 +83,31 @@ describe('solicitation tests',  () => {
     let solRoute = solicitationRoutes(db, userRoutes)
     await solRoute.update(req, res)
     expect(res.status.mock.calls[0][0]).toBe(200)
+
+    let res2 = mocks.mockResponse();
+    let req2 = mocks.mockRequest({ solicitation: { solNum: solNum, na_flag: false } }, {'authorization': `bearer ${adminToken}`});
+    await solRoute.update(req2, res2);
+    expect(res2.status.mock.calls[0][0]).toBe(200);
   })
 
   // noinspection DuplicatedCode
   test('Agency User can update Not Applicable for any solicitations in their agency', async () => {
     let dbName = authRoutes.translateCASAgencyName(coordinatorCASData["org-agency-name"])
-    let sql = `select solicitation_number from notice where agency = '${dbName}' order by solicitation_number desc limit 1`
-    let rows = await db.sequelize.query(sql)
-    let solNum = rows[0][0].solicitation_number
-    expect(solNum).toBeDefined()
+    let sql = `select "solNum" as solicitation_number from solicitations where agency = '${dbName}' order by solicitation_number desc limit 1`
+    let rows = await db.sequelize.query(sql);
+    let solNum = rows[0][0].solicitation_number;
+    expect(solNum).toBeDefined();
 
     let res = mocks.mockResponse();
     let req = mocks.mockRequest({ solicitation: { solNum: solNum, na_flag: true } }, {'authorization': `bearer ${adminToken}`})
-    let solRoute = solicitationRoutes(db, userRoutes)
-    await solRoute.update(req, res)
-    expect(res.status.mock.calls[0][0]).toBe(200)
+    let solRoute = solicitationRoutes(db, userRoutes);
+    await solRoute.update(req, res);
+    expect(res.status.mock.calls[0][0]).toBe(200);
+
+    let res2 = mocks.mockResponse();
+    let req2 = mocks.mockRequest({ solicitation: { solNum: solNum, na_flag: true } }, {'authorization': `bearer ${adminToken}`})
+    await solRoute.update(req2, res2);
+    expect(res2.status.mock.calls[0][0]).toBe(200);
   })
 
   // noinspection DuplicatedCode
