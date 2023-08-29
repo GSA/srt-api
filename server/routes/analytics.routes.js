@@ -159,6 +159,11 @@ async function computeAnalytics (params, user) {
       LatestNonComplianceSolicitation: 0,
       FilteredNonComplianceSolicitation: 0,
 
+      // Number of Not Applicable Solicitation
+      TotalNotApplicableSolicitation: 0,
+      LatestNotApplicableSolicitation: 0,
+      FilteredNotApplicableSolicitation: 0,
+
       // Update
       LatestUpdateCompliance: 0,
       LatestUpdateNonCompliance: 0,
@@ -231,7 +236,7 @@ async function computeAnalytics (params, user) {
               break
             }
           }
-        } else if (predictions[i].parseStatus && predictions[i].parseStatus.length === 0 && predictions[i].numDocs === '0') {
+        } else if (predictions[i].parseStatus.length === 0 && predictions[i].numDocs === 0) {
           if (predictions[i].predictions.value === 'red') {
             if (latest) {
               data.LatestNoDocumentSolicitation_RED++
@@ -270,10 +275,14 @@ async function computeAnalytics (params, user) {
           if (latest) {
             if (predictions[i].predictions.value === 'green') {
               data.LatestComplianceSolicitation++
+            } else if (predictions[i].predictions.value === 'grey') {
+              data.LatestNotApplicableSolicitation++
             } else data.LatestNonComplianceSolicitation++
           }
           if (predictions[i].predictions.value === 'green') {
             data.TotalComplianceSolicitation++
+          } else if (predictions[i].predictions.value === 'grey') {
+            data.TotalNotApplicableSolicitation++
           } else data.TotalNonComplianceSolicitation++
 
           // scanned solicitation chart
@@ -404,7 +413,8 @@ async function computeAnalytics (params, user) {
       PredictResultChart:
         {
           compliance: data.LatestComplianceSolicitation,
-          uncompliance: data.LatestNonComplianceSolicitation
+          uncompliance: data.LatestNonComplianceSolicitation,
+          notApplicable: data.LatestNotApplicableSolicitation
         },
       UndeterminedSolicitationChart:
         {
