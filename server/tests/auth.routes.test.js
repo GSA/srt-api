@@ -168,7 +168,7 @@ describe('/api/auth/', () => {
     let cas = new CASAuthentication(casConfig)
     let app3 = require('../app')(null, cas)
     /**
-     * @type {express-session}
+     * @type {cookies-session}
      */
     let testSession = supertestSession(app3)
 
@@ -322,7 +322,7 @@ describe('/api/auth/', () => {
 
     let app2 = require('../app')(null, cas)
 
-    /** @type {express-session} */
+    /** @type {cookie-session} */
     let session = supertestSession(app2)
 
     return session.get('/api/casLogin')

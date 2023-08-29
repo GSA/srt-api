@@ -8,14 +8,25 @@ const admin_only = require('./security/admin.only')
 const env = process.env.NODE_ENV || 'development'
 const config = require('./config/config.js')[env]
 const {common} = require('./config/config.js')
-const session = require('express-session')
+const session = require('cookie-session')
 const CASAuthentication = require('cas-authentication')
 const jwtSecret = common.jwtSecret || undefined
 const {getConfig} = require('./config/configuration')
 const logger = require('./config/winston')
 const {cleanAwardNotices} = require('./cron/noticeAwardCleanup')
 const {CronJob} = require('cron')
+const pg = require('pg');
 
+const dbConfig = require('./config/dbConfig')[env]
+
+const pgPool = new pg.Pool({
+  database: dbConfig.database,
+  user: dbConfig.username,
+  password: dbConfig.password,
+  host: dbConfig.host,
+  port: dbConfig.port,
+  
+});
 
 if (! jwtSecret) {
   console.log("No JWT secret defined.  Be sure to set JWT_SECRET in the environment before running startup") // allowed output
@@ -67,7 +78,7 @@ module.exports = function (db, cas) {
   let noticeTypeRoutes = require('./routes/noticeType.routes')
   let adminReportRoutes = require('./routes/admin.report.routes')
 
-  app.use(bodyParser.json())
+  app.use(bodyParser.json({limit: '50mb'}))
 
   // setup CORS
   function corsTest (origin, callback) {
@@ -142,11 +153,13 @@ module.exports = function (db, cas) {
   // is http.  Modules like express-session will work with this setting
   app.set('trust proxy', 1)
 
-  app.use( session({
+  app.use(session({
     secret            : common.jwtSecret,
     resave            : false,
     saveUninitialized : true,
     cookie            : {
+      maxAge: 60000 * 60, // One Hour
+      httpOnly: true,
       sameSite : 'lax',
       secure: getConfig('sessionCookieSecure', true)  }
   }));
