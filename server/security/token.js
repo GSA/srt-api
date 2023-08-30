@@ -17,6 +17,21 @@ module.exports = function () {
     let message = 'Unauthorized'
 
     try {
+
+      let cookies = (req) => {
+        if (req.headers.hasOwnProperty('set-cookie')) {
+          return req.headers['set-cookie']
+        }
+        return []
+      }
+
+      if (Array.isArray(cookies)) {
+        let sessionCookie = cookies.find(cookie => cookie.startsWith('session='));
+        let authorization = sessionCookie.split(';')[0].split('=')[1]
+        // Adjusting it to be in format expected.
+        req.headers['authorization'] = `Bearer ${authorization}`
+      }
+
       if (req.headers.hasOwnProperty('authorization')) {
         logger.log('debug', "Begin authentication. ", {tag: 'token check 3', auth_header: req.headers['authorization']})
         message += " - authorization header was found"
