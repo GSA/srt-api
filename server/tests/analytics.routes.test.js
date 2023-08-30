@@ -90,4 +90,20 @@ describe('Analytics routes tests', () => {
                 return expect(res.body.TopAgenciesChart).toBeDefined()
             })
     })
+
+    test('/api/analytics notApplicable values', () => {
+        return request(app)
+            .post('/api/analytics')
+            .set('Authorization', `Bearer ${adminToken}`)
+            .send({agency: 'Government-wide', fromPeriod: '1/1/1900', toPeriod: '12/31/2100'})
+            .then((res) => {
+                // noinspection JSUnresolvedVariable
+                expect(res.statusCode).toBe(200)
+                expect(res.body.PredictResultChart).toBeDefined()
+                expect(res.body.PredictResultChart.notApplicable).toBeDefined()
+                expect(res.body.PredictResultChart.notApplicable).toBeGreaterThan(2)
+                return expect(res.body.PredictResultChart).toBeDefined()
+            })
+    })
+
 })
