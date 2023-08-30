@@ -114,15 +114,6 @@ module.exports = function (db, cas) {
     msg: function (req, res) {
       let jwt = require('jsonwebtoken')
 
-      let cookies = req.headers['set-cookie']
-
-      if (Array.isArray(cookies)) {
-        let sessionCookie = cookies.find(cookie => cookie.startsWith('session='));
-        let authorization = sessionCookie.split(';')[0].split('=')[1]
-        // Adjusting it to be in format expected.
-        req.headers['authorization'] = `Bearer ${authorization}`
-      }
-
       let token = null
       let user = { id: null, position: null, userRole: null, email: null }
       if (req.headers['authorization'] && req.headers['authorization'].length > 0) {
@@ -168,7 +159,7 @@ module.exports = function (db, cas) {
     saveUninitialized : true,
     cookie            : {
       //maxAge: 60000 * 60, // One Hour
-      httpOnly: true,
+      //httpOnly: true,
       sameSite : 'lax',
       secure: getConfig('sessionCookieSecure', true)  }
   }));
