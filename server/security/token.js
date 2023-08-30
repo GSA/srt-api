@@ -19,8 +19,8 @@ module.exports = function () {
     try {
 
       let cookies = (req) => {
-        if (req.headers.hasOwnProperty('set-cookie')) {
-          return req.headers['set-cookie']
+        if (req.headers.hasOwnProperty('cookie')) {
+          return req.headers['cookie']
         }
         return []
       }
