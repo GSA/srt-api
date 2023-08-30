@@ -159,7 +159,7 @@ module.exports = function (db, cas) {
     saveUninitialized : true,
     cookie            : {
       //maxAge: 60000 * 60, // One Hour
-      //httpOnly: true,
+      httpOnly: false,
       sameSite : 'lax',
       secure: getConfig('sessionCookieSecure', true)  }
   }));
