@@ -8,7 +8,8 @@ const admin_only = require('./security/admin.only')
 const env = process.env.NODE_ENV || 'development'
 const config = require('./config/config.js')[env]
 const {common} = require('./config/config.js')
-const session = require('cookie-session')
+//const session = require('cookie-session')
+const session = require('express-session')
 const CASAuthentication = require('cas-authentication')
 const jwtSecret = common.jwtSecret || undefined
 const {getConfig} = require('./config/configuration')
@@ -157,9 +158,7 @@ module.exports = function (db, cas) {
     secret            : common.jwtSecret,
     resave            : false,
     saveUninitialized : true,
-    cookie            : {
-      //maxAge: 60000 * 60, // One Hour
-      httpOnly: false,
+    cookie            : {     
       sameSite : 'lax',
       secure: getConfig('sessionCookieSecure', true)  }
   }));
