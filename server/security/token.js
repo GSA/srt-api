@@ -18,6 +18,7 @@ module.exports = function () {
 
     try {
 
+      /*
       let cookies = (req) => {
         if (req.headers.hasOwnProperty('cookie')) {
           return req.headers['cookie']
@@ -31,6 +32,7 @@ module.exports = function () {
         // Adjusting it to be in format expected.
         req.headers['authorization'] = `Bearer ${authorization}`
       }
+      */
 
       if (req.headers.hasOwnProperty('authorization')) {
         logger.log('debug', "Begin authentication. ", {tag: 'token check 3', auth_header: req.headers['authorization']})
