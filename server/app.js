@@ -158,7 +158,7 @@ module.exports = function (db, cas) {
     resave            : false,
     saveUninitialized : true,
     cookie            : {
-      maxAge: 60000 * 60, // One Hour
+      //maxAge: 60000 * 60, // One Hour
       httpOnly: true,
       sameSite : 'lax',
       secure: getConfig('sessionCookieSecure', true)  }
