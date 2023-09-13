@@ -59,7 +59,7 @@ docker build . -t <docker_username>/srt-api:<release_version>-<dev/staging> --bu
 ```
 #### Production
 ```
-docker build . -t <docker_username>/srt-api:<release_version>-prod --build-arg SNYK_TOKEN=<SNYK_TOKEN> environment=production
+docker build . -t <docker_username>/srt-api:<release_version>-prod --build-arg SNYK_TOKEN=<SNYK_TOKEN> --build-arg environment=production
 ```
 **SNYK_TOKEN** is the AUTH Token provided by [snyk](https://app.snyk.io/) to authorize its use. If you need help finding the AUTH token, utilize this [documentation](https://docs.snyk.io/enterprise-setup/snyk-broker/snyk-broker-code-agent/setting-up-the-code-agent-broker-client-deployment/step-1-obtaining-the-required-tokens-for-the-setup-procedure/obtaining-your-snyk-api-token) 
 
