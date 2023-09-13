@@ -1,175 +1,81 @@
-# srt-server
+# Overview 
+The SRT API is an Express.js Node application that provides a RESTful API for the SRT client. The SRT client and API together deliver the web portal called the [Solicitation Review Tool](https://srt.app.cloud.gov/auth) for viewing Section 508 compliance predictions for solicitations submitted from agencies around the federal government while also allowing its users to provide feedback to SRT. 
 
-[![CircleCI](https://circleci.com/gh/albertcrowley/srt-api.svg?style=svg)](https://circleci.com/gh/albertcrowley/srt-api)
-[![Maintainability](https://api.codeclimate.com/v1/badges/69b675319203911584f6/maintainability)](https://codeclimate.com/github/albertcrowley/srt-api/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/69b675319203911584f6/test_coverage)](https://codeclimate.com/github/albertcrowley/srt-api/test_coverage)
+The SRT API runs in a Docker container and accesses solicitations data that is scraped daily from SAM.GOV and stored in a Postgres database housed on cloud.gov. To facilitate development, testing and deployment of this application, this API runs in 3 different instances on cloud.gov - production, staging and development. 
 
-The srt-server application is an expressjs Node application that provides a 
-REST API for the srt-client. Together the client/server provide a web portal
-to view reports from and provide feedback to the Solicitation Review Tool (SRT).
+A developer on this project will work in a command line environment in any one of several operating systems and use an IDE such as Visual Studio Code. A brief setup guide is outlined below. A developer will also need account access to various environments in order to work on this project: Cloud.gov, SAM.gov, etc. See details below. 
 
-Release notes are available in the [release-notes.md](release-notes.md) file.
-
-## Deployment
-This web application is intended for deployment to cloud.gov. Deployment is 
-most easily performed using the deploy.sh script which will baseline, build, 
-deploy, and configure the SRT application. In the most simple case of deploying 
-a __previously baselined__ version of the application to the staging space on 
-cloud.gov:
-
-    deploy.sh staging v1.4.0
-    
-The full list of options available during deployment are:
-
-    usage: deploy.sh [OPTIONS] <SPACE> <TAG>
-
-        -d --dry-run : do everything but push to cloud.gov
-        -s --serverrepo : URI for srt-server repository
-        -c --clientrepo : URI for srt-client repository
-        -t --tempdir : defaults to /tmp
-        -y --yes : delete existing git repo in temp directory
-        -n --no : do not delete any existing git repo in temp directory
-        -b --create-tag-from-branch : Create TAG at head of this branch
-                
-## Running / Configuration
-The `npm run start` command will start the server. Database configuration options are
-read from server/dbConfig/dbConfig.js and general configuration from 
-server/config/config.js file. dbConfig.json holds the configuration 
-for every environment the app my be run in and the specific configuration for
-this run is chosen based on the NODE_ENV environment variable.
-
-Database connection information is stored in the dbConfig.js file but will be
-overridden by any settings in the VCAP_SERVICES environment variable. This feature
-allows cloud.gov to inject the proper database connection information upon
-startup.
-
-There are a few environment variables that control the configuration or set security
-sensitive keys. The deployment script may will prompt you for some of these if they
-are not already configured in the target cloud.gov environment. On cloud.gov any
-variables you would like to configure manually can be changed using the cloud.gov control 
-panel or CLI.
-
-**Environment Variables**  
-* **SENDGRID_API_KEY** - _This feature is no longer used but is included here should it be needed in the future._
-  If using Sendgrid as an email server, set this variable to an appropriate API key. 
-If this is not set in a cloud.gov environment, the deployment script will give the option to set it.
-* **NODE_ENV** - This should be set based on the environment. It is used to choose between the 
-available configuration settings. Examples include production, cloudstage, clouddev, circle, development.
+Node Package Manager (npm) and yarn are used to install and update Node modules for this project and the security of each of these Node modules is maintained through SNYK. 
+# Developer Requirements 
+## Software Components and Tools 
+The following is a summary of the software and tools that are needed for development of this project: 
+* Operating system - Linux, Ubuntu, Mac OS, Windows 
+* IDE - Visual Studio Code, etc. 
+* Docker 
+* PostGres 
+* SNYK 
+* GitHub 
+* Node 
+## Systems Access 
+Access to the following platforms will also be required for development: 
+* Cloud.gov 
+* SAM.gov 
+* MAX.gov 
+* Docker.com and hub.docker.com 
+* SNYK.io
+* GitHub - GSA team 
+## Environment Variables 
+There are a few environment variables that control the configuration or set security sensitive keys. On cloud.gov any variables you would like to configure manually can be changed using the cloud.gov control panel or CLI.
+* **NODE_ENV** - This should be set based on the environment. It is used to switch between the available environments. Examples include production, cloudstage, clouddev, circle, development.
 The definitive list can be found by reading config.js.
-* **VCAP_SERVICES** - cloud.gov will automatically set this environment variable. It contains connection information 
-for the configured postgres database for that environment - and also any other cloud.gov services or connections 
-that may be configured int the future. 
-* **VCAP_APPLICAION** - While not currently used, this environment variable is automatically set by cloud.gov
-and contains information about the running application such as memory/disk limits, space and instance IDs,
-and DNS info.
-* **MAIL_ENGINE** - Used in development. If this is set it will over-ride the usual 'nodemailer' mail engine. It is 
-used for testing when sending actual email is not desirable.
-* **JWT_SECRET** - _Not currently implemented_ - will be used to set the encryption secret used to sign JSON Web Tokens.   
-  
+* **VCAP_SERVICES** - cloud.gov will automatically set this environment variable. It contains connection information for the specific postgres database for that environment - and also any other cloud.gov services or connections that may be configured in the future. 
+# Setup and Deployment  
+## Getting Started
+* To get started with SRT-API, go to [GSA/srt-api](https://github.com/GSA/srt-api) to copy the URL for cloning the project. 
+* Open Terminal or use Visual Studio Code and open a terminal window. 
+* Navigate to the desired folder and clone the project. 
+## Installation 
+* Navigate to the bin folder that was created through the clone. 
+* Type `./dev_setup.sh` to begin installation. 
+* Note - If this script fails during execution, please refer to the manual setup guide for installing the necessary tools and packages here: [Manual Setup Guide](https://github.com/GSA/srt-api/tree/main/documentation/ManualSetupGuide.MD).  
+* This script will install and set up much of what you need for this project: 
+    * Node Package Manager (npm) 
+    * Postgres 
+    * Node Version Manager (nvm) 
+    * SNYK - log into SNYK using your GitHub account when prompted by the script 
+* This script will also create the needed local Postgres database with all of the tables required by this project, if they do not already exist. 
+* It will also install Node Version 16, which is the requirement for this project. 
+* This script will then install and update all of the required Node modules. 
+## Running and Configuration  
+The `npm run dev` command will start the server. Database configuration options are read from server/dbConfig/dbConfig.js and general configuration from server/config/config.js file. dbConfig.json holds the configuration for every environment the app my be run in and the specific configuration for this run is chosen based on the NODE_ENV environment variable.
 
-## Documentation
-Documentation for the srt-server is created from JSDoc tags embeded in the
-source code. You can find a pre-build copy in the the [/docs](docs/index.html) 
-directory of this repository. The documentaiton can be rebuilt from 
-source when updats are necessary using `npm run doc`
-
-
-## Testing and Continuous Integration / Continuous Deployment
-The srt-server application has a set of unit test in the server/tests directory.
-These can be run from the command line with `npm run test`  Database connection
-are not mocked for the unit tests to ensure that data flows properly through 
-the system and into the database. This means that you will want to have a running
-database before starting the tests.
-
-A test database file can be found in srt-database-export.sql.gz. This database export is saved
-as an encrypted file to prevent bug-bounty hunters from flagging the test users in the file
-as security issues. The NPM package cryptify is used to encrypt/decrypt the file.   There is a database
-load process scripted in the `npm run restore-db` command that includes the encryption key. 
-The package.json file has connection information coded directly into that command. When running 
-this for the first time, that file will need to be updated to your local settings.
-
-__Many unit tests depend on having solicitation data updated in the last 30-90 days. If you are using 
-a database snapshot older than that, you will likely get numerous test failures.__  The simplest 
-solution is to run the srt-fbo-scraper to pull in new solicitation data. After that, you may want to 
-the test database export.  
-
-Continuous integration and Deployment is configured in the .circleci/config.yml file 
-in the CircleCI format. The CI server will start a Postgres database and load it with test data before 
-automatically running the unit tests.
-
-A very brief Selenium IDE integration test can be found in the srt-client repository
-under test/SRT.side. The integration test is not run automatically by the CI server.
-
-## Development Environment Setup
-
-The following steps should take you from a clean Ubuntu install to a working
-development environment.  
-
-
+Database connection information is stored in the dbConfig.js file but will be overridden by any settings in the VCAP_SERVICES environment variable. This feature allows cloud.gov to inject the proper database connection information upon startup.
+## Deployment 
+### Docker Build 
+First we need to build the docker image for the srt-api, and the process for dev/staging is slightly different than production:
+#### Staging/Dev
 ```
-sudo apt-get update
+docker build . -t <docker_username>/srt-api:<release_version>-<dev/staging> --build-arg SNYK_TOKEN=<SNYK_TOKEN>
+```
+#### Production
+```
+docker build . -t <docker_username>/srt-api:<release_version>-prod --build-arg SNYK_TOKEN=<SNYK_TOKEN> --build-arg environment=production
+```
+**SNYK_TOKEN** is the AUTH Token provided by [snyk](https://app.snyk.io/) to authorize its use. If you need help finding the AUTH token, utilize this [documentation](https://docs.snyk.io/enterprise-setup/snyk-broker/snyk-broker-code-agent/setting-up-the-code-agent-broker-client-deployment/step-1-obtaining-the-required-tokens-for-the-setup-procedure/obtaining-your-snyk-api-token) 
 
-# install docker based on docs here https://docs.docker.com/engine/install/ubuntu/
-sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-   $(lsb_release -cs) \
-   stable"
-sudo apt-get update
-sudo apt-get install docker-ce docker-ce-cli containerd.io
-# test docker
-sudo docker run hello-world
 
-# install node and npm
-sudo apt-get install -y nodejs npm
-sudo npm install npm@latest -g
-
-# install postgres
-sudo apt install postgresql-client libpq-dev postgresql-server-dev pgadmin
-
-# download SRT source
-cd ~
-git clone https://github.com/GSA/srt-api.git
-cd srt-api
-git checkout dev
-npm install
-cd ~
-git clone https://github.com/GSA/srt-ui.git
-cd srt-ui
-git checkout dev
-npm install
-cd ~
-
-# Set some env variables
-echo export CRYPTIFY=Blue-Cast-1-Heavy-Bird >> ~/.bashrc
-echo "export PAGER='less -S'" >> ~/.bashrc
-echo export JWT_SECRET=abc123 >> ~/.bashrc
-echo export NODE_ENV=development >> ~/.bashrc
-echo export MAIL_ENGINE=nodemailer-mock >> ~/.bashrc
-echo export PGHOST=localhost >> ~/.bashrc
-echo export PGDATABASE=srt >> ~/.bashrc
-echo export PGUSER=circleci >> ~/.bashrc
-echo export PGPASSWORD=srtpass >> ~/.bashrc
-source ~/.bashrc
-
-# start the SRT database
-cd ~/srt-api
-npm run startdb
-
-# test / start the API
-cd ~/srt-api
-npm run test
-# check for any failed tests. 
-# You should get odd messages during the 
-# run, but as long as none fail you are good
-# now start the API
-npm run dev-monitor
-
-#now in another shell start the Angular app
-cd ~/srt-ui
-npm run dev
+### Docker Push
+This will push the built image to the docker hub user indicated in <docker_username>
+```
+docker push <docker_username>/srt-api:<release_version>-<env>
 ```
 
-At this point, you should be able to open a web browser 
-on the Ubuntu desktop and navigate to [http://localhost:4200/](http://localhost:4200/)
+### CF Push
+Finally to deploy to cloud.gov, we need to utilize the cf cli to push the docker image app into the cloud.gov application droplet.
+```
+cf target -s <env>
+cf push srt-api-<env> -f cf/manifest.<env>.yml --docker-image <docker_username>/srt-api:<release_version>-<env>
+```
+
+# More Info  
+For more detailed information, please refer to the documentation here: [Documentation](https://github.com/GSA/srt-api/tree/main/documentation) 
