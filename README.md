@@ -51,6 +51,31 @@ The `npm run start` command will start the server. Database configuration option
 
 Database connection information is stored in the dbConfig.js file but will be overridden by any settings in the VCAP_SERVICES environment variable. This feature allows cloud.gov to inject the proper database connection information upon startup.
 ## Deployment 
-[Need text that describes the current deployment process here]
+### Docker Build 
+First we need to build the docker image for the srt-api, and the process for dev/staging is slightly different than production:
+#### Staging/Dev
+```
+docker build . -t <docker_username>/srt-api:<release_version>-<dev/staging> --build-arg SNYK_TOKEN=<SNYK_TOKEN>
+```
+#### Production
+```
+docker build . -t <docker_username>/srt-api:<release_version>-prod --build-arg SNYK_TOKEN=<SNYK_TOKEN> environment=production
+```
+**SNYK_TOKEN** is the AUTH Token provided by [snyk](https://app.snyk.io/) to authorize its use. If you need help finding the AUTH token, utilize this [documentation](https://docs.snyk.io/enterprise-setup/snyk-broker/snyk-broker-code-agent/setting-up-the-code-agent-broker-client-deployment/step-1-obtaining-the-required-tokens-for-the-setup-procedure/obtaining-your-snyk-api-token) 
+
+
+### Docker Push
+This will push the built image to the docker hub user indicated in <docker_username>
+```
+docker push <docker_username>/srt-api:<release_version>-<env>
+```
+
+### CF Push
+Finally to deploy to cloud.gov, we need to utilize the cf cli to push the docker image app into the cloud.gov application droplet.
+```
+cf target -s <env>
+cf push srt-api-<env> -f cf/manifest.<env>.yml --docker-image <docker_username>/srt-api:<release_version>-<env>
+```
+
 # More Info  
 For more detailed information, please refer to the documentation here: [Documentation](https://github.com/GSA/srt-api/tree/main/documentation) 
