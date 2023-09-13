@@ -47,7 +47,7 @@ The definitive list can be found by reading config.js.
 * It will also install Node Version 16, which is the requirement for this project. 
 * This script will then install and update all of the required Node modules. 
 ## Running and Configuration  
-The `npm run start` command will start the server. Database configuration options are read from server/dbConfig/dbConfig.js and general configuration from server/config/config.js file. dbConfig.json holds the configuration for every environment the app my be run in and the specific configuration for this run is chosen based on the NODE_ENV environment variable.
+The `npm run dev` command will start the server. Database configuration options are read from server/dbConfig/dbConfig.js and general configuration from server/config/config.js file. dbConfig.json holds the configuration for every environment the app my be run in and the specific configuration for this run is chosen based on the NODE_ENV environment variable.
 
 Database connection information is stored in the dbConfig.js file but will be overridden by any settings in the VCAP_SERVICES environment variable. This feature allows cloud.gov to inject the proper database connection information upon startup.
 ## Deployment 
