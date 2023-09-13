@@ -37,7 +37,7 @@ The definitive list can be found by reading config.js.
 ## Installation 
 * Navigate to the bin folder that was created through the clone. 
 * Type `./dev_setup.sh` to begin installation. 
-* Note - If this script fails during execution, please refer to the manual setup guide for installing the necessary tools and packages here: [Manual Setup Guide](https://github.com/GSA/srt-api/tree/main/documentation/ManualSetupGuide.MD).  
+* Note - If this script fails during execution, please refer to the manual setup guide for installing the necessary tools and packages here: [Manual Setup Guide](https://github.com/GSA/srt-api/blob/main/documentation/ManualSetupGuide.md).  
 * This script will install and set up much of what you need for this project: 
     * Node Package Manager (npm) 
     * Postgres 
