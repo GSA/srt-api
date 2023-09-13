@@ -164,6 +164,11 @@ async function computeAnalytics (params, user) {
       LatestNotApplicableSolicitation: 0,
       FilteredNotApplicableSolicitation: 0,
 
+      // Number of Cannot Evaluate Solicitation
+      TotalCannotEvaluateSolicitation: 0,
+      LatestCannotEvaluateSolicitation: 0,
+      FilteredCannotEvaluateSolicitation: 0,
+
       // Update
       LatestUpdateCompliance: 0,
       LatestUpdateNonCompliance: 0,
@@ -277,12 +282,16 @@ async function computeAnalytics (params, user) {
               data.LatestComplianceSolicitation++
             } else if (predictions[i].predictions.value === 'grey') {
               data.LatestNotApplicableSolicitation++
+            } else if (predictions[i].predictions.value === 'yellow') {
+              data.LatestCannotEvaluateSolicitation++
             } else data.LatestNonComplianceSolicitation++
           }
           if (predictions[i].predictions.value === 'green') {
             data.TotalComplianceSolicitation++
           } else if (predictions[i].predictions.value === 'grey') {
             data.TotalNotApplicableSolicitation++
+          } else if (predictions[i].predictions.value === 'yellow') {
+            data.TotalCannotEvaluateSolicitation++
           } else data.TotalNonComplianceSolicitation++
 
           // scanned solicitation chart
@@ -414,7 +423,8 @@ async function computeAnalytics (params, user) {
         {
           compliance: data.LatestComplianceSolicitation,
           uncompliance: data.LatestNonComplianceSolicitation,
-          notApplicable: data.LatestNotApplicableSolicitation
+          notApplicable: data.LatestNotApplicableSolicitation,
+          cannotEvaluate: data.LatestCannotEvaluateSolicitation
         },
       UndeterminedSolicitationChart:
         {
