@@ -1,62 +1,34 @@
-# Manual Setup Guide 
-Use the following as a guide to install required modules when the automated setup script fails or is not available. 
+# Overview 
+The SRT UI is a Javascript web application built using Angular (v. 15) which along with the [SRT API](https://github.com/GSA/srt-api) deliver the [Solicitation Review Tool](https://srt.app.cloud.gov/auth) for viewing Section 508 compliance predictions for Information and Communication Technology (ICT) solicitations submitted from agencies around the federal government. To facilitate development and testing in addition to production deployment, a total of three instances of this client application run on cloud.gov - development, staging and production. 
 
-## Install Docker 
-Install the Docker engine for various platforms by referring to the documentation here: [https://docs.docker.com/engine/install/]
+SRT UI is now deployed to cloud.gov using a Docker image and security updates for all Node modules and software components are managed with yarn and SNYK. This application accesses ICT solicitation data that is housed in a PostgreSQL database on cloud.gov and is updated on a daily basis through a cron job that runs the [SRT FBO Scraper](https://github.com/GSA/srt-fbo-scraper) to pull all of the latest solicitations from SAM.GOV. 
 
-## Install Node Package Manager (npm)
-Mac: 
-```
-brew install npm
-```
-
-Ubuntu: 
-```
-sudo apt-get install -y nodejs npm
-sudo npm install npm@latest -g
-```
-
-## Install Postgres 
-Mac: 
-```
-brew install postgresql
-```
-
-Ubuntu: 
-```
-sudo apt install postgresql-client libpq-dev postgresql-server-dev pgadmin
-```
-
-## Install Node Version Manager (nvm)
-Mac: 
-```
-brew install nvm
-
-mkdir ~/.nvm 
-
-echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bash_profile
-echo '[ -s "/usr/local/opt/nvm/nvm.sh" ] && \. "/usr/local/opt/nvm/nvm.sh"' >> ~/.bash_profile
-echo '[ -s "/usr/local/opt/nvm/etc/bash_completion" ] && \. "/usr/local/opt/nvm/etc/bash_completion"' >> ~/.bash_profile
-
-source ~/.bash_profile 
-```
-Ubuntu: 
-```
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
-
-source ~/.bashrc 
-```
-## Download SRT Source Code 
+# Developer Requirements 
+## Software Components and Tools 
+The following is a summary of the software and tools that are needed for development of this project: 
+* Operating system - Linux, Ubuntu, Mac OS, Windows 
+* IDE - Visual Studio Code, etc. 
+* Angular 
+* Docker 
+* PostGreSQL
+* SNYK 
+* Node 
+* Yarn 
+## Systems Access 
+Access to the following platforms will also be required for development: 
+* Cloud.gov 
+* SAM.gov 
+* MAX.gov 
+* Docker 
+* SNYK 
+* GitHub - GSA team 
+## Environment Variables 
+* 
+# Setup and Deployment  
+## Getting Started
+### Download SRT Source Code 
 For both Mac and Ubuntu: 
-* Navigate to the desired folder to clone the srt-api project. 
-* Then execute the following in the command line: 
-```
-git clone https://github.com/GSA/srt-api.git
-cd srt-api
-git checkout dev
-npm install
-```
-* Next navigate to the desired folder to clone the srt-ui project. 
+* Navigate to the desired folder to clone the srt-ui project. 
 * Then execute the following in the command line: 
 ```
 git clone https://github.com/GSA/srt-ui.git
@@ -64,77 +36,83 @@ cd srt-ui
 git checkout dev
 npm install
 ```
-## Set Environment Variables 
-* Set the following environment variables: 
+## Installation 
+### Install Node Package Manager (npm)
+Mac:
 ```
-echo export NODE_ENV=development >> ~/.bashrc
-echo export PGHOST=localhost >> ~/.bashrc
-echo export PGDATABASE=srt >> ~/.bashrc
-echo export PGUSER=circleci >> ~/.bashrc
-echo export PGPASSWORD=srtpass >> ~/.bashrc
-source ~/.bashrc
+brew install npm
+```
+Ubuntu:
+```
+sudo apt-get install -y nodejs npm
+sudo npm install npm@latest -g
+```
+### Install Angular  
+The following command will install the Angular CLI globally: 
+```
+npm install -g @angular/cli
 ```
 
-## Start Postgres 
-Mac: 
+To update the CLI to the latest version: 
 ```
-pg_ctl start
+npm install -g @angular/cli@latest 
 ```
-Ubuntu: 
+For more detailed instructions on setting up your local environment with Angular, go here: <https://angular.io/guide/setup-local>. 
+### Install Docker
+Install the Docker engine for various platforms by referring to the documentation here: <https://docs.docker.com/engine/install/> 
+### Install PostgreSQL
+Mac:
 ```
-sudo systemctl start postgresql.service
+brew install postgresql
 ```
-## Final Steps 
-For both Mac and Ubuntu: 
-### Create Postgres user 
-```
-sudo -u postgres createuser circleci
-sudo -u postgres psql -c "ALTER USER circleci WITH password 'srtpass';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO circleci;"
-sudo -u postgres psql -c "ALTER USER circleci WITH Superuser;"
-sudo -u postgres psql -c "ALTER USER circleci WITH CREATEROLE;"
-sudo -u postgres psql -c "ALTER USER circleci WITH CREATEDB;"
 
-sudo -u postgres createuser $USER
-sudo -u postgres psql -c "ALTER USER $USER WITH Superuser;"
-sudo -u postgres psql -c "ALTER USER $USER WITH CREATEDB;"
+Ubuntu:
 ```
-### Create the SRT database 
+sudo apt install postgresql-client libpq-dev postgresql-server-dev pgadmin
 ```
-echo "Creating the srt database..."
-sudo -u postgres createdb srt -O circleci
-```
-### Create tables 
-```
-echo "Creating the srt tables..."
-psql -d srt -f ../db/init/tables.sql
-```
-### Install Node Version 16 
-```
-echo "Installing node 16..."
-nvm install 16
-
-echo "Set the environment to use version 16..."
-nvm use 16
-```
-### Install SNYK 
-* During this installation you will be redirected to the SNYK website. 
-* Complete your authentication at SNYK before proceeding to the next step. 
+### Install SNYK
+* During this installation you will be redirected to the SNYK website.
+* Complete your authentication at SNYK before proceeding to the next step.
 ```
 echo "Installing snyk..."
 npm install snyk -g
 
+
 echo "Authenticating snyk..."
 snyk auth
 ```
-### Install Node modules 
-* Navigate back to the top level of your srt-api folder 
+### Install Node Version Manager (nvm)
+Mac:
 ```
-echo "Installing node modules..."
-npm install
+brew install nvm
+
+mkdir ~/.nvm
+
+echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bash_profile
+echo '[ -s "/usr/local/opt/nvm/nvm.sh" ] && \. "/usr/local/opt/nvm/nvm.sh"' >> ~/.bash_profile
+echo '[ -s "/usr/local/opt/nvm/etc/bash_completion" ] && \. "/usr/local/opt/nvm/etc/bash_completion"' >> ~/.bash_profile
+
+source ~/.bash_profile
 ```
-### Start the Server 
+Ubuntu:
 ```
-echo "Starting the server..."
-npm run start
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+
+source ~/.bashrc
 ```
+### Install Yarn 
+Execute the following command to install yarn: 
+```
+npm install –global yarn
+```
+Alternatively, you can install yarn on Mac OS with the following command: 
+```
+brew install yarn
+```
+For more information on installing yarn, refer to the detailed information here: <https://classic.yarnpkg.com/en/docs/install#mac-stable>
+
+## Running the Project 
+* Run `ng serve` to start the SRT client locally. 
+* Then open a browser to this URL: <http://localhost:4200/>. 
+* Run `ng build` to build the project. 
+## Deployment 
