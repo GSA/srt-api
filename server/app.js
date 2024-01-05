@@ -227,9 +227,14 @@ module.exports = {
   app.get("/api/login", (req, res) => {
     res.redirect(login_gov_auth_url);
   });
-
+  // Login.gov Failure to Proof URL: 
+  // For users who are unable to complete identity proofing and returning to the app
+  app.get("odic/failure", (req, res) => {
+    return res.status(302)
+          .set('Location', config['srtClientUrl'] + '/auth') // send them back with no token
+          .send(`<html lang="en"><body>Identity Login Failure</body></html>`)
+  });
   app.get("/odic/callback",  authRoutes.grabToken);
-
   app.post('/api/auth/tokenCheck', authRoutes.tokenCheck)
   app.get('/api/casLogin', cas.bounce, authRoutes.casStage2)
   app.post('/api/email', token(), emailRoutes.email)
