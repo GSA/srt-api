@@ -60,7 +60,7 @@ function updateMAXUser(cas_data, user) {
     user['password'] = null
     user['agency'] = cas_data['agency-name']
     user['position'] = ''
-    user['userRole'] = 'Administrator'
+    user['userRole'] = cas_data['userRole']
     user['isRejected'] = false
     user['isAccepted'] = true
     user['tempPassword'] = null
@@ -210,7 +210,7 @@ function createMAXUser(cas_data) {
     'password': null,
     'agency': cas_data['agency-name'],
     'position': '',
-    'userRole': 'Administrator',
+    'userRole': cas_data['userRole'],
     'isRejected': false,
     'isAccepted': true,
     'tempPassword': null,
