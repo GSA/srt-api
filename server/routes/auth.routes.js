@@ -111,7 +111,7 @@ function createUser(loginGovUser) {
     'password': null,
     'agency': grabAgencyFromEmail(loginGovUser.email),
     'position': '',
-    'userRole': 'Executive User',
+    'userRole': 'Executive User', // If we need to handle user roles, we should set it to lowest setting and adjust
     'isRejected': false,
     'isAccepted': true,
     'tempPassword': null,
@@ -632,7 +632,7 @@ module.exports = {
     logger.log('info', req.session.cas_userinfo['email-address'] + ' authenticated with MAX CAS ID ' + req.session.cas_userinfo['max-id'], {cas_userinfo: req.session.cas_userinfo, tag: 'casStage2'})
 
     let responseJson = await tokenJsonFromCasInfo(req.session.cas_userinfo, common.jwtSecret)
-    let location = `${config['srtClientUrl']}/auth?token=${responseJson}`
+    let location = `${config['srtClientUrl']}/auth?info=${responseJson}`
 
     let rollList = roles.map( (x) => x.name)
     let decoded_user_role = JSON.parse(responseJson).userRole
