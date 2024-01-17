@@ -130,7 +130,14 @@ function createUser(loginGovUser) {
 function grabAgencyFromEmail(email) {
   let agency_abbreviance = email.split('@')[1].split('.')[0]
 
-  return translateCASAgencyName(agency_abbreviance)
+  var agencyName = translateCASAgencyName(agency_abbreviance)
+
+  if (!agencyName) {
+    logger.log("error", 'Agency name not found, update with User Admin Site', {tag:"grabAgencyFromEmail"})
+    agencyName = "No Agency Found"; // replace with your default value
+  }
+  
+  return agencyName;
 }
 
 /**
