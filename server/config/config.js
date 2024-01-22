@@ -386,6 +386,13 @@ module.exports = {
     "srtClientUrl": "https://srt-client-dev.app.cloud.gov",
     "logStdOut" : true,
     "logStdOutLevel" : "error",
+    "login_gov_oidc": {
+      "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:srt_app",
+      "issuer_url": "https://idp.int.identitysandbox.gov/.well-known/openid-configuration",
+      "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+      "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
+      "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
+    },
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "http://localhost:3000",
@@ -417,6 +424,13 @@ module.exports = {
     "srtClientUrl": "https://srt-client-dev.app.cloud.gov",
     "logStdOut" : true,
     "logStdOutLevel" : "debug",
+    "login_gov_oidc": {
+      "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:srt_app",
+      "issuer_url": "https://idp.int.identitysandbox.gov/.well-known/openid-configuration",
+      "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+      "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
+      "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
+    },
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "https://srt-server-dev.app.cloud.gov",
@@ -449,6 +463,14 @@ module.exports = {
     "srtClientUrl": "https://srt-client-staging.app.cloud.gov",
     "logStdOut" : true,
     "logStdOutLevel" : "debug",
+    // TODO: May need to make staging Login.gov App (Using as Placeholder for now)
+    "login_gov_oidc": {
+      "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:srt_app",
+      "issuer_url": "https://idp.int.identitysandbox.gov/.well-known/openid-configuration",
+      "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+      "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
+      "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
+    },
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "https://srt-server-staging.app.cloud.gov",
@@ -481,6 +503,13 @@ module.exports = {
     "srtClientUrl": "https://srt-client-dev.app.cloud.gov",
     "logStdOut" : true,
     "logStdOutLevel" : "debug",
+    "login_gov_oidc": {
+      "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:srt_app",
+      "issuer_url": "https://idp.int.identitysandbox.gov/.well-known/openid-configuration",
+      "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+      "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
+      "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
+    },
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
       "service_url" : "https://srt-server-test.app.cloud.gov",
@@ -512,6 +541,14 @@ module.exports = {
     "srtClientUrl": "https://srt.app.cloud.gov",
     "logStdOut" : true,
     "logStdOutLevel" : "debug",
+    // TODO: Will need to make production Login.gov App (Using as Placeholder for now)
+    "login_gov_oidc": {
+      "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:srt_app",
+      "issuer_url": "https://idp.int.identitysandbox.gov/.well-known/openid-configuration",
+      "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+      "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
+      "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
+    },
     "maxCas" : {
       "cas_url" : "https://login.max.gov/cas/",
       "service_url" : "https://srt-server.app.cloud.gov",
