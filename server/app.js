@@ -22,9 +22,6 @@ const { Issuer, Strategy, generators } = require('openid-client');
 
 const dbConfig = require('./config/dbConfig')[env]
 
-const passport = require('passport');
-const helmet = require('helmet');
-
 
 const pgPool = new pg.Pool({
   database: dbConfig.database,
