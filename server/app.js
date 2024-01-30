@@ -69,8 +69,7 @@ let loginGovClient = Issuer.discover(config['login_gov_oidc']['issuer_url'])
       prompt:'select_account',
       nonce: nonce,
       state: state,
-      //redirect_uris: ["http://localhost:3000/odic/callback"],
-      redirect_uri: "http://localhost:3000/odic/callback",
+      redirect_uri: config['login_gov_oidc']["redirect_uri"],
       scope: "openid email profile",
     }
 
