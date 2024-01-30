@@ -351,6 +351,7 @@ module.exports = {
       "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
       "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
       "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
+      "redirect_uri": "http://localhost:3000/odic/callback"
     },
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
@@ -430,6 +431,7 @@ module.exports = {
       "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
       "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
       "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
+      "redirect_uri": "http://srt-server-dev.app.cloud.gov/odic/callback"
     },
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
@@ -465,11 +467,12 @@ module.exports = {
     "logStdOutLevel" : "debug",
     // TODO: May need to make staging Login.gov App (Using as Placeholder for now)
     "login_gov_oidc": {
-      "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:srt_app",
+      "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:srt_app_staging",
       "issuer_url": "https://idp.int.identitysandbox.gov/.well-known/openid-configuration",
       "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
       "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
       "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
+      "redirect_uri": "http://srt-server-staging.app.cloud.gov/odic/callback"
     },
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
