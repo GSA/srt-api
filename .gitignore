@@ -50,5 +50,5 @@ data/
 docker/db/scripts/init.sql
 docker/certs/private.pem
 docker/certs/public.crt
-server/config/certs/private.pem
-server/config/certs/public.crt
+private.pem
+public.crt
