@@ -44,7 +44,13 @@ if (process.env.VCAP_SERVICES) {
     host: VCAP['aws-rds'][0]['credentials']['host'],
     port: VCAP['aws-rds'][0]['credentials']['port'],
     dialect: 'postgres',
-    logging: false
+    logging: false,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false // Related to: https://stackoverflow.com/questions/58965011/sequelizeconnectionerror-self-signed-certificate
+      }
+    },
   }
 
   dbConfig= {
