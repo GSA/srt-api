@@ -11,5 +11,5 @@ applications:
     - route: http://srt-server-prod.app.cloud.gov
     - route: http://srt-server.app.cloud.gov
   services:
-    - srt-postgres-prod
+    - srt-postgresql15-prod
 
