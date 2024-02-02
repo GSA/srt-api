@@ -18,7 +18,10 @@ const {cleanAwardNotices} = require('./cron/noticeAwardCleanup')
 const {CronJob} = require('cron')
 const pg = require('pg');
 
+const { Issuer, Strategy, generators } = require('openid-client');
+
 const dbConfig = require('./config/dbConfig')[env]
+
 
 const pgPool = new pg.Pool({
   database: dbConfig.database,
@@ -28,6 +31,9 @@ const pgPool = new pg.Pool({
   port: dbConfig.port,
   
 });
+
+
+
 
 if (! jwtSecret) {
   console.log("No JWT secret defined.  Be sure to set JWT_SECRET in the environment before running startup") // allowed output
@@ -47,10 +53,44 @@ function setupCronJobs() {
   }
 }
 
+let login_gov_auth_url
+
+let loginGovClient = Issuer.discover(config['login_gov_oidc']['issuer_url'])
+  .then(function (oidcIssuer) {
+
+
+    const nonce = generators.nonce();
+    
+    const state = generators.state();
+
+    const params = {
+      acr_values: 'http://idmanagement.gov/ns/assurance/ial/1',
+      client_id: config['login_gov_oidc']["client_id"],
+      prompt:'select_account',
+      nonce: nonce,
+      state: state,
+      redirect_uri: config['login_gov_oidc']["redirect_uri"],
+      scope: "openid email profile",
+    }
+
+    const client = new oidcIssuer.Client({
+      client_id: config['login_gov_oidc']["client_id"],
+      response_type: 'code',
+      params
+    });
+
+    login_gov_auth_url = client.authorizationUrl(params);
+
+    return client;
+
+  });
+
 //
 // Setup ORM
 //
-module.exports = function (db, cas) {
+module.exports = {
+  
+  app: function (db, cas) {
   let app = express()
 
   app.disable('x-powered-by');
@@ -167,7 +207,8 @@ module.exports = function (db, cas) {
       sameSite : 'lax',
       secure: getConfig('sessionCookieSecure', true)  }
   }));
-
+  
+   
   // This will prevent express from sending 304 responses.
   app.use(function (req, res, next) {
     req.headers['if-none-match'] = 'no-match-for-this'
@@ -179,6 +220,17 @@ module.exports = function (db, cas) {
   app.get('/api/agencyList', token(), agencyRoutes.agencyList)
   app.post('/api/analytics', token(), admin_only(), analyticsRoutes.analytics)
   app.post('/api/Analytics', token(), admin_only(), analyticsRoutes.analytics)
+  app.get("/api/login", (req, res) => {
+    res.redirect(login_gov_auth_url);
+  });
+  // Login.gov Failure to Proof URL: 
+  // For users who are unable to complete identity proofing and returning to the app
+  app.get("odic/failure", (req, res) => {
+    return res.status(302)
+          .set('Location', config['srtClientUrl'] + '/auth') // send them back with no token
+          .send(`<html lang="en"><body>Identity Login Failure</body></html>`)
+  });
+  app.get("/odic/callback",  authRoutes.grabToken);
   app.post('/api/auth/tokenCheck', authRoutes.tokenCheck)
   app.get('/api/casLogin', cas.bounce, authRoutes.casStage2)
   app.post('/api/email', token(), emailRoutes.email)
@@ -247,6 +299,7 @@ module.exports = function (db, cas) {
   setupCronJobs()
 
   return app
-}
+},
 
-
+clientPromise: loginGovClient
+};
