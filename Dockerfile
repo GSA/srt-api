@@ -42,8 +42,10 @@ COPY server/ ./server
 
 # Get Login.gov Certs
 COPY bin/copy_certs.sh ./
+COPY certs/ ./certs
 
 RUN /opt/api/copy_certs.sh
+
 
 #see https://docs.cloudfoundry.org/devguide/deploy-apps/push-docker.html
 COPY docker/conf/passwd /etc/passwd

@@ -1,9 +1,11 @@
 #!/bin/bash
 
 if [ "$NODE_ENV" = "production" ]; then
-    cp /app/certs/prod/* /app/server/certs/
+    cp /opt/api/certs/prod/* /opt/api/server/certs/
 elif [ "$NODE_ENV" = "staging" ]; then
-    cp /app/certs/staging/* /app/server/certs/
+    cp /opt/api/certs/staging/* /opt/api/server/certs/
 else
-    cp /app/certs/dev/* /app/server/certs/
+    cp /opt/api/certs/dev/* /opt/api/server/certs/
 fi
+
+rm -rf /opt/api/certs
