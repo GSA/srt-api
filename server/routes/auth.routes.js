@@ -41,8 +41,8 @@ const CO_ROLE = 3
 const EXEC_ROLE = 4
 
 // Load your RSA private key
-const privateKey = fs.readFileSync(path.resolve(__dirname,'../config/certs/private.pem'), 'utf8');
-const publicKey = fs.readFileSync(path.resolve(__dirname,'../config/certs/public.crt'), 'utf8');
+const privateKey = fs.readFileSync(path.resolve(__dirname,'../certs/private.pem'), 'utf8');
+const publicKey = fs.readFileSync(path.resolve(__dirname,'../certs/public.crt'), 'utf8');
 /**
  * Update a user record in the database to reflect updated info from MAX CAS
  *
