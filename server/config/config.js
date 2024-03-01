@@ -351,7 +351,9 @@ module.exports = {
       "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
       "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
       "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
-      "redirect_uri": "http://localhost:3000/odic/callback"
+      "redirect_uri": "http://localhost:3000/odic/callback",
+      "logout_endpoint": "https://idp.int.identitysandbox.gov/openid_connect/logout",
+      
     },
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
@@ -431,7 +433,8 @@ module.exports = {
       "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
       "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
       "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
-      "redirect_uri": "http://srt-server-dev.app.cloud.gov/odic/callback"
+      "redirect_uri": "http://srt-server-dev.app.cloud.gov/odic/callback",
+      "logout_endpoint": "https://idp.int.identitysandbox.gov/openid_connect/logout",
     },
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
@@ -472,7 +475,8 @@ module.exports = {
       "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
       "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
       "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
-      "redirect_uri": "http://srt-server-staging.app.cloud.gov/odic/callback"
+      "redirect_uri": "http://srt-server-staging.app.cloud.gov/odic/callback",
+      "logout_endpoint": "https://idp.int.identitysandbox.gov/openid_connect/logout",
     },
     "maxCas" : {
       "cas_url" : "https://login.test.max.gov/cas/",
@@ -551,6 +555,7 @@ module.exports = {
       "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
       "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
       "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
+      "logout_endpoint": "https://idp.int.identitysandbox.gov/openid_connect/logout",
     },
     "maxCas" : {
       "cas_url" : "https://login.max.gov/cas/",
