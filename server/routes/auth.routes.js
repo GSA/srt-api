@@ -552,12 +552,13 @@ module.exports = {
                 userRole: srt_userinfo.userRole,
                 firstName: srt_userinfo.firstName || userInfo.given_name,
                 lastName: srt_userinfo.lastName || userInfo.family_name,
+                loginMethod: "login.gov",
               }
               let location = `${config['srtClientUrl']}/auth?info=${jsonToURI(uri_components)}`
+              
+              //console.log("Redirecting to: ", location)
 
-              return res.status(302)
-                .set('Location', location)
-                .send(`<html lang="en"><body>Preparing login</body></html>`)
+              return res.redirect(302, location);
           })
         });
 
