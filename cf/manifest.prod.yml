@@ -1,6 +1,6 @@
 ---
 applications:
-- name: srt-server-prod
+- name: srt-api-prod
   memory: 1024M
   disk_quota: 2048M
 #  health-check-type: process # don't re-enable....move to port 8080 if you have problems
