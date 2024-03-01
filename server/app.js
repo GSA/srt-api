@@ -17,6 +17,7 @@ const logger = require('./config/winston')
 const {cleanAwardNotices} = require('./cron/noticeAwardCleanup')
 const {CronJob} = require('cron')
 const pg = require('pg');
+const querystring = require('querystring');
 
 const { Issuer, Strategy, generators } = require('openid-client');
 
@@ -222,6 +223,18 @@ module.exports = {
   app.post('/api/Analytics', token(), admin_only(), analyticsRoutes.analytics)
   app.get("/api/login", (req, res) => {
     res.redirect(login_gov_auth_url);
+  });
+  app.get("/api/logout", (req, res) => {
+
+    const logoutEndPoint = config['login_gov_oidc']['logout_endpoint']
+
+    const params = {
+      client_id: config['login_gov_oidc']['client_id'],
+      post_logout_redirect_uri: config['srtClientUrl'] + '/auth',
+    }
+
+    res.redirect(logoutEndPoint + '?' + querystring.stringify(params))
+
   });
   // Login.gov Failure to Proof URL: 
   // For users who are unable to complete identity proofing and returning to the app
