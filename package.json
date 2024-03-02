@@ -35,7 +35,7 @@
     "cors": "^2.8.5",
     "cron": "^1.8.2",
     "express": "^4.17.1",
-    "express-session": "^1.17.3",
+    "express-session": "^1.18.0",
     "express-winston": "^3.4.0",
     "flatted": "^3.2.9",
     "json2csv": "^5.0.7",
