@@ -245,7 +245,7 @@ describe('JWT Tests', () => {
     let locationRedirect = res.set.mock.calls[0][1]
     res.set.mock.calls
 
-    let matches = locationRedirect.match('token=({[^}]+})')
+    let matches = locationRedirect.match('info=({[^}]+})')
     let userTokenData = JSON.parse(matches[1])
     expect(userTokenData.agency).toBe("TEST, DEPARTMENT OF")
     let decoded = jwt.decode(userTokenData.token)

@@ -64,7 +64,7 @@ describe('Test masquerade functionality', () => {
         expect(decoded.user.grouplist).toBe(authRoutes.roleNameToCASGroup(role))
         expect(decoded.user.userRole).toBe(role)
         expect(decoded.user.agency).toBe(agencyName)
-        expect(res.body.agency).toBe(agency)
+        expect(res.body.agency).toBe(agencyName)
         expect(res.body.role).toBe(role)
       })
   } )

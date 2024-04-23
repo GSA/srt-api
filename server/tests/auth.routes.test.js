@@ -336,9 +336,12 @@ describe('/api/auth/', () => {
         let location = res.get('Location')
         expect(location).toMatch(/token/)
 
+        expect(location).toMatch(/info/)
 
-        let token = location.substr( location.indexOf("token=") + 6 )
-        let response = JSON.parse(token)
+        var url = new URL(location);
+        var info = url.searchParams.get("info");
+        let response = JSON.parse(decodeURIComponent(info));
+
         let id = response.id
         expect(id).toBeGreaterThan(1)
         return User.findOne({ where: {id : id }})
@@ -394,8 +397,13 @@ describe('/api/auth/', () => {
         expect(mockRes.statusResult).toBe(302) // quirky but kept for client compatibility
         expect(mockRes.hResult).toMatch(/Location/)
         expect(mockRes.vResult).toMatch(/info=/)
-        let token = mockRes.vResult.substr(mockRes.vResult.indexOf("token=") + 6 )
-        let tokenObj = JSON.parse(token)
+
+        var url = new URL(mockRes.vResult);
+        var info = url.searchParams.get("info");
+        let tokenObj = JSON.parse(decodeURIComponent(info));
+        let token = tokenObj.token
+        //let token = mockRes.vResult.substr(mockRes.vResult.indexOf("info=") + 6 )
+        //let tokenObj = JSON.parse(token)
         expect(tokenObj.userRole).toBe(authRoutes.roles[authRoutes.ADMIN_ROLE].name)
       })
 
@@ -407,9 +415,13 @@ describe('/api/auth/', () => {
         // the response.set function should be called with args ( 'Location', 'http://.....')
         let location = mockRes2.set.mock.calls[0][1]
         expect(mockRes2.set.mock.calls[0][0]).toMatch(/Location/)
-        expect(location).toMatch(/token=/)
-        let token = location.substr(location.indexOf("token=") + 6 )
-        let tokenObj = JSON.parse(token)
+        expect(location).toMatch(/info=/)
+
+        var url = new URL(location);
+        var info = url.searchParams.get("info");
+        let tokenObj = JSON.parse(decodeURIComponent(info));
+        let token = tokenObj.token
+
         expect(tokenObj.userRole).toBe(authRoutes.roles[authRoutes.FIVE08_COORDINATOR_ROLE].name)
       })
 
