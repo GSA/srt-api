@@ -1,4 +1,4 @@
-let app = null // require('../app')()
+let appInstance = null // require('../app')()
 const mockToken = require('./mocktoken')
 const mocks = require('./mocks')
 const db = require('../models/index')
@@ -24,7 +24,8 @@ describe('solicitation tests',  () => {
     // tests can give false failure if the time cuttoff removes all the useful test data
     process.env.minPredictionCutoffDate = '1990-01-01';
 
-    app = require('../app')() // don't load the app till the mock is configured
+    const { app, clientPromise } = require('../app');
+    appInstance = app(); // don't load the app till the mock is configured
 
     adminToken = await mockToken(adminCASData, common['jwtSecret'])
     coordinatorToken = await mockToken(coordinatorCASData, common['jwtSecret'])
@@ -32,7 +33,7 @@ describe('solicitation tests',  () => {
   })
 
   afterAll(() => {
-    return app.db.close();
+    return appInstance.db.close();
   })
 
   test('Update Not Applicable', async () => {

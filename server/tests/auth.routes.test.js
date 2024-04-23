@@ -12,7 +12,7 @@ const authRoutes = require('../routes/auth.routes')
 const logger = require('../config/winston')
 const mocks = require('./mocks')
 
-const { userAcceptedCASData } = require('./test.data')
+const { userAcceptedCASData } = require('./test.data');
 
 let myUser = Object.assign({}, userAcceptedCASData)
 myUser.firstName = 'auth-beforeAllUser'
@@ -31,7 +31,9 @@ describe('/api/auth/', () => {
     casConfig.dev_mode_user = "dev_user"
     let cas = new CASAuthentication(casConfig)
 
-    app = require('../app')(null, cas)
+    const { app, clientPromise } = require('../app');
+    appInstance = app(null, cas);
+
     token = await mockToken(myUser, common['jwtSecret'])
   })
 
@@ -49,7 +51,7 @@ describe('/api/auth/', () => {
     let token = await mockToken(user, common['jwtSecret'])
     return User.create(user)
       .then(() => {
-        return request(app)
+        return request(appInstance)
           .post('/api/auth/tokenCheck')
           .send({ token: token })
           .then((res) => {
@@ -65,7 +67,7 @@ describe('/api/auth/', () => {
         user.userRole = 'Public'
         user.email = 'notreal@example.com'
         let token = await mockToken(user, common['jwtSecret'])
-        return request(app)
+        return request(appInstance)
           .post('/api/auth/tokenCheck')
           .send({ token: token })
           .then((res) => {
@@ -86,7 +88,7 @@ describe('/api/auth/', () => {
         let token = await mockToken(user, common['jwtSecret'])
         return User.create(user)
           .then(() => {
-            return request(app)
+            return request(appInstance)
               .post('/api/auth/tokenCheck')
               .send({ token: token })
               .then((res) => {
@@ -109,7 +111,7 @@ describe('/api/auth/', () => {
         userCASData['grouplist'] = authRoutes.roles[authRoutes.roleKeys.PROGRAM_MANAGER_ROLE].casGroup
         delete userCASData.id
         let token = await mockToken(userCASData, common['jwtSecret'])
-        return request(app)
+        return request(appInstance)
           .post('/api/auth/tokenCheck')
           .send({ token: token })
           .then((res) => {
@@ -121,7 +123,7 @@ describe('/api/auth/', () => {
       })
     // send a fake token
       .then(() => {
-        return request(app)
+        return request(appInstance)
           .post('/api/auth/tokenCheck')
           .send({ token: 'token fake' })
           .then((res) => {
@@ -133,7 +135,7 @@ describe('/api/auth/', () => {
       })
     // send NO token
       .then(() => {
-        return request(app)
+        return request(appInstance)
           .post('/api/auth/tokenCheck')
           .send({ no_token: 'token fake' })
           .then((res) => {
@@ -150,7 +152,7 @@ describe('/api/auth/', () => {
 
   // Test what happens when we send an invalid or null JWT
   test('bad token', () => {
-    return request(app)
+    return request(appInstance)
       .post('/api/predictions/filter')
       .set('Authorization', `Bearer null`)
       .send()
@@ -166,7 +168,10 @@ describe('/api/auth/', () => {
     casConfig.is_dev_mode = true
     casConfig.dev_mode_user = "dev_user"
     let cas = new CASAuthentication(casConfig)
-    let app3 = require('../app')(null, cas)
+
+    const { app, clientPromise } = require('../app');
+    let app3 = app(null, cas);
+
     /**
      * @type {cookies-session}
      */
@@ -193,7 +198,7 @@ describe('/api/auth/', () => {
 
     const token = await mockToken(casUserInfo, common['jwtSecret'])
 
-    return request(app)
+    return request(appInstance)
       .post('/api/auth/tokenCheck')
       .send({'token' : token})
       .then( (res) => {
@@ -207,7 +212,7 @@ describe('/api/auth/', () => {
   test( 'reject bad token', async () => {
     const badToken = await mockToken(casUserInfo, 'not-secret')
 
-    return request(app)
+    return request(appInstance)
       .post('/api/auth/tokenCheck')
       .send({'token' : badToken})
       .then( (res) => {
@@ -227,7 +232,7 @@ describe('/api/auth/', () => {
     }
     const token = await mockToken(fakeAdmin, common['jwtSecret'])
 
-    return request(app)
+    return request(appInstance)
       .post('/api/auth/tokenCheck')
       .send({'token' : token})
       .then( (res) => {
@@ -248,7 +253,7 @@ describe('/api/auth/', () => {
     }
     const token = await mockToken(adminUser, common['jwtSecret'])
 
-    return request(app)
+    return request(appInstance)
       .post('/api/auth/tokenCheck')
       .send({'token' : token})
       .then( (res) => {
@@ -302,7 +307,7 @@ describe('/api/auth/', () => {
     return authRoutes.casStage2(mockReq, mockRes).then( () => {
       expect(mockRes.status.mock.calls[0][0]).toBe(302) // quirky but kept for client compatibility
       expect(mockRes.set.mock.calls[0][0]).toMatch(/Location/)
-      expect(mockRes.set.mock.calls[0][1]).toMatch(/token=/) // we will get a token in the redirect if login was successful
+      expect(mockRes.set.mock.calls[0][1]).toMatch(/info=/) // we will get a token in the redirect if login was successful
 
     })
   })
@@ -320,7 +325,8 @@ describe('/api/auth/', () => {
     casConfig.dev_mode_info['authenticationmethod'] = 'urn:max:fips-201-pivcard'
     let cas = new CASAuthentication(casConfig)
 
-    let app2 = require('../app')(null, cas)
+    let {app, clientPromise} = require('../app');
+    let app2 = app(null, cas);
 
     /** @type {cookie-session} */
     let session = supertestSession(app2)
@@ -387,7 +393,7 @@ describe('/api/auth/', () => {
       .then( () => {
         expect(mockRes.statusResult).toBe(302) // quirky but kept for client compatibility
         expect(mockRes.hResult).toMatch(/Location/)
-        expect(mockRes.vResult).toMatch(/token=/)
+        expect(mockRes.vResult).toMatch(/info=/)
         let token = mockRes.vResult.substr(mockRes.vResult.indexOf("token=") + 6 )
         let tokenObj = JSON.parse(token)
         expect(tokenObj.userRole).toBe(authRoutes.roles[authRoutes.ADMIN_ROLE].name)

@@ -1,5 +1,5 @@
 const request = require('supertest')
-let app = null // require('../app')();
+let appInstance = null // require('../app')();
 const mockToken = require('./mocktoken')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
@@ -21,7 +21,8 @@ describe('User API Routes', () => {
 
     userAcceptedCASData = Object.assign({}, userAcceptedCASData, { "email-address": 'crowley+accepted-user@tcg.com', firstName: 'beforeAllUser' })
     process.env.MAIL_ENGINE = 'nodemailer-mock'
-    app = require('../app')() // don't load the app till the mock is configured
+    const { app, clientPromise } = require('../app');
+    appInstance = app(); // don't load the app till the mock is configured
 
     let filterUser = Object.assign({}, userAcceptedCASData)
     filterUser.firstName = 'beforeAll-filter'
@@ -89,7 +90,7 @@ describe('User API Routes', () => {
   })
 
   test('/api/user/update', async () => {
-    return request(app)
+    return request(appInstance)
       .post('/api/user/update')
       .send({ id: user1Id, isAccepted: false, isRejected: false })
       .set('Authorization', `Bearer ${token}`)
@@ -101,7 +102,7 @@ describe('User API Routes', () => {
 
 
   test('/api/user/updatePassword', async () => {
-    await request(app)
+    await request(appInstance)
       .post('/api/user/updatePassword')
       .send({ password: 'newPassword', oldpassword: 'not the old password or temp password' })
       .set('Authorization', `Bearer ${token}`)
@@ -112,7 +113,7 @@ describe('User API Routes', () => {
   })
 
   test('test /api/user/getUserInfo', async () => {
-    await request(app)
+    await request(appInstance)
       .get('/api/user/getUserInfo')
       .send({ UserId: acceptedUserId })
       .set('Authorization', `Bearer ${token}`)
@@ -124,7 +125,7 @@ describe('User API Routes', () => {
   })
 
   test('test filter', async () => {
-    return request(app)
+    return request(appInstance)
       .post('/api/user/filter')
       .send({ isAccepted: true })
       .set('Authorization', `Bearer ${token}`)
@@ -137,7 +138,7 @@ describe('User API Routes', () => {
   })
 
   test('authentication required', async () => {
-    return request(app)
+    return request(appInstance)
       .post('/api/user/filter')
       .then((response) => {
         // noinspection JSUnresolvedVariable,JSUnresolvedVariable
@@ -154,7 +155,7 @@ describe('User API Routes', () => {
 
         let results = await db.sequelize.query(sql, null)
         let id = results[0][0].id
-        let response = await request(app)
+        let response = await request(appInstance)
             .post('/api/user/getUserInfo')
             .set('Authorization', `Bearer ${token}`)
             .send({UserID: id})

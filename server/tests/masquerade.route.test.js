@@ -1,5 +1,6 @@
 const supertestSession = require('supertest-session')
-let app = require('../app')()
+const { app, clientPromise } = require('../app');
+let appInstance = app(); 
 const mockToken = require('./mocktoken')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
@@ -19,7 +20,7 @@ describe('Test masquerade functionality', () => {
     // tests can give false failure if the time cuttoff removes all the useful test data
     process.env.minPredictionCutoffDate = '1990-01-01';
 
-    testSession = supertestSession(app)
+    testSession = supertestSession(appInstance)
 
     adminUser = Object.assign({}, adminCASData)
     adminUser.firstName = 'masq-beforeAllUser'
@@ -45,13 +46,14 @@ describe('Test masquerade functionality', () => {
   afterAll(() => {
 
     return User.destroy({ where: { firstName: 'masq-beforeAllUser' } }).then( () =>{
-      app.db.sequelize.close()
+      appInstance.db.sequelize.close()
       })
   })
 
   test('Get new token',  () => {
     let role = authRoutes.roles[ authRoutes.roleKeys["508_COORDINATOR_ROLE"]].name
     let agency = 'NIH'
+    let agencyName = 'National Institutes of Health'
     return testSession.get(`/api/user/masquerade?role=${role}&agency=${agency}`)
       .set('Authorization', `Bearer ${adminToken}`)
       .then(async res => {
@@ -61,7 +63,7 @@ describe('Test masquerade functionality', () => {
         let decoded = jwt.decode(res.body.token)
         expect(decoded.user.grouplist).toBe(authRoutes.roleNameToCASGroup(role))
         expect(decoded.user.userRole).toBe(role)
-        expect(decoded.user.agency).toBe(agency)
+        expect(decoded.user.agency).toBe(agencyName)
         expect(res.body.agency).toBe(agency)
         expect(res.body.role).toBe(role)
       })
