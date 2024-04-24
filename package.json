@@ -52,7 +52,7 @@
     "sequelize": "^6.36.0",
     "sequelize-cli": "^6.6.1",
     "umzug": "^2.3.0",
-    "winston": "^3.11.0"
+    "winston": "^3.13.0"
   },
   "devDependencies": {
     "cryptify": "^3.0.3",
