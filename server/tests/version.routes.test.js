@@ -1,9 +1,10 @@
 const request = require('supertest')
-let app = require('../app')()
+const { app, clientPromise } = require('../app');
+const appInstance = app();
 
 describe('Version route tests', () => {
   test('Get version', () => {
-    return request(app)
+    return request(appInstance)
       .get('/api/version')
       .send({})
       .then(res => {

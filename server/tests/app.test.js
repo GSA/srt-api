@@ -1,4 +1,5 @@
-let app = require('../app')()
+const { app, clientPromise } = require('../app');
+const appInstance = app();
 let {getConfig} = require('../config/configuration')
 
 
@@ -11,8 +12,8 @@ describe('App Tests', () => {
         falseCallCount++
       }
     })
-    app.corsTest("bad.example.com",mockCallback)
-    app.corsTest(getConfig("CORSWhitelist")[0],mockCallback)
+    appInstance.corsTest("bad.example.com",mockCallback)
+    appInstance.corsTest(getConfig("CORSWhitelist")[0],mockCallback)
 
     expect(falseCallCount).toBe(1)
   })

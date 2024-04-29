@@ -1,5 +1,5 @@
 const request = require('supertest')
-let app = null // require('../app')();;
+let appInstance = null // require('../app')();;
 const mockToken = require('./mocktoken')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
@@ -104,7 +104,8 @@ describe('prediction tests', () => {
     // tests can give false failure if the time cuttoff removes all the useful test data
     process.env.minPredictionCutoffDate = '1990-01-01';
 
-    app = require('../app')() // don't load the app till the mock is configured
+    const { app, clientPromise } = require('../app');
+    appInstance = app(); // don't load the app till the mock is configured
 
     myUser = Object.assign({}, userAcceptedCASData)
     delete myUser.id
@@ -129,7 +130,7 @@ describe('prediction tests', () => {
   afterAll(() => {
     return User.destroy({ where: { firstName: 'pred-beforeAllUser' } })
       .then(() => {
-        return app.db.close();
+        return appInstance.db.close();
 
       })
   })
@@ -189,7 +190,7 @@ describe('prediction tests', () => {
   })
 
   test('Empty predictions filter', () => {
-    return request(app)
+    return request(appInstance)
       .post('/api/predictions/filter')
       .set('Authorization', `Bearer ${token}`)
       .send()
@@ -206,7 +207,7 @@ describe('prediction tests', () => {
   test('Test that all predictions with the same notice number are merged', () => {
     let row_count = 1000
     let filter = {rows: row_count, first:0}
-    return request(app)
+    return request(appInstance)
       .post('/api/predictions/filter')
       .set('Authorization', `Bearer ${token}`)
       .send(filter)
@@ -229,7 +230,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Test that all predictions with the same notice number are merged', () => {
-    return request(app)
+    return request(appInstance)
       .post('/api/predictions/filter')
       .set('Authorization', `Bearer ${token}`)
       .send()
@@ -255,7 +256,7 @@ describe('prediction tests', () => {
       .then((rows) => {
         let office = rows[0][0].office
 
-        return request(app)
+        return request(appInstance)
           .post('/api/predictions/filter')
           .set('Authorization', `Bearer ${token}`)
           .send({ office: office })
@@ -271,7 +272,7 @@ describe('prediction tests', () => {
             }
           })
           .then(() => {
-            return request(app)
+            return request(appInstance)
               .post('/api/predictions/filter')
               .set('Authorization', `Bearer ${token}`)
               .send({ office: 'not a real office' })
@@ -291,7 +292,7 @@ describe('prediction tests', () => {
     return db.sequelize.query(`select agency from solicitations where "solNum" = '${sample_sol_num}'  limit 1;`, null)
       .then((rows) => {
         let agency = rows[0][0].agency
-        return request(app)
+        return request(appInstance)
           .post('/api/predictions/filter')
           .set('Authorization', `Bearer ${token}`)
           .send({
@@ -304,7 +305,7 @@ describe('prediction tests', () => {
             return expect(res.statusCode).toBe(501) // we don't yet support numDocs for the filter
           })
           .then(() => {
-            return request(app)
+            return request(appInstance)
               .post('/api/predictions/filter')
               .set('Authorization', `Bearer ${token}`)
               .send({
@@ -332,7 +333,7 @@ describe('prediction tests', () => {
 
 
     expect(solNum).toBeDefined()
-    return request(app)
+    return request(appInstance)
         .post('/api/predictions/filter')
         .set('Authorization', `Bearer ${token}`)
         .send({
@@ -349,7 +350,7 @@ describe('prediction tests', () => {
   }, timeout)
 
   test('Test unsupported parameter for Filter predictions', () => {
-    return request(app)
+    return request(appInstance)
       .post('/api/predictions/filter')
       .set('Authorization', `Bearer ${token}`)
       .send({
@@ -361,7 +362,7 @@ describe('prediction tests', () => {
         expect(res.body.message).toMatch('unsupported')
       })
       .then(() => {
-        return request(app)
+        return request(appInstance)
           .post('/api/predictions/filter')
           .set('Authorization', `Bearer ${token}`)
           .send({
@@ -373,7 +374,7 @@ describe('prediction tests', () => {
             expect(res.statusCode).toBe(200)
           })
           .then(() => {
-            return request(app)
+            return request(appInstance)
               .post('/api/predictions/filter')
               .set('Authorization', `Bearer ${token}`)
               .send({
@@ -402,7 +403,7 @@ describe('prediction tests', () => {
     startBound.setDate( startBound.getDate() - 2)
     endBound.setDate(endBound.getDate() + 2)
 
-    let res = await request(app)
+    let res = await request(appInstance)
       .post('/api/predictions/filter')
       .set('Authorization', `Bearer ${token}`)
       .send({
@@ -421,7 +422,7 @@ describe('prediction tests', () => {
       expect(new Date(res.body.predictions[i].date) < endBound).toBeTruthy()
     }
 
-    res = await request(app)
+    res = await request(appInstance)
       .post('/api/predictions/filter')
       .set('Authorization', `Bearer ${token}`)
       .send({ endDate: '1/1/1945' })
