@@ -101,12 +101,35 @@ function updateUser(login_gov_data, user) {
   }
 }
 
+function capitalize(s)
+{
+    return s[0].toUpperCase() + s.slice(1);
+}
+
 function createUser(loginGovUser) {
   let now = new Date()
   let date = (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getFullYear()
+  
+  //console.log("Login.gov user:", loginGovUser)
+  
+  let emailParts = loginGovUser.email.split('@');
+  let nameParts = emailParts[0].split('.');
+  let firstName = null;
+  let lastName = null;
+
+  if (nameParts.length < 2) {
+    logger.log('error', 'Invalid email format: missing . in the part before @', { email: loginGovUser.email });
+    return;
+  } else {
+    firstName = capitalize(nameParts[0]) || null;
+    lastName = capitalize(nameParts[1]) || null;
+  }
+
+  
+
   let user_data = {
-    'firstName': loginGovUser.given_name || null,
-    'lastName': loginGovUser.family_name || null,
+    'firstName': loginGovUser.given_name || firstName || null,
+    'lastName': loginGovUser.family_name || lastName || null,
     'email': loginGovUser.email,
     'password': null,
     'agency': grabAgencyFromEmail(loginGovUser.email),
