@@ -1,5 +1,6 @@
 const request = require('supertest')
-let app = require('../app')()
+const { app, clientPromise } = require('../app');
+const appInstance = app();
 const mockToken = require('./mocktoken')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
@@ -77,7 +78,7 @@ describe('Analytics routes tests', () => {
     }, 100000)
 
     test('/api/analytics', () => {
-        return request(app)
+        return request(appInstance)
             .post('/api/analytics')
             .set('Authorization', `Bearer ${adminToken}`)
             .send({agency: 'Government-wide', fromPeriod: '1/1/1900', toPeriod: '12/31/2100'})
@@ -92,7 +93,7 @@ describe('Analytics routes tests', () => {
     })
 
     test('/api/analytics notApplicable values', () => {
-        return request(app)
+        return request(appInstance)
             .post('/api/analytics')
             .set('Authorization', `Bearer ${adminToken}`)
             .send({agency: 'Government-wide', fromPeriod: '1/1/1900', toPeriod: '12/31/2100'})

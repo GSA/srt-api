@@ -1,4 +1,5 @@
-let app =  require('../app')();
+const { app, clientPromise } = require('../app');
+const appInstance = app();
 const db = require('../models/index')
 let predictionRoutes = require('../routes/prediction.routes')
 // noinspection JSUnresolvedVariable
@@ -12,7 +13,7 @@ describe('Prediction Update Test', () => {
   })
 
   afterAll(() => {
-    return app.db.close();
+    return appInstance.db.close();
   })
 
   // TODO: remove test after solications table migration is complete

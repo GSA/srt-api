@@ -56,11 +56,12 @@ describe('JWT Tests', () => {
   })
 
   test('refresh token API call', async () => {
-    let app = require('../app')()
+    const { app, clientPromise } = require('../app');
+    const appInstance = app();
     /**
      * @type {Session}
      */
-    let testSession = supertestSession(app)
+    let testSession = supertestSession(appInstance)
 
     // noinspection JSUnresolvedFunction
     return testSession.get('/api/renewToken')
@@ -81,11 +82,12 @@ describe('JWT Tests', () => {
   })
 
   test('Valid token required for refresh', async () => {
-    let app = require('../app')()
+    const { app, clientPromise } = require('../app');
+    const appInstance = app();
     /**
      * @type {Session}
      */
-    let testSession = supertestSession(app)
+    let testSession = supertestSession(appInstance)
 
     // noinspection JSUnresolvedFunction
     return testSession.get('/api/renewToken')
@@ -98,11 +100,12 @@ describe('JWT Tests', () => {
 
   test('timed out tokens can not be used for refresh', async() => {
 
-    let app = require('../app')()
+    const { app, clientPromise } = require('../app');
+    const appInstance = app();
     /**
      * @type {Session}
      */
-    let testSession = supertestSession(app)
+    let testSession = supertestSession(appInstance)
     let token = await mockToken(userAcceptedCASData, null, null, 10)  // generate an expired token
 
     // noinspection JSUnresolvedFunction
@@ -124,11 +127,12 @@ describe('JWT Tests', () => {
     global.Date.now = jest.fn(() => realNow - (common.sessionLength * 1000) - 10000);
 
 
-    let app = require('../app')()
+    const { app, clientPromise } = require('../app');
+    const appInstance = app();
     /**
      * @type {Session}
      */
-    let testSession = supertestSession(app)
+    let testSession = supertestSession(appInstance)
     let token = await mockToken(userAcceptedCASData)  // generate an expired token
     global.Date.now = realDateNow; // restore the proper date implementation
 
@@ -192,11 +196,14 @@ describe('JWT Tests', () => {
       casConfig.is_dev_mode = true
       casConfig.dev_mode_user = "dev_user"
       let cas = new CASAuthentication(casConfig)
-      let app = require('../app')(null, cas)
+
+      const { app, clientPromise } = require('../app');
+      const appInstance = app(null, cas);
+
       /**
        * @type {Session}
        */
-      let testSession = supertestSession(app)
+      let testSession = supertestSession(appInstance)
 
       // noinspection JSUnresolvedFunction
     return testSession.get('/api/casLogin')
@@ -238,7 +245,7 @@ describe('JWT Tests', () => {
     let locationRedirect = res.set.mock.calls[0][1]
     res.set.mock.calls
 
-    let matches = locationRedirect.match('token=({[^}]+})')
+    let matches = locationRedirect.match('info=({[^}]+})')
     let userTokenData = JSON.parse(matches[1])
     expect(userTokenData.agency).toBe("TEST, DEPARTMENT OF")
     let decoded = jwt.decode(userTokenData.token)

@@ -1,4 +1,5 @@
-let app = require('../app')();
+const { app, clientPromise } = require('../app');
+const appInstance = app();
 const request = require('supertest')
 // noinspection JSUnresolvedVariable
 const db = require('../models/index')
@@ -24,11 +25,11 @@ describe('noticeType', () => {
   })
 
   afterAll(() => {
-    return app.db.close();
+    return appInstance.db.close();
   })
 
   test('noticeType get API requires login', async () => {
-    await request(app)
+    await request(appInstance)
       .get('/api/noticeTypes')
       .send()
       .then((res) => {
@@ -36,7 +37,7 @@ describe('noticeType', () => {
         expect(res.statusCode).toBe(401)
       })
 
-    await request(app)
+    await request(appInstance)
       .get('/api/noticeTypes')
       .set('Authorization', `Bearer ${token}`)
       .send()

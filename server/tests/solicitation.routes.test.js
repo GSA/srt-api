@@ -1,5 +1,5 @@
 const request = require('supertest')
-let app = null // require('../app')();;
+let appInstance = null // require('../app')();;
 const mockToken = require('./mocktoken')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
@@ -31,7 +31,8 @@ describe('solicitation tests', () => {
     // tests can give false failure if the time cuttoff removes all the useful test data
     process.env.minPredictionCutoffDate = '1990-01-01';
     process.env.MAIL_ENGINE = 'nodemailer-mock'
-    app = require('../app')() // don't load the app till the mock is configured
+    const { app, clientPromise } = require('../app');
+    appInstance = app(); // don't load the app till the mock is configured
 
     solicitationRoutes = require('../routes/solicitation.routes')( db, { whoAmI: () => myUser.email })
 
@@ -48,7 +49,7 @@ describe('solicitation tests', () => {
 
   afterAll(() => {
     return User.destroy({ where: { firstName: 'sol-beforeAllUser' } })
-      .then( () => { app.db.close(); })
+      .then( () => { appInstance.db.close(); })
   })
 
   /***
@@ -87,7 +88,7 @@ describe('solicitation tests', () => {
         'answer': 'second answer'
       }
     )
-    let res = await request(app)
+    let res = await request(appInstance)
           .post('/api/solicitation')
           .set('Authorization', `Bearer ${token}`)
           .send(
@@ -127,7 +128,7 @@ describe('solicitation tests', () => {
     let id = await testUtils.solNumToSolicitationID(solNum)
     expect(id).toBeDefined()
 
-    return request(app)
+    return request(appInstance)
       .get('/api/solicitation/' + id)
       .set('Authorization', `Bearer ${token}`)
       .send({})
@@ -148,7 +149,7 @@ describe('solicitation tests', () => {
       .then((rows) => {
         let id = rows[0][0].id + 9999
         expect(id).toBeDefined()
-        return request(app)
+        return request(appInstance)
           .get('/api/solicitation/' + id)
           .set('Authorization', `Bearer ${token}`)
           .send({})
@@ -161,7 +162,7 @@ describe('solicitation tests', () => {
 
   test('sending a too large/invalid ID to get solicitation', () => {
     let url = '/api/solicitation/' + Number.MAX_SAFE_INTEGER
-    return request(app)
+    return request(appInstance)
       .get(url)
       .set('Authorization', `Bearer ${token}`)
       .send({})
@@ -180,7 +181,7 @@ describe('solicitation tests', () => {
         return db.sequelize.query(`select id from notice where solicitation_number = '${solNum}' limit 1`)
           .then(rows => {
             let noticeId = rows[0][0].id
-            return request(app)
+            return request(appInstance)
               .get('/api/solicitation/' + noticeId)
               .set('Authorization', `Bearer ${token}`)
               .send({})
@@ -196,10 +197,9 @@ describe('solicitation tests', () => {
   })
 
   test('get solicitation feedback (using POST of all things because that is how the UI is coded', async () => {
-    let app = require('../app')()
       const solNum = await testUtils.getSolNumForTesting({has_feedback: true})
 
-      return request(app)
+      return request(appInstance)
           .post('/api/feedback')
           .set('Authorization', `Bearer ${token}`)
           .send({ solNum: solNum})
@@ -254,7 +254,7 @@ describe('solicitation tests', () => {
         let solNum = await testUtils.getSolNumForTesting({"attachment_count": 1})
         let solId = await testUtils.solNumToSolicitationID(solNum)
         let files = await db.sequelize.query(`select filename from attachment where solicitation_id = '${solId}'`)
-        let res = await request(app)
+        let res = await request(appInstance)
             .get('/api/solicitation/' + solId)
             .set('Authorization', `Bearer ${token}`)
             .send({})

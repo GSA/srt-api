@@ -1,4 +1,5 @@
-const app = require('../app')()
+const { app, clientPromise } = require('../app');
+const appInstance = app();
 const db = require('../models/index')
 const mockToken = require('./mocktoken')
 const mocks = require('./mocks')
@@ -22,7 +23,7 @@ describe('Tests for admin reports and charts', () => {
   })
 
   afterAll(() => {
-      return app.db.sequelize.close()
+      return appInstance.db.sequelize.close()
   })
 
   test('daily login report', async () => {

@@ -1,5 +1,6 @@
 const request = require('supertest')
-const app = require('../app')()
+const { app, clientPromise } = require('../app');
+const appInstance = app();
 const mockToken = require('./mocktoken')
 // noinspection JSUnresolvedVariable
 const Agency = require('../models').Agency
@@ -25,7 +26,7 @@ describe('/api/agencies', () => {
   })
 
   test('/api/agencies (get)', async () => {
-    return request(app)
+    return request(appInstance)
       .get('/api/agencies')
       .set('Authorization', `Bearer ${token}`)
       .then((res) => {
@@ -37,7 +38,7 @@ describe('/api/agencies', () => {
   })
 
   test('/api/agencies (put)', async () => {
-    return request(app)
+    return request(appInstance)
       .put('/api/agencies')
       .set('Authorization', `Bearer ${token}`)
       .send({ agency: agency, acronym: acronym })
@@ -52,7 +53,7 @@ describe('/api/agencies', () => {
   })
 
   test('/api/AgencyList', async () => {
-    return request(app)
+    return request(appInstance)
       .get('/api/AgencyList')
       .set('Authorization', `Bearer ${token}`)
       .send({ agency: agency, acronym: acronym })
