@@ -112,6 +112,7 @@ function createUser(loginGovUser) {
   
   //console.log("Login.gov user:", loginGovUser)
   
+  /*
   let emailParts = loginGovUser.email.split('@');
   let nameParts = emailParts[0].split('.');
   let firstName = null;
@@ -122,14 +123,15 @@ function createUser(loginGovUser) {
     return;
   } else {
     firstName = capitalize(nameParts[0]) || null;
-    lastName = capitalize(nameParts[1]) || null;
+    lastName = capitalize(nameParts[nameParts.length - 1]) || null;
   }
 
+  */
   
 
   let user_data = {
-    'firstName': loginGovUser.given_name || firstName || null,
-    'lastName': loginGovUser.family_name || lastName || null,
+    'firstName': loginGovUser.given_name || null,
+    'lastName': loginGovUser.family_name || null,
     'email': loginGovUser.email,
     'password': null,
     'agency': grabAgencyFromEmail(loginGovUser.email),
