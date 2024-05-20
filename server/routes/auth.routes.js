@@ -101,9 +101,17 @@ function updateUser(login_gov_data, user) {
   }
 }
 
+function capitalize(s)
+{
+    return s[0].toUpperCase() + s.slice(1);
+}
+
 function createUser(loginGovUser) {
   let now = new Date()
   let date = (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getFullYear()
+  
+  //console.log("Login.gov user:", loginGovUser)
+
   let user_data = {
     'firstName': loginGovUser.given_name || null,
     'lastName': loginGovUser.family_name || null,

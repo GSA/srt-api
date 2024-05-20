@@ -16,7 +16,7 @@ module.exports = {
   getNoticeTypes : function(req, res) {
 
     return res.status(200).send(
-      configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation'])
+      configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation', 'RFQ'])
     )
 
     //
