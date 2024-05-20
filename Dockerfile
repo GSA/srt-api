@@ -44,6 +44,9 @@ COPY server/ ./server
 COPY bin/copy_certs.sh ./
 COPY certs/ ./certs
 
+
+ARG LOGIN_PRIVATE_KEY
+ENV LOGIN_PRIVATE_KEY=${LOGIN_PRIVATE_KEY}
 RUN /opt/api/copy_certs.sh
 
 
