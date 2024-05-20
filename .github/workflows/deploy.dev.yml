@@ -40,6 +40,7 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/srt-api:dev-${{ steps.current-time.outputs.formattedTime }}
           build-args: |
             SNYK_TOKEN=${{ secrets.SNYK_TOKEN }}
+            LOGIN_PRIVATE_KEY=${{ secrets.LOGIN_PRIVATE_DEV_KEY }}
   
   cloudgov:
     name: Deploying to Cloud.gov
@@ -62,4 +63,4 @@ jobs:
           cf_password: ${{ secrets.CF_PASSWORD }}
           cf_org: gsa-ogp-srt
           cf_space: dev
-          command: push srt-api-dev -f cf/manifest.dev.yml --var loginpk=${{ secrets.LOGIN_PRIVATE_DEV_KEY }} --docker-image ${{ secrets.DOCKERHUB_USERNAME }}/srt-api:dev-${{ needs.docker.outputs.formattedTime }} 
+          command: push srt-api-dev -f cf/manifest.dev.yml --docker-image ${{ secrets.DOCKERHUB_USERNAME }}/srt-api:dev-${{ needs.docker.outputs.formattedTime }} 

@@ -7,7 +7,6 @@ applications:
   instances: 1
   env:
     NODE_ENV: clouddev
-    LOGIN_PRIVATE_KEY: (( loginpk ))
   routes:
     - route: http://srt-server-dev.app.cloud.gov
   services:
