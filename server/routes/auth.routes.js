@@ -47,7 +47,7 @@ try {
 } catch (err) {
   privateKey = process.env.LOGIN_PRIVATE_KEY;
 }
-const publicKey = fs.readFileSync(path.resolve(__dirname,'../certs/public.crt'), 'utf8');
+//const publicKey = fs.readFileSync(path.resolve(__dirname,'../certs/public.crt'), 'utf8');
 /**
  * Update a user record in the database to reflect updated info from MAX CAS
  *
