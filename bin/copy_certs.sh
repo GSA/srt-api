@@ -7,7 +7,7 @@ if [ "$NODE_ENV" = "production" ]; then
 elif [ "$NODE_ENV" = "staging" ]; then
     cp /opt/api/certs/staging/* /opt/api/server/certs/
 else
-    if [ -z "${LOGIN_PRIVATE_KEY}"]; then
+    if [[ -v LOGIN_PRIVATE_KEY ]]; then
         echo $LOGIN_PRIVATE_KEY > /opt/api/server/certs/private.pem
     fi
     cp /opt/api/certs/dev/* /opt/api/server/certs/
