@@ -545,7 +545,7 @@ module.exports = {
               srt_userinfo.user = stored_user.dataValues
               srt_userinfo.user.sessionEnd = Math.floor ((new Date().getTime() + ms(getConfig('sessionLength')) )/ 1000)
               
-
+              logger.log('info', (srt_userinfo.email || userInfo.email) + ' authenticated with LOGIN.GOV', {cas_userinfo: srt_userinfo, tag: 'Login.gov Auth Token'})
 
               let uri_components = {
                 token: jwt.sign({access_token: accessToken, user: srt_userinfo.user, sessionEnd: srt_userinfo.sessionEnd, token_life_in_seconds: getConfig('renewTokenLife')}, common.jwtSecret, { expiresIn: getConfig('renewTokenLife') }), 
