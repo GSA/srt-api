@@ -213,7 +213,7 @@ module.exports = {
   userLogin : async function (req, res) {
     logger.log("debug", "Running user login report")
     let userLogins = {}
-    let sql = `select timestamp, message, meta#>>'{cas_userinfo, email-address}' as email from winston_logs where message like '%authenticated with MAX CAS ID%'`
+    let sql = `select timestamp, message, COALESCE(meta#>>'{cas_userinfo, user, email}', meta#>>'{cas_userinfo, email-address}') as email from winston_logs where message like '%authenticated with%'`
     let rows = await db.sequelize.query(sql, { type: db.sequelize.QueryTypes.SELECT })
 
     for (let r of rows) {
