@@ -318,7 +318,7 @@ module.exports = {
       "ENERGY, DEPARTMENT OF":"Department of Energy",
       "MILLENNIUM CHALLENGE CORPORATION":"Millennium Challenge Corporation"
     },
-    VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation'],
+    VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation', 'RFQ'],
     //"minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z",
     "predictionCutoffDays" : 60,
     "updatePredictionTableMaxRunTime" : 10,
