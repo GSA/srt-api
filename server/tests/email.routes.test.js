@@ -1,5 +1,5 @@
 const request = require('supertest')
-let app = null // require('../app')();;
+let appInstance = null // require('../app')();;
 const nodemailerMock = require('nodemailer-mock')
 const mockToken = require('./mocktoken')
 // noinspection JSUnresolvedVariable
@@ -18,7 +18,8 @@ let token = {}
 describe('/api/email', () => {
   beforeAll(() => {
     process.env.MAIL_ENGINE = 'nodemailer-mock'
-    app = require('../app')() // don't load the app till the mock is configured
+    const { app, clientPromise } = require('../app');
+    appInstance = app(); // don't load the app till the mock is configured
 
     myUser = Object.assign({}, userAcceptedCASData)
     myUser.firstName = 'email-beforeAllUser'
@@ -49,7 +50,7 @@ describe('/api/email', () => {
     }
 
     nodemailerMock.mock.reset()
-    return request(app)
+    return request(appInstance)
       .post('/api/email')
       .set('Authorization', `Bearer ${token}`)
       .send({ body: 'this is the body text' })
@@ -60,7 +61,7 @@ describe('/api/email', () => {
       })
       .then(() => {
         nodemailerMock.mock.reset()
-        return request(app)
+        return request(appInstance)
           .post('/api/email')
           .set('Authorization', `Bearer ${token}`)
           .send(email)
@@ -90,7 +91,7 @@ describe('/api/email', () => {
     }
 
     nodemailerMock.mock.reset()
-    return request(app)
+    return request(appInstance)
       .post('/api/email')
       .set('Authorization', `Bearer ${token}`)
       .send(email)

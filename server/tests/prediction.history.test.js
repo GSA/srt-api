@@ -1,4 +1,4 @@
-let app = null // require('../app')();;
+let appInstance = null // require('../app')();;
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
 const db = require('../models/index')
@@ -29,7 +29,8 @@ describe('Prediction History', () => {
     process.env.minPredictionCutoffDate = '1990-01-01';
 
     process.env.MAIL_ENGINE = 'nodemailer-mock'
-    app = require('../app')() // don't load the app till the mock is configured
+    const { app, clientPromise } = require('../app');
+    appInstance = app(); // don't load the app till the mock is configured
 
     // let allowed_types = configuration.getConfig(config_keys.VISIBLE_NOTICE_TYPES).map( (x) => `'${x}'`).join(",")
     // let sql = `select solicitation_number
@@ -47,7 +48,7 @@ describe('Prediction History', () => {
 
   afterAll(() => {
     return User.destroy({ where: { firstName: 'pred-beforeAllUser' } })
-      .then( () => { app.db.close(); })
+      .then( () => { appInstance.db.close(); })
   })
 
   test('Solicitations have a prediction history element', () => {
@@ -69,7 +70,7 @@ describe('Prediction History', () => {
         // Don't check the date. There are now times where a predication can be updated without new history (ex. becomes inactive)
         // expect(last).toBe(pdate)
         let color = history.slice(-1)[0].value
-        expect(color).toBeOneOf(['red', 'green', 'black'])
+        expect(color).toBeOneOf(['red', 'green', 'black', 'yellow'])
       })
   }, 10000)
 

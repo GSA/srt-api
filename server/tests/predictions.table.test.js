@@ -1,4 +1,5 @@
-let app =  require('../app')();
+const { app, clientPromise } = require('../app');
+const appInstance = app();
 const db = require('../models/index')
 let predictionRoutes = require('../routes/prediction.routes')
 // noinspection JSUnresolvedVariable
@@ -16,7 +17,7 @@ describe('Predictions table Test', () => {
     })
 
     afterAll(() => {
-        return app.db.close();
+        return appInstance.db.close();
     })
 
     test('Test solicitation -> feedback association', async () => {

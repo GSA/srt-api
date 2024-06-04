@@ -48,3 +48,7 @@ deploy-log*
 winston.log.json
 data/
 docker/db/scripts/init.sql
+docker/certs/private.pem
+docker/certs/public.crt
+private.pem
+public.crt

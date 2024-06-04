@@ -1,5 +1,6 @@
 const supertestSession = require('supertest-session')
-const app = require('../app')()
+const { app, clientPromise } = require('../app');
+const appInstance = app();
 const mockToken = require('./mocktoken')
 const mocks = require('./mocks')
 // noinspection JSUnresolvedVariable
@@ -22,7 +23,7 @@ describe('Tests for admin check', () => {
     // tests can give false failure if the time cuttoff removes all the useful test data
     process.env.minPredictionCutoffDate = '1990-01-01';
 
-    testSession = supertestSession(app)
+    testSession = supertestSession(appInstance)
 
     adminUser = Object.assign({}, adminCASData)
     adminUser.firstName = 'adminCheck-beforeAllUser'
@@ -36,7 +37,7 @@ describe('Tests for admin check', () => {
 
   afterAll(() => {
     return User.destroy({ where: { firstName: 'adminCheck-beforeAllUser' } }).then( () =>{
-      app.db.sequelize.close()
+      appInstance.db.sequelize.close()
     })
   })
 

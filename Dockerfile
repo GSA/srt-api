@@ -39,6 +39,17 @@ RUN npm install
 # Bundle app source
 COPY server/ ./server
 
+
+# Get Login.gov Certs
+COPY bin/copy_certs.sh ./
+COPY certs/ ./certs
+
+
+ARG LOGIN_PRIVATE_KEY
+ENV LOGIN_PRIVATE_KEY=${LOGIN_PRIVATE_KEY}
+RUN /opt/api/copy_certs.sh
+
+
 #see https://docs.cloudfoundry.org/devguide/deploy-apps/push-docker.html
 COPY docker/conf/passwd /etc/passwd
 
