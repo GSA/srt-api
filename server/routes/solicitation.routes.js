@@ -4,6 +4,7 @@ const logger = require('../config/winston')
 // noinspection JSUnresolvedVariable
 const Notice = require('../models').notice
 const Solicitation = require('../models').Solicitation
+const ArtLanguage = require('../models').ArtLanguage
 const predictionRoute = require('../routes/prediction.routes')
 const authRoutes = require('../routes/auth.routes')
 const surveyRoutes = require('../routes/survey.routes')
@@ -308,7 +309,42 @@ module.exports = function (db, userRoutes) {
       //     logger.log('error', 'error in: solicitationFeedback', { error:e, tag: 'solicitationFeedback' })
       //     res.status(400).send(e)
       //   })
+    },
+  
+  postArtLanguage: async (req, res) => {
+    const solicitationId  = req.params.id; // Assuming solicitation ID is passed as a URL parameter
+    const artLanguageData = req.body; // Assuming the new ArtLanguage data is in the request body
+
+    let art_db_form = {
+      solicitation_id: solicitationId,
+      language: artLanguageData,
     }
+
+    try {
+        // Optionally, validate solicitationId and artLanguageData here
+
+        // Find or create ArtLanguage record
+        console.log('art_db_form:', art_db_form);
+
+        let artLanguage = await ArtLanguage.findOne({ where: { solicitation_id: solicitationId } });
+
+        if (artLanguage) {
+            // If exists, update the record
+            await artLanguage.update(art_db_form);
+        } else {
+            // If doesn't exist, create a new record with solicitation ID
+            artLanguage = await ArtLanguage.create(art_db_form);
+        }
+        // Send success response
+        res.json({
+            message: 'ArtLanguage updated successfully',
+            artLanguage
+        });
+    } catch (error) {
+        console.error('Error updating ArtLanguage:', error);
+        res.status(500).json({ message: 'Failed to update ArtLanguage' });
+    }
+  },
 
   }
 }

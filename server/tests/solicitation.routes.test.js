@@ -368,5 +368,28 @@ describe('solicitation tests', () => {
 
     })
 
+    test('creates a new ArtLanguage if not exists', async () => {
+      const req = {
+        params: { solicitationId: '1' },
+        body: { language: 'English', proficiency: 'Native' },
+      };
+      const res = {
+        json: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+      };
+      ArtLanguage.findOne.mockResolvedValue(null);
+      ArtLanguage.create.mockResolvedValue({ id: '1', ...req.body });
+  
+      await putArtLanguage(req, res);
+  
+      expect(ArtLanguage.create).toHaveBeenCalledWith({
+        solicitation_id: '1',
+        language: 'English',
+        proficiency: 'Native',
+      });
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        message: 'ArtLanguage updated successfully',
+      }));
+    });
 
 }) // end describe

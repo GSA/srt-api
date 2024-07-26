@@ -252,6 +252,7 @@ module.exports = {
   app.post('/api/solicitation', token(), solicitationRoutes.postSolicitation)
   app.get('/api/solicitation/:id', token(), solicitationRoutes.get)
   app.post('/api/solicitation/:id', token(), solicitationRoutes.update)
+  app.post('/api/solicitation/art/:id', token(), solicitationRoutes.postArtLanguage)
   app.post('/api/feedback', token(), solicitationRoutes.solicitationFeedback)
   app.get('/api/surveys', token(), surveyRoutes.getSurveyQuestions)
   app.get('/api/surveys/:solNum', token(), surveyRoutes.get)
@@ -272,7 +273,87 @@ module.exports = {
   app.get('/api/reports/predictionMetrics', token(), admin_only(), adminReportRoutes.predictionReport)
   app.get('/api/reports/noticeTypeChangeReport', token(), admin_only(), adminReportRoutes.noticeTypeChangeReport)
 
-
+  //TODO: Remove once ART integration
+  app.post('/art/v1/get508Languages', token(), (req, res) => {
+    let rspJson = [
+      {
+        "code": "E201",
+        "title": "",
+        "text": "",
+        "sections": [
+          {
+            "code": "E201.1",
+            "title": "E201.1 Scope",
+            "text": "ICT that is procured, developed, maintained, or used by agencies shall conform to the Revised 508 Standards.",
+            "sections": []
+          }
+        ]
+      },
+      {
+        "code": "E202",
+        "title": "",
+        "text": "",
+        "sections": [
+          {
+            "code": "E202.1",
+            "title": "E202.1 General",
+            "text": "ICT shall be exempt from compliance with the Revised 508 Standards to the extent specified by E202.",
+            "sections": []
+          },
+          {
+            "code": "E202.2",
+            "title": "E202.2 Legacy ICT",
+            "text": "Any component or portion of existing ICT that complies with an earlier standard issued pursuant to Section 508 of the Rehabilitation Act of 1973, as amended (as republished in Appendix D), and that has not been altered on or after January 18, 2018, shall not be required to be modified to conform to the Revised 508 Standards.",
+            "sections": []
+          },
+          {
+            "code": "E202.3",
+            "title": "E202.3 National Security",
+            "text": "The Revised 508 Standards do not apply to ICT operated by agencies as part of a national security system, as defined by 40 U.S.C. 1103(a).",
+            "sections": []
+          },
+          {
+            "code": "E202.4",
+            "title": "E202.4 Federal Contracts",
+            "text": "ICT acquired by a contractor incidental to a contract shall not be required to conform to the Revised 508 Standards.",
+            "sections": []
+          },
+          {
+            "code": "E202.5",
+            "title": "E202.5 ICT Functions Located in Maintenance or Monitoring Spaces",
+            "text": "Where status indicators and operable parts for ICT functions are located in spaces that are frequented only by service personnel for maintenance, repair, or occasional monitoring of equipment, such status indicators and operable parts shall not be required to conform to the Revised 508 Standards.",
+            "sections": []
+          },
+          {
+            "code": "E202.6",
+            "title": "E202.6 Undue Burden or Fundamental Alteration",
+            "text": "Where an agency determines in accordance with E202.5 that conformance to requirements in the Revised 508 Standards would impose an undue burden or would result in a fundamental alteration in the nature of the ICT, conformance shall be required only to the extent that it does not impose an undue burden, or result in a fundamental alteration in the nature of the ICT.",
+            "sections": []
+          },
+          {
+            "code": "E202.7",
+            "title": "E202.7 Best Meets",
+            "text": "Where ICT conforming to one or more requirements in the Revised 508 Standards is not commercially available, the agency shall procure the ICT that best meets the Revised 508 Standards consistent with the agency’s business needs.\nRequired Documentation. The responsible agency official shall document in writing: (a) the non-availability of conforming ICT, including a description of market research performed and which provisions cannot be met, and (b) the basis for determining that the ICT to be procured best meets the requirements in the Revised 508 Standards consistent with the agency’s business needs.\nAlternative Means. Where ICT that fully conforms to the Revised 508 Standards is not commercially available, the agency shall provide individuals with disabilities access to and use of information and data by an alternative means that meets identified needs.",
+            "sections": [
+              {
+                "code": "E202.7.1",
+                "title": "E202.7.1 Required Documentation",
+                "text": "The responsible agency official shall document in writing: (a) the non-availability of conforming ICT, including a description of market research performed and which provisions cannot be met, and (b) the basis for determining that the ICT to be procured best meets the requirements in the Revised 508 Standards consistent with the agency’s business needs.",
+                "sections": []
+              },
+              {
+                "code": "E202.7.2",
+                "title": "E202.7.2 Alternative Means",
+                "text": "Where ICT that fully conforms to the Revised 508 Standards is not commercially available, the agency shall provide individuals with disabilities access to and use of information and data by an alternative means that meets identified needs.",
+                "sections": []
+              }
+            ]
+          }
+        ]
+      },
+    ]
+    return res.status(200).send(rspJson)
+  });
 
 
   app.use(expressWinston.errorLogger({
