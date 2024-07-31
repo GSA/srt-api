@@ -550,12 +550,13 @@ module.exports = {
     "logStdOutLevel" : "debug",
     // TODO: Will need to make production Login.gov App (Using as Placeholder for now)
     "login_gov_oidc": {
-      "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:srt_app",
-      "issuer_url": "https://idp.int.identitysandbox.gov/.well-known/openid-configuration",
+      "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:gsa_srt",
+      "issuer_url": "https://secure.login.gov/.well-known/openid-configuration",
       "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-      "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
-      "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
-      "logout_endpoint": "https://idp.int.identitysandbox.gov/openid_connect/logout",
+      "token_endpoint": "https://secure.login.gov/api/openid_connect/token",
+      "user_endpoint": "https://secure.login.gov/api/openid_connect/userinfo",
+      "logout_endpoint": "https://secure.login.gov/openid_connect/logout",
+      "redirect_uri": "https://srt-server.app.cloud.gov/odic/callback",
     },
     "maxCas" : {
       "cas_url" : "https://login.max.gov/cas/",
