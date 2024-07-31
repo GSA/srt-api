@@ -383,7 +383,7 @@ async function getPredictions (filter, user) {
     }
 
     // filter to allowed notice types
-    let types = configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation'])
+    let types = configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation', 'RFQ'])
     
     attributes.where = {
       noticeType: {
