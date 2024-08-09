@@ -108,6 +108,15 @@
  *
  */
 
+/**
+ * @type {Model} ArtLanguage
+ * @property {number} id: DataTypes.INTEGER,
+ * @property {number} solicitation_id: DataTypes.INTEGER,
+ * @property {Object} language: DataTypes.JSONB,
+ * @property {date} createdAt: DataTypes.DATE,
+ * @property {date} updatedAt: DataTypes.DATE
+ */
+
 const fs = require('fs')
 const path = require('path')
 const {Sequelize, Model} = require('sequelize')
