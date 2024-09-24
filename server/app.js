@@ -252,6 +252,7 @@ module.exports = {
   app.post('/api/solicitation', token(), solicitationRoutes.postSolicitation)
   app.get('/api/solicitation/:id', token(), solicitationRoutes.get)
   app.post('/api/solicitation/:id', token(), solicitationRoutes.update)
+  app.post('/api/solicitation/art/:id', token(), solicitationRoutes.postArtLanguage)
   app.post('/api/feedback', token(), solicitationRoutes.solicitationFeedback)
   app.get('/api/surveys', token(), surveyRoutes.getSurveyQuestions)
   app.get('/api/surveys/:solNum', token(), surveyRoutes.get)
@@ -271,9 +272,6 @@ module.exports = {
   app.get('/api/reports/solicitationDownloads', token(), admin_only(), adminReportRoutes.solicitationDownloads)
   app.get('/api/reports/predictionMetrics', token(), admin_only(), adminReportRoutes.predictionReport)
   app.get('/api/reports/noticeTypeChangeReport', token(), admin_only(), adminReportRoutes.noticeTypeChangeReport)
-
-
-
 
   app.use(expressWinston.errorLogger({
     transports: transports,
