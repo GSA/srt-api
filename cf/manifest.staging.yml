@@ -10,5 +10,5 @@ applications:
   routes:
     - route: http://srt-server-staging.app.cloud.gov
   services:
-    - srt-postgres-staging
+    - srt-postgres15-staging
 
