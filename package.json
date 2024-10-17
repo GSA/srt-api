@@ -78,8 +78,8 @@
     "supertest-session": "^4.1.0"
   },
   "engines": {
-    "node": "^16",
-    "npm": "^8"
+    "node": "^20",
+    "yarn": "^1.22.19"
   },
   "nodemonConfig": {
     "verbose": false,
