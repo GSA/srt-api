@@ -1,5 +1,5 @@
 ## Node Building Image
-FROM node:16
+FROM node:20
 
 # create app directory
 WORKDIR /opt/api
@@ -14,7 +14,7 @@ COPY .snyk ./
 
 RUN touch winston.log.json
 
-RUN npm cache clean --force
+RUN yarn cache clean
 
 # Get environment argument passed in
 ARG environment
@@ -26,7 +26,7 @@ ENV NODE_ENV=${environment:-$default_environment}
 # Set SNYK TOKEN environment variable
 ARG SNYK_TOKEN
 ENV SNYK_TOKEN ${SNYK_TOKEN}
-RUN npm install snyk@latest -g
+RUN yarn global add snyk@latest
 RUN snyk auth ${SNYK_TOKEN}
 
 
@@ -34,7 +34,7 @@ RUN snyk auth ${SNYK_TOKEN}
 # Note: When the NODE_ENV environment variable is set to 'production' npm 
 #       will not install modules listed in devDependencies
 # Reference: https://docs.npmjs.com/cli/v8/commands/npm-install
-RUN npm install
+RUN yarn install
 
 # Bundle app source
 COPY server/ ./server
