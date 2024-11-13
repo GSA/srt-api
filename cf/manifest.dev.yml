@@ -10,6 +10,6 @@ applications:
   routes:
     - route: http://srt-server-dev.app.cloud.gov
   services:
-    - srt-postgres-dev
+    - srt-postgres15-dev
     - dev-server-deploy-service-account
 
