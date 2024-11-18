@@ -680,10 +680,10 @@
   resolved "https://registry.yarnpkg.com/@sinonjs/text-encoding/-/text-encoding-0.7.3.tgz#282046f03e886e352b2d5f5da5eb755e01457f3f"
   integrity sha512-DE427ROAphMQzU4ENbliGYrBSYPXF+TtLg9S8vzeA+OF4ZKzoDdzfL8sxuMUGS/lgRhM6j1URSk9ghf7Xo1tyA==
 
-"@snyk/protect@^1.1293.0":
-  version "1.1293.1"
-  resolved "https://registry.yarnpkg.com/@snyk/protect/-/protect-1.1293.1.tgz#2fb02c26732a8500d3400379524fe708e660c0ad"
-  integrity sha512-PT2lleyaQU+AvWmnPJ3yKWNyj7JnPUZvOrVTRfXpmmPfjx+U2k3jzsk8EDj0BJd9+goTsTyeQVGCPPSqE5MQtQ==
+"@snyk/protect@^1.1293.1":
+  version "1.1294.0"
+  resolved "https://registry.yarnpkg.com/@snyk/protect/-/protect-1.1294.0.tgz#a08155b4042c02bf7b42ed29d41c5a9e3a6b8fb2"
+  integrity sha512-uOhMDQCw9Y8VdMUPjVuaRWk1WgqeoEq53eawOtUV0VgzUZDl9TH0SFNGOmo5HlsKKHOWLFPkAV8Ib9V2XpD4EA==
 
 "@tootallnate/once@1":
   version "1.1.2"
