@@ -680,10 +680,10 @@
   resolved "https://registry.yarnpkg.com/@sinonjs/text-encoding/-/text-encoding-0.7.3.tgz#282046f03e886e352b2d5f5da5eb755e01457f3f"
   integrity sha512-DE427ROAphMQzU4ENbliGYrBSYPXF+TtLg9S8vzeA+OF4ZKzoDdzfL8sxuMUGS/lgRhM6j1URSk9ghf7Xo1tyA==
 
-"@snyk/protect@^1.1293.0":
-  version "1.1293.1"
-  resolved "https://registry.yarnpkg.com/@snyk/protect/-/protect-1.1293.1.tgz#2fb02c26732a8500d3400379524fe708e660c0ad"
-  integrity sha512-PT2lleyaQU+AvWmnPJ3yKWNyj7JnPUZvOrVTRfXpmmPfjx+U2k3jzsk8EDj0BJd9+goTsTyeQVGCPPSqE5MQtQ==
+"@snyk/protect@^1.1293.1":
+  version "1.1294.0"
+  resolved "https://registry.yarnpkg.com/@snyk/protect/-/protect-1.1294.0.tgz#a08155b4042c02bf7b42ed29d41c5a9e3a6b8fb2"
+  integrity sha512-uOhMDQCw9Y8VdMUPjVuaRWk1WgqeoEq53eawOtUV0VgzUZDl9TH0SFNGOmo5HlsKKHOWLFPkAV8Ib9V2XpD4EA==
 
 "@tootallnate/once@1":
   version "1.1.2"
@@ -2578,7 +2578,7 @@ expect@^26.6.2:
     jest-message-util "^26.6.2"
     jest-regex-util "^26.0.0"
 
-express-session@^1.18.0:
+express-session@^1.18.1:
   version "1.18.1"
   resolved "https://registry.yarnpkg.com/express-session/-/express-session-1.18.1.tgz#88d0bbd41878882840f24ec6227493fcb167e8d5"
   integrity sha512-a5mtTqEaZvBCL9A9aqkrtfz+3SMDhOVUnjafjo+s7A9Txkq+SVX2DLvSp1Zrv4uCXa3lMSK3viWnh9Gg07PBUA==
@@ -2600,7 +2600,7 @@ express-winston@^3.4.0:
     chalk "^2.4.1"
     lodash "^4.17.10"
 
-express@^4.21.0:
+express@^4.21.1:
   version "4.21.1"
   resolved "https://registry.yarnpkg.com/express/-/express-4.21.1.tgz#9dae5dda832f16b4eec941a4e44aa89ec481b281"
   integrity sha512-YSFlK1Ee0/GC8QaO91tHcDxJiE/X4FbpAyQWkxAvG6AXCuR65YzK8ua6D9hvi/TzUfZMpc+BwuM1IPw8fmQBiQ==
@@ -4514,6 +4514,18 @@ logform@^2.6.0, logform@^2.6.1:
     safe-stable-stringify "^2.3.1"
     triple-beam "^1.3.0"
 
+logform@^2.7.0:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/logform/-/logform-2.7.0.tgz#cfca97528ef290f2e125a08396805002b2d060d1"
+  integrity sha512-TFYA4jnP7PVbmlBIfhlSe+WKxs9dklXMTEGcBCIvLhE/Tn3H6Gk1norupVW7m5Cnd4bLcr08AytbyV/xj7f/kQ==
+  dependencies:
+    "@colors/colors" "1.6.0"
+    "@types/triple-beam" "^1.3.2"
+    fecha "^4.2.0"
+    ms "^2.1.1"
+    safe-stable-stringify "^2.3.1"
+    triple-beam "^1.3.0"
+
 lolex@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/lolex/-/lolex-4.2.0.tgz#ddbd7f6213ca1ea5826901ab1222b65d714b3cd7"
@@ -4945,7 +4957,12 @@ nodemailer-mock@^1.5.3:
     debug "^4.3.4"
     nodemailer "^6.x"
 
-nodemailer@^6.9.14, nodemailer@^6.x:
+nodemailer@^6.9.15:
+  version "6.9.16"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.9.16.tgz#3ebdf6c6f477c571c0facb0727b33892635e0b8b"
+  integrity sha512-psAuZdTIRN08HKVd/E8ObdV6NO7NTBY3KsC30F7M4H1OnmLCUNaS56FpYxyb26zWLSyYF9Ozch9KYHhHegsiOQ==
+
+nodemailer@^6.x:
   version "6.9.15"
   resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.9.15.tgz#57b79dc522be27e0e47ac16cc860aa0673e62e04"
   integrity sha512-AHf04ySLC6CIfuRtRiEYtGEXgRfa6INgWGluDhnxTZhHSKvrBu7lc1VVchQ0d8nPc4cFaZoPq8vkyNoZr0TpGQ==
@@ -5166,7 +5183,7 @@ onetime@^5.1.0:
   dependencies:
     mimic-fn "^2.1.0"
 
-openid-client@^5.6.5:
+openid-client@^5.7.0:
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/openid-client/-/openid-client-5.7.0.tgz#61dbea7251f561e82342278063ce37c5c05347f2"
   integrity sha512-4GCCGZt1i2kTHpwvaC/sCpTpQqDnBzDzuJcJMbH+y1Q5qI8U8RBvoSh28svarXszZHR5BAMXbJPX1PGPRE3VOA==
@@ -5662,7 +5679,7 @@ readable-stream@^2.3.5:
     string_decoder "~1.1.1"
     util-deprecate "~1.0.1"
 
-readable-stream@^3.4.0:
+readable-stream@^3.4.0, readable-stream@^3.6.2:
   version "3.6.2"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-3.6.2.tgz#56a9b36ea965c00c5a93ef31eb111a0f11056967"
   integrity sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==
@@ -7160,7 +7177,33 @@ winston-transport@^4.4.0, winston-transport@^4.7.0:
     readable-stream "^4.5.2"
     triple-beam "^1.3.0"
 
-winston@^3.13.1, winston@^3.3.3:
+winston-transport@^4.9.0:
+  version "4.9.0"
+  resolved "https://registry.yarnpkg.com/winston-transport/-/winston-transport-4.9.0.tgz#3bba345de10297654ea6f33519424560003b3bf9"
+  integrity sha512-8drMJ4rkgaPo1Me4zD/3WLfI/zPdA9o2IipKODunnGDcuqbHwjsbB79ylv04LCGGzU0xQ6vTznOMpQGaLhhm6A==
+  dependencies:
+    logform "^2.7.0"
+    readable-stream "^3.6.2"
+    triple-beam "^1.3.0"
+
+winston@^3.14.2:
+  version "3.17.0"
+  resolved "https://registry.yarnpkg.com/winston/-/winston-3.17.0.tgz#74b8665ce9b4ea7b29d0922cfccf852a08a11423"
+  integrity sha512-DLiFIXYC5fMPxaRg832S6F5mJYvePtmO5G9v9IgUFPhXm9/GkXarH/TUrBAVzhTCzAj9anE/+GjrgXp/54nOgw==
+  dependencies:
+    "@colors/colors" "^1.6.0"
+    "@dabh/diagnostics" "^2.0.2"
+    async "^3.2.3"
+    is-stream "^2.0.0"
+    logform "^2.7.0"
+    one-time "^1.0.0"
+    readable-stream "^3.4.0"
+    safe-stable-stringify "^2.3.1"
+    stack-trace "0.0.x"
+    triple-beam "^1.3.0"
+    winston-transport "^4.9.0"
+
+winston@^3.3.3:
   version "3.15.0"
   resolved "https://registry.yarnpkg.com/winston/-/winston-3.15.0.tgz#4df7b70be091bc1a38a4f45b969fa79589b73ff5"
   integrity sha512-RhruH2Cj0bV0WgNL+lOfoUBI4DVfdUNjVnJGVovWZmrcKtrFTTRzgXYK2O9cymSGjrERCtaAeHwMNnUWXlwZow==
