@@ -57,6 +57,9 @@ try {
  * @return {*|PromiseLike<T | never>|Promise<T | never>}
  */
 function updateMAXUser(cas_data, user) {
+  let now = new Date()
+  let date = (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getFullYear()
+
   //update existing
   try {
     user['firstName'] = cas_data['first-name']
@@ -69,7 +72,7 @@ function updateMAXUser(cas_data, user) {
     user['isRejected'] = false
     user['isAccepted'] = true
     user['tempPassword'] = null
-    user['creationDate'] = Date.now()
+    user['creationDate'] = date
     return user.save()
       .then(() => {
         return user['id']
@@ -111,18 +114,26 @@ function capitalize(s)
     return s[0].toUpperCase() + s.slice(1);
 }
 
+function getGovernmentEmail(emails) {
+  return emails.find(email => email.endsWith('.gov') || email.endsWith('.mil')) || null;
+}
+
 function createUser(loginGovUser) {
   let now = new Date()
   let date = (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getFullYear()
   
   //console.log("Login.gov user:", loginGovUser)
 
+  const gov_email = getGovernmentEmail(loginGovUser.all_emails || [])
+
+  const user_email = gov_email || loginGovUser.email
+
   let user_data = {
     'firstName': loginGovUser.given_name || null,
     'lastName': loginGovUser.family_name || null,
-    'email': loginGovUser.email,
+    'email': user_email,
     'password': null,
-    'agency': grabAgencyFromEmail(loginGovUser.email),
+    'agency': grabAgencyFromEmail(user_email),
     'position': '',
     'userRole': 'Executive User', // If we need to handle user roles, we should set it to lowest setting and adjust
     'isRejected': false,
@@ -276,7 +287,15 @@ async function createOrUpdateMAXUser(cas_data) {
 
 async function createOrUpdateLoginGovUser(login_gov_data) {
   try {
-    let u = await User.findOne({where: {'email': login_gov_data["email"]}})
+    let u = await User.findOne({
+      where: {
+        [Op.or]: [
+          { email: login_gov_data.email },
+          { email: { [Op.in]: login_gov_data.all_emails || [] } }
+        ]
+      }
+    });
+
     if (u) {
       return updateUser(login_gov_data, u)
     } else {
@@ -554,6 +573,8 @@ module.exports = {
               srt_userinfo.user.sessionEnd = Math.floor ((new Date().getTime() + ms(getConfig('sessionLength')) )/ 1000)
               
               logger.log('info', (srt_userinfo.email || userInfo.email) + ' authenticated with LOGIN.GOV', {cas_userinfo: srt_userinfo, tag: 'Login.gov Auth Token'})
+              
+              console.log("srt_userinfo: ", srt_userinfo)
 
               let uri_components = {
                 token: jwt.sign({access_token: accessToken, user: srt_userinfo.user, sessionEnd: srt_userinfo.sessionEnd, token_life_in_seconds: getConfig('renewTokenLife')}, common.jwtSecret, { expiresIn: getConfig('renewTokenLife') }), 
@@ -685,6 +706,7 @@ module.exports = {
   isGSAAdmin           : isGSAAdmin,
   passwordOnlyWhitelist: userOnPasswordOnlyWhitelist,
   translateCASAgencyName: translateCASAgencyName,
+  getGovernmentEmail: getGovernmentEmail,
 
   roles : roles,
   roleKeys : roleKeys,
