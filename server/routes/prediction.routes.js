@@ -554,7 +554,7 @@ module.exports = {
     let keys = Object.keys(req.body)
 
     // verify that only supported filter params are used
-    let validKeys = ['agency', 'office', 'numDocs', 'solNum', 'category_list', 'startDate', 'fromPeriod', 'endDate', 'toPeriod']
+    let validKeys = ['agency', 'office', 'numDocs', 'solNum', 'category_list', 'startDate', 'fromPeriod', 'endDate', 'toPeriod', 'noticeType']
     // add in the keys used by the PrimeNG table lazy loader
     validKeys.push('first', 'filters', 'globalFilter', 'multiSortMeta', 'rows', 'sortField', 'sortOrder')
     for (let i = 0; i < keys.length; i++) {
