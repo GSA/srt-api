@@ -11,6 +11,7 @@ const User = require('../models').User
 const authRoutes = require('../routes/auth.routes')
 const logger = require('../config/winston')
 const mocks = require('./mocks')
+const { getGovernmentEmail } = require('../routes/auth.routes');
 
 const { userAcceptedCASData } = require('./test.data');
 
@@ -526,4 +527,26 @@ describe('/api/auth/', () => {
       {'cas_userinfo':{'email-address': 'arron.smith@gsa.gov'}})).toBeFalse();
   })
 
-  })
+})
+
+describe('getGovernmentEmail', () => {
+  test('returns the first .gov email if present', () => {
+    const emails = ['user@example.com', 'user@agency.gov', 'user@another.com'];
+    expect(getGovernmentEmail(emails)).toBe('user@agency.gov');
+  });
+
+  test('returns the first .mil email if present', () => {
+    const emails = ['user@example.com', 'user@agency.mil', 'user@another.com'];
+    expect(getGovernmentEmail(emails)).toBe('user@agency.mil');
+  });
+
+  test('returns null if no .gov or .mil email is present', () => {
+    const emails = ['user@example.com', 'user@another.com'];
+    expect(getGovernmentEmail(emails)).toBe(null);
+  });
+
+  test('returns null if the emails array is empty', () => {
+    const emails = [];
+    expect(getGovernmentEmail(emails)).toBe(null);
+  });
+});
