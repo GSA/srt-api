@@ -6,7 +6,7 @@ const path = require("path");
 //const util = require('node:util'); 
 const {jsonToURI} = require('../utilities.js');
 
-
+const { Op } = require('sequelize');
 const logger = require('../config/winston')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
@@ -290,11 +290,13 @@ async function createOrUpdateLoginGovUser(login_gov_data) {
     let u = await User.findOne({
       where: {
         [Op.or]: [
-          { email: login_gov_data.email },
-          { email: { [Op.in]: login_gov_data.all_emails || [] } }
+          { 'email': login_gov_data.email },
+          { 'email': { [Op.in]: login_gov_data.all_emails || [] } }
         ]
       }
     });
+
+    logger.log("info", "User found in DB", {user: u, tag: "createOrUpdateLoginGovUser"})
 
     if (u) {
       return updateUser(login_gov_data, u)
@@ -303,7 +305,13 @@ async function createOrUpdateLoginGovUser(login_gov_data) {
     }
 
   } catch (e) {
-    logger.log("error", "Error caught in create/update MAX User", {error: e, tag: "create/update MAX User"})
+
+    logger.log("error", "Error caught in create/update Login.gov User", {error: e.message, tag: "create/update Login.gov User"})
+
+    return res.status(302)
+        .set('Location', encodeURI(config['srtClientUrl'] + '/auth' + '?error=Database Error creating user account. Please contact srt@gsa.gov.')) // send them back with no token
+        .send(`<html lang="en"><body>Login Failed</body></html>`)
+
   }
 }
 
@@ -702,6 +710,7 @@ module.exports = {
   mapCASRoleToUserRole : mapCASRoleToUserRole,
   roleNameToCASGroup   : roleNameToCASGroup,
   createOrUpdateMAXUser: createOrUpdateMAXUser,
+  createOrUpdateLoginGovUser: createOrUpdateLoginGovUser,
   userInfoFromReq      : userInfoFromReq,
   isGSAAdmin           : isGSAAdmin,
   passwordOnlyWhitelist: userOnPasswordOnlyWhitelist,
