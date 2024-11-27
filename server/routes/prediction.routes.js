@@ -1,5 +1,6 @@
 /** @module PredictionRoutes */
 // noinspection JSUnresolvedVariable
+const Sequelize = require('sequelize');
 /** @type {Prediction} **/
 const Prediction = require('../models').Prediction
 /** @type {Solicitation} **/
@@ -29,6 +30,9 @@ const cloneDeep = require('clone-deep')
 const Op = require('sequelize').Op
 const authRoutes = require('./auth.routes')
 const moment = require('moment')
+const { agencyNameVariations } = authRoutes;
+const { getOfficeFromEmail } = require('./auth.routes');
+const { isGSAAdmin } = require('./auth.routes'); // Adjust the path as necessary
 
 let background_count = 0
 
@@ -41,7 +45,8 @@ let background_count = 0
  * @property {string} startDate Date in YYYY-MM-DD format
  * @property {string} endDate Date in YYYY-MM-DD format
  * @property {string} category_list - "Yes" or "No" value indicating if you want to receive IT Solicitation or non IT solicitations
- *
+ * @property {string} userEmail Email address of the user for filtering predictions
+ * 
  *
  */
 
@@ -359,146 +364,155 @@ function normalizeMatchFilter(filter, field){
  * @return {Promise<Array(Prediction)>} All predictions that match the filter
  */
 /** @namespace filter.numDocs */
-async function getPredictions (filter, user) {
 
+
+async function getPredictions(filter, user) {
   try {
-    let first = filter.first || 0
-    let max_fetch_rows = filter.rows || configuration.getConfig("defaultMaxPredictions", 1000)
+    logger.debug('GetPredictions - Start', { filter, user });
+    let first = filter.first || 0;
+    let max_fetch_rows = filter.rows || configuration.getConfig('defaultMaxPredictions', 1000);
 
-
-    if ( user === undefined || user.agency === undefined || user.userRole === undefined ) {
-      return []
+    // Ensure user has necessary information
+    if (!user?.agency || !user?.userRole || !user?.email) {
+      logger.warn('Missing user info');
+      return { predictions: [], first: 0, rows: 0, totalCount: 0 };
     }
 
-    logger.debug("Entering getPredictions")
-    // await updatePredictionTable()
+    // Compute the user's office dynamically from their email
+    user.office = getOfficeFromEmail(user.email);
+    logger.debug('Computed user office', { userOffice: user.office });
 
     let attributes = {
       offset: first,
       limit: max_fetch_rows,
-      include: [{
-        model: SurveyResponse,
-        as: 'feedback'
-      }],
+      include: [{ model: SurveyResponse, as: 'feedback' }],
+      where: {},
+    };
+    logger.debug('Initial attributes', { attributes });
+
+    // Notice type filter
+    let types = configuration.getConfig('VisibleNoticeTypes', ['Solicitation', 'Combined Synopsis/Solicitation', 'RFQ']);
+    if (types?.length) {
+      attributes.where.noticeType = types; // Simplified without Op.in
     }
 
-    // filter to allowed notice types
-    let types = configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation', 'RFQ'])
-    
-    attributes.where = {
-      noticeType: {
-        [Op.in]: types
-      }
-    }
-
-    // filter out rows
+    // Global text search
     if (filter.globalFilter) {
-      attributes.where.searchText = { [Op.like]: `%${filter.globalFilter.toLowerCase()}%` }
-    }
-    for (let f of ['office', 'agency', 'title', 'solNum', 'reviewRec', 'id']) {
-      normalizeMatchFilter(filter, f)
+      attributes.where.searchText = { [Sequelize.Op.like]: `%${filter.globalFilter.toLowerCase()}%` };
     }
 
+    // Normalize filters
+    ['office', 'agency', 'title', 'solNum', 'reviewRec', 'id'].forEach(f => {
+      if (filter[f] && (f !== 'agency' || filter[f].toLowerCase() !== 'government-wide')) {
+        filter.filters = filter.filters || {};
+        filter.filters[f] = { value: filter[f], matchMode: 'equals' };
+      }
+    });
 
-    // process PrimeNG filters: filter.filters = { field: { value: 'x', matchMode: 'equals' } }
+    logger.debug('Normalized filters', { filters: filter.filters });
+
+    // Process regular filters
     if (filter.filters) {
-      for (let f in filter.filters) {
-        if (filter.filters.hasOwnProperty(f) && filter.filters[f].matchMode === 'equals') {
-          attributes.where[f] = {[Op.eq]: filter.filters[f].value}
+      Object.entries(filter.filters).forEach(([field, data]) => {
+        if (data.matchMode === 'equals' && data.value) {
+          attributes.where[field] = data.value; // Simplified without Op.eq
         }
+      });
+      logger.debug('Attributes after applying filters', { attributes });
+    }
+
+    // Handle date filtering
+    if (!filter.ignoreDateCutoff && !filter.filters?.solNum) {
+      if (configuration.getConfig('minPredictionCutoffDate')) {
+        attributes.where.date = { [Sequelize.Op.gt]: configuration.getConfig('minPredictionCutoffDate') };
+      } else if (configuration.getConfig('predictionCutoffDays')) {
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - configuration.getConfig('predictionCutoffDays'));
+        attributes.where.date = { [Sequelize.Op.gt]: cutoff };
       }
     }
-
-
-    try {
-      let agency = (filter && filter.filters && filter.filters.agency && filter.filters.agency.value) || "no agency"
-      logger.log("debug", `Getting predictions for agency ${agency}. Remaining filters in meta data`, {tag: 'getPredictions', filter: filter })
-    } catch (e) {
-      logger.log ("error", "error logging prediction search filter", {error: e})
-    }
-
-    // process dates
-
-    // make sure anything we return is past the date cuttoff - unless we are asking for a specific record!
-    if ( ! filter.ignoreDateCutoff) {
-      if ((!filter.filters) || (!filter.filters.hasOwnProperty('solNum'))) {
-        if (configuration.getConfig("minPredictionCutoffDate")) {
-          attributes.where.date = {[Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
-        } else if (configuration.getConfig("predictionCutoffDays")) {
-          const numDays = configuration.getConfig("predictionCutoffDays")
-          const today = new Date()
-          let cutoff = new Date()
-          cutoff.setDate(today.getDate() - numDays)
-          attributes.where.date = {[Op.gt]: cutoff}
-        }
-      }
-    }
-
-
 
     if (filter.startDate) {
-      // double check they aren't asking for data from before the cutoff
-      const start = Date.parse(filter.startDate)
-      const cutoff = Date.parse(configuration.getConfig("minPredictionCutoffDate", '1990-01-01'))
+      const start = Date.parse(filter.startDate);
+      const cutoff = Date.parse(configuration.getConfig('minPredictionCutoffDate', '1990-01-01'));
       if (start > cutoff) {
-        attributes.where.date = { [Op.gt]: filter.startDate }
+        attributes.where.date = {
+          ...attributes.where.date,
+          [Sequelize.Op.gt]: filter.startDate,
+        };
       }
     }
 
     if (filter.endDate) {
-      attributes.where.date = (attributes.where.date) ?
-        Object.assign(attributes.where.date, { [Op.lt]: filter.endDate }) :
-        { [Op.lt]: filter.endDate }
+      attributes.where.date = {
+        ...attributes.where.date,
+        [Sequelize.Op.lt]: filter.endDate,
+      };
     }
 
-    // finally, put in an agency filter if this user isn't an admin
-    // want to do it last so it overrides any possible agency setting in the supplied filter
-    if ( ! authRoutes.isGSAAdmin(user.agency, user.userRole)) {
-      attributes.where.agency  = {
-        [Op.eq] : (user && user.agency) ? user.agency : ''
+    // Agency/Office filtering for non-admin users
+    if (!isGSAAdmin(user.agency, user.userRole)) {
+      // Apply agency and computed office filters directly
+      attributes.where.agency = user.agency;
+      attributes.where.office = user.office;
+
+      // Allow filter overrides from the request
+      if (filter.filters?.agency?.value) {
+        attributes.where.agency = filter.filters.agency.value;
       }
-    }
-
-    // set order
-    attributes.order = []
-    if (filter.sortField !== 'unsorted' && filter.sortField) {
-      let direction = 'ASC';
-      if (filter.sortOrder && filter.sortOrder < 0) {
-        direction = 'DESC'
+      if (filter.filters?.office?.value) {
+        attributes.where.office = filter.filters.office.value;
       }
-      attributes.order.push([filter.sortField, direction])
+
+      logger.debug('Applied agency/office filters:', {
+        agencyFilter: attributes.where.agency,
+        officeFilter: attributes.where.office,
+        userAgency: user.agency,
+        userOffice: user.office,
+      });
     }
 
-    // always end with id sort to keep the newest first (all else being equal)
-    attributes.order.push(['id', 'DESC'])
+    // Remove empty conditions
+    logger.debug('Attributes before removeEmptyFrom', { where: attributes.where });
+    attributes.where = removeEmptyFrom(attributes.where);
+    logger.debug('Attributes after removeEmptyFrom', { where: attributes.where });
 
-    attributes.raw = true // return as plan data not Sequelize object
-    attributes.nest = true
-    // Debugging Queries:
-    //attributes.logging = console.log
+    attributes.raw = false;
+    attributes.nest = true;
 
-    // Removing where checks if values are not provided. where column = {} leads to sequelize issues
-    attributes.where = removeEmptyFrom(attributes.where)
-    
-    // noinspection JSUnresolvedFunction
-    let preds = await Solicitation.findAndCountAll(attributes)
+    // Sorting
+    attributes.order = [];
+    if (filter.sortField && filter.sortField !== 'unsorted') {
+      attributes.order.push([filter.sortField, filter.sortOrder < 0 ? 'DESC' : 'ASC']);
+    }
+    attributes.order.push(['id', 'DESC']); // Secondary sort by ID
 
+    // Execute the query
+    logger.debug('Final query attributes before execution', { attributes });
+    let preds = await Solicitation.findAndCountAll(attributes);
 
+    logger.info('Query results', {
+      totalCount: preds.count,
+      sampleResults: preds.rows.slice(0, 3).map(r => ({
+        agency: r.agency,
+        office: r.office,
+        solNum: r.solNum,
+      })),
+    });
 
     return {
       predictions: preds.rows,
-      first: first,
+      first,
       rows: Math.min(max_fetch_rows, preds.count),
-      totalCount: preds.count
-    }
+      totalCount: preds.count,
+    };
   } catch (e) {
-    logger.log("error", "Error in getPredictions", {tag: "getPredictions", error: e, "error-message": e.message, stack: e.stack})
-    return {
-      predictions: [],
-      first: 0,
-      rows: 0,
-      totalCount: 0
-    }
+    logger.error('Error in getPredictions', {
+      error: e,
+      message: e.message,
+      stack: e.stack,
+    });
+    return { predictions: [], first: 0, rows: 0, totalCount: 0 };
   }
 }
 
@@ -554,7 +568,7 @@ module.exports = {
     let keys = Object.keys(req.body)
 
     // verify that only supported filter params are used
-    let validKeys = ['agency', 'office', 'numDocs', 'solNum', 'category_list', 'startDate', 'fromPeriod', 'endDate', 'toPeriod', 'noticeType']
+    let validKeys = ['agency', 'office', 'numDocs', 'solNum', 'category_list', 'startDate', 'fromPeriod', 'endDate', 'toPeriod', 'userEmail']
     // add in the keys used by the PrimeNG table lazy loader
     validKeys.push('first', 'filters', 'globalFilter', 'multiSortMeta', 'rows', 'sortField', 'sortOrder')
     for (let i = 0; i < keys.length; i++) {
@@ -576,6 +590,9 @@ module.exports = {
     req.body.first = (req.body.first !== undefined) ? req.body.first : 0
     req.body.rows = (req.body.rows !== undefined) ? req.body.rows : 100
     let user = authRoutes.userInfoFromReq(req)
+
+     // Add `userEmail` from request body to the filter
+     req.body.userEmail = req.body.userEmail || user.email;
 
     return getPredictions(req.body, user)
       .then((predictions) => {
