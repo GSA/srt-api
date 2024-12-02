@@ -52,7 +52,7 @@ const topLevelAgencyMap = {
 // Load your RSA private key
 let privateKey;
 try {
-  privateKey = fs.readFileSync(path.resolve(__dirname, '../server/certs/private.pem'), 'utf8');
+  privateKey = fs.readFileSync(path.resolve(__dirname, '../certs/private.pem'), 'utf8');
 } catch (err) {
   privateKey = process.env.LOGIN_PRIVATE_KEY;
 }
@@ -70,7 +70,6 @@ function updateMAXUser(cas_data, user) {
   try {
     logger.log('info', 'Updating MAX user', { 
       email: cas_data['email-address'],
-      office: getOfficeFromEmail(cas_data['email-address']),
       tag: 'updateMAXUser'
     })
 
@@ -79,7 +78,6 @@ function updateMAXUser(cas_data, user) {
     user['email'] = cas_data['email-address']
     user['password'] = null
     user['agency'] = cas_data['agency-name']
-    user['office'] = getOfficeFromEmail(cas_data['email-address'])
     user['position'] = ''
     user['userRole'] = cas_data['userRole']
     user['isRejected'] = false
@@ -102,14 +100,12 @@ function updateUser(login_gov_data, user) {
   try {
     logger.log('info', 'Updating Login.gov user', {
       email: login_gov_data.email,
-      office: getOfficeFromEmail(login_gov_data.email),
       tag: 'updateUser'
     })
 
     if (login_gov_data.given_name !== undefined) user['firstName'] = login_gov_data['given_name']
     if (login_gov_data.family_name !== undefined) user['lastName'] = login_gov_data['family_name']
     user['maxId'] = user.maxId || login_gov_data.sub
-    user['office'] = getOfficeFromEmail(login_gov_data.email)
     
     return user.save()
       .then(() => {
@@ -136,14 +132,12 @@ function getGovernmentEmail(emails) {
 function createUser(loginGovUser) {
   logger.log('info', 'Creating new Login.gov user', {
     email: loginGovUser.email,
-    office: getOfficeFromEmail(loginGovUser.email),
     tag: 'createUser'
   })
 
   let now = new Date();
   let date = (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getFullYear();
-  let office = getOfficeFromEmail(loginGovUser.email);
-
+  const user_email = gov_email || loginGovUser.email
   let user_data = {
     'firstName': loginGovUser.given_name || null,
     'lastName': loginGovUser.family_name || null,
@@ -151,7 +145,6 @@ function createUser(loginGovUser) {
     'password': null,
     'agency': grabAgencyFromEmail(user_email),
     'position': '',
-    'office': office,
     'userRole': 'Executive User',
     'isRejected': false,
     'isAccepted': true,
@@ -335,12 +328,10 @@ function userOnPasswordOnlyWhitelist(session){
  * @return {*|PromiseLike<T | never>|Promise<T | never>}
  */
 function createMAXUser(cas_data) {
-  let office = getOfficeFromEmail(cas_data['email-address']);
   let agency = getParentAgencyFromOffice(office) || cas_data['agency-name'];
 
   logger.log('info', 'Creating new MAX user', {
     email: cas_data['email-address'],
-    office: office,
     agency: agency,
     tag: 'createMAXUser'
   });
@@ -353,7 +344,6 @@ function createMAXUser(cas_data) {
     'email': cas_data['email-address'],
     'password': null,
     'agency': agency,
-    'office': office,
     'position': '',
     'userRole': cas_data['userRole'],
     'isRejected': false,

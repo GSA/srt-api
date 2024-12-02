@@ -366,131 +366,149 @@ function normalizeMatchFilter(filter, field){
 /** @namespace filter.numDocs */
 
 
+const applyBasicFilters = (attributes, filter, types) => {
+  // Notice type filter
+  if (types?.length) {
+    attributes.where.noticeType = types;
+  }
+
+  // Global text search
+  if (filter.globalFilter) {
+    attributes.where.searchText = { [Op.like]: `%${filter.globalFilter.toLowerCase()}%` };
+  }
+
+  return attributes;
+};
+
+const normalizeStandardFilters = (filter) => {
+  ['office', 'agency', 'title', 'solNum', 'reviewRec', 'id'].forEach(f => {
+    if (filter[f] && (f !== 'agency' || filter[f].toLowerCase() !== 'government-wide')) {
+      filter.filters = filter.filters || {};
+      filter.filters[f] = { value: filter[f], matchMode: 'equals' };
+    }
+  });
+  return filter;
+};
+
+const applyRegularFilters = (attributes, filters) => {
+  if (!filters) return attributes;
+
+  Object.entries(filters).forEach(([field, data]) => {
+    if (data.matchMode === 'equals' && data.value) {
+      attributes.where[field] = data.value;
+    }
+  });
+  return attributes;
+};
+
+const applyDateFilters = (attributes, filter, config) => {
+  if (!filter.ignoreDateCutoff && !filter.filters?.solNum) {
+    if (config.getConfig('minPredictionCutoffDate')) {
+      attributes.where.date = { [Op.gt]: config.getConfig('minPredictionCutoffDate') };
+    } else if (config.getConfig('predictionCutoffDays')) {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - config.getConfig('predictionCutoffDays'));
+      attributes.where.date = { [Op.gt]: cutoff };
+    }
+  }
+
+  if (filter.startDate) {
+    const start = Date.parse(filter.startDate);
+    const cutoff = Date.parse(config.getConfig('minPredictionCutoffDate', '1990-01-01'));
+    if (start > cutoff) {
+      attributes.where.date = {
+        ...attributes.where.date,
+        [Op.gt]: filter.startDate,
+      };
+    }
+  }
+
+  if (filter.endDate) {
+    attributes.where.date = {
+      ...attributes.where.date,
+      [Op.lt]: filter.endDate,
+    };
+  }
+
+  return attributes;
+};
+
+const applyAgencyOfficeFilters = (attributes, user, filter) => {
+  if (!isGSAAdmin(user.agency, user.userRole)) {
+    const officeFilter = filter.filters?.office?.value;
+    
+    if (officeFilter) {
+      // Look for matches in both office and agency fields for the office value
+      attributes.where[Op.or] = [
+        { office: officeFilter },
+        { agency: officeFilter }  // This catches cases where EBUY data puts office in agency field
+      ];
+    } else {
+      // Default behavior - filter by user's office
+      attributes.where.office = user.office;
+    }
+
+    // Always apply agency filter unless it's overridden
+    if (filter.filters?.agency?.value) {
+      attributes.where.agency = filter.filters.agency.value;
+    } else {
+      attributes.where.agency = user.agency;
+    }
+  }
+  return attributes;
+};
+
+const applySorting = (attributes, filter) => {
+  attributes.order = [];
+  if (filter.sortField && filter.sortField !== 'unsorted') {
+    attributes.order.push([filter.sortField, filter.sortOrder < 0 ? 'DESC' : 'ASC']);
+  }
+  attributes.order.push(['id', 'DESC']); // Secondary sort by ID
+  return attributes;
+};
+
 async function getPredictions(filter, user) {
   try {
     logger.debug('GetPredictions - Start', { filter, user });
-    let first = filter.first || 0;
-    let max_fetch_rows = filter.rows || configuration.getConfig('defaultMaxPredictions', 1000);
-
-    // Ensure user has necessary information
-    if (!user?.agency || !user?.userRole || !user?.email) {
+    
+    // Validate user information
+    if (!user?.agency || !user?.userRole) {
       logger.warn('Missing user info');
       return { predictions: [], first: 0, rows: 0, totalCount: 0 };
     }
 
-    // Compute the user's office dynamically from their email
-    user.office = getOfficeFromEmail(user.email);
-    logger.debug('Computed user office', { userOffice: user.office });
-
+    // Initialize query parameters
+    const first = filter.first || 0;
+    const max_fetch_rows = filter.rows || configuration.getConfig('defaultMaxPredictions', 1000);
+    
     let attributes = {
       offset: first,
       limit: max_fetch_rows,
       include: [{ model: SurveyResponse, as: 'feedback' }],
       where: {},
+      raw: false,
+      nest: true
     };
-    logger.debug('Initial attributes', { attributes });
 
-    // Notice type filter
-    let types = configuration.getConfig('VisibleNoticeTypes', ['Solicitation', 'Combined Synopsis/Solicitation', 'RFQ']);
-    if (types?.length) {
-      attributes.where.noticeType = types; // Simplified without Op.in
-    }
+    // Get configured notice types
+    const types = configuration.getConfig('VisibleNoticeTypes', ['Solicitation', 'Combined Synopsis/Solicitation', 'RFQ']);
 
-    // Global text search
-    if (filter.globalFilter) {
-      attributes.where.searchText = { [Sequelize.Op.like]: `%${filter.globalFilter.toLowerCase()}%` };
-    }
-
-    // Normalize filters
-    ['office', 'agency', 'title', 'solNum', 'reviewRec', 'id'].forEach(f => {
-      if (filter[f] && (f !== 'agency' || filter[f].toLowerCase() !== 'government-wide')) {
-        filter.filters = filter.filters || {};
-        filter.filters[f] = { value: filter[f], matchMode: 'equals' };
-      }
-    });
-
-    logger.debug('Normalized filters', { filters: filter.filters });
-
-    // Process regular filters
-    if (filter.filters) {
-      Object.entries(filter.filters).forEach(([field, data]) => {
-        if (data.matchMode === 'equals' && data.value) {
-          attributes.where[field] = data.value; // Simplified without Op.eq
-        }
-      });
-      logger.debug('Attributes after applying filters', { attributes });
-    }
-
-    // Handle date filtering
-    if (!filter.ignoreDateCutoff && !filter.filters?.solNum) {
-      if (configuration.getConfig('minPredictionCutoffDate')) {
-        attributes.where.date = { [Sequelize.Op.gt]: configuration.getConfig('minPredictionCutoffDate') };
-      } else if (configuration.getConfig('predictionCutoffDays')) {
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - configuration.getConfig('predictionCutoffDays'));
-        attributes.where.date = { [Sequelize.Op.gt]: cutoff };
-      }
-    }
-
-    if (filter.startDate) {
-      const start = Date.parse(filter.startDate);
-      const cutoff = Date.parse(configuration.getConfig('minPredictionCutoffDate', '1990-01-01'));
-      if (start > cutoff) {
-        attributes.where.date = {
-          ...attributes.where.date,
-          [Sequelize.Op.gt]: filter.startDate,
-        };
-      }
-    }
-
-    if (filter.endDate) {
-      attributes.where.date = {
-        ...attributes.where.date,
-        [Sequelize.Op.lt]: filter.endDate,
-      };
-    }
-
-    // Agency/Office filtering for non-admin users
-    if (!isGSAAdmin(user.agency, user.userRole)) {
-      // Apply agency and computed office filters directly
-      attributes.where.agency = user.agency;
-      attributes.where.office = user.office;
-
-      // Allow filter overrides from the request
-      if (filter.filters?.agency?.value) {
-        attributes.where.agency = filter.filters.agency.value;
-      }
-      if (filter.filters?.office?.value) {
-        attributes.where.office = filter.filters.office.value;
-      }
-
-      logger.debug('Applied agency/office filters:', {
-        agencyFilter: attributes.where.agency,
-        officeFilter: attributes.where.office,
-        userAgency: user.agency,
-        userOffice: user.office,
-      });
-    }
+    // Apply all filters
+    attributes = applyBasicFilters(attributes, filter, types);
+    filter = normalizeStandardFilters(filter);
+    attributes = applyRegularFilters(attributes, filter.filters);
+    attributes = applyDateFilters(attributes, filter, configuration);
+    attributes = applyAgencyOfficeFilters(attributes, user, filter);
+    attributes = applySorting(attributes, filter);
 
     // Remove empty conditions
-    logger.debug('Attributes before removeEmptyFrom', { where: attributes.where });
     attributes.where = removeEmptyFrom(attributes.where);
-    logger.debug('Attributes after removeEmptyFrom', { where: attributes.where });
+    
+    logger.debug('Final query attributes', { attributes });
 
-    attributes.raw = false;
-    attributes.nest = true;
-
-    // Sorting
-    attributes.order = [];
-    if (filter.sortField && filter.sortField !== 'unsorted') {
-      attributes.order.push([filter.sortField, filter.sortOrder < 0 ? 'DESC' : 'ASC']);
-    }
-    attributes.order.push(['id', 'DESC']); // Secondary sort by ID
-
-    // Execute the query
-    logger.debug('Final query attributes before execution', { attributes });
-    let preds = await Solicitation.findAndCountAll(attributes);
-
+    // Execute query
+    const preds = await Solicitation.findAndCountAll(attributes);
+    
     logger.info('Query results', {
       totalCount: preds.count,
       sampleResults: preds.rows.slice(0, 3).map(r => ({
@@ -506,6 +524,7 @@ async function getPredictions(filter, user) {
       rows: Math.min(max_fetch_rows, preds.count),
       totalCount: preds.count,
     };
+
   } catch (e) {
     logger.error('Error in getPredictions', {
       error: e,
@@ -568,7 +587,7 @@ module.exports = {
     let keys = Object.keys(req.body)
 
     // verify that only supported filter params are used
-    let validKeys = ['agency', 'office', 'numDocs', 'solNum', 'category_list', 'startDate', 'fromPeriod', 'endDate', 'toPeriod', 'userEmail']
+    let validKeys = ['agency', 'office', 'numDocs', 'solNum', 'category_list', 'startDate', 'fromPeriod', 'endDate', 'toPeriod', 'noticeType']
     // add in the keys used by the PrimeNG table lazy loader
     validKeys.push('first', 'filters', 'globalFilter', 'multiSortMeta', 'rows', 'sortField', 'sortOrder')
     for (let i = 0; i < keys.length; i++) {
@@ -591,8 +610,6 @@ module.exports = {
     req.body.rows = (req.body.rows !== undefined) ? req.body.rows : 100
     let user = authRoutes.userInfoFromReq(req)
 
-     // Add `userEmail` from request body to the filter
-     req.body.userEmail = req.body.userEmail || user.email;
 
     return getPredictions(req.body, user)
       .then((predictions) => {
