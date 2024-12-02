@@ -90,6 +90,114 @@ module.exports = {
       "NA_ACTION": "Solicitation marked not applicable",
       "UNDO_NA_ACTION": "Not applicable status removed"
     },
+    AGENCY_HIERARCHY: {
+      'Department of Defense': {
+        offices: ['DEPARTMENT OF THE ARMY', 'DEPARTMENT OF THE NAVY', 'DEPARTMENT OF THE AIR FORCE', 'SPACE FORCE', 'DEFENSE LOGISTICS AGENCY'],
+        variations: {
+          'DEPARTMENT OF THE ARMY': {
+            aliases: ['DEPT OF THE ARMY', 'US ARMY', 'ARMY'],
+            email_domains: ['army.mil']
+          },
+          'DEPARTMENT OF THE NAVY': {
+            aliases: ['DEPT OF THE NAVY', 'US NAVY', 'NAVY'],
+            email_domains: ['navy.mil', 'us.navy.mil']
+          },
+          'DEPARTMENT OF THE AIR FORCE': {
+            aliases: ['DEPT OF THE AIR FORCE', 'US AIR FORCE', 'AIR FORCE'],
+            email_domains: ['af.mil', 'us.af.mil']
+          },
+          'SPACE FORCE': {
+            aliases: ['US SPACE FORCE', 'USSF'],
+            email_domains: ['spaceforce.mil']
+          },
+          'DEFENSE LOGISTICS AGENCY': {
+            aliases: ['DLA'],
+            email_domains: ['dla.mil']
+          }
+        }
+      },
+      'Department of Health and Human Services': {
+        offices: ['NATIONAL INSTITUTES OF HEALTH', 'FOOD AND DRUG ADMINISTRATION', 'INDIAN HEALTH SERVICE', 'CENTERS FOR MEDICARE & MEDICAID SERVICES'],
+        variations: {
+          'NATIONAL INSTITUTES OF HEALTH': {
+            aliases: ['NIH'],
+            email_domains: ['nih.gov']
+          },
+          'FOOD AND DRUG ADMINISTRATION': {
+            aliases: ['FDA'],
+            email_domains: ['fda.hhs.gov']
+          },
+          'INDIAN HEALTH SERVICE': {
+            aliases: ['IHS'],
+            email_domains: ['ihs.gov']
+          },
+          'CENTERS FOR MEDICARE & MEDICAID SERVICES': {
+            aliases: ['CMS'],
+            email_domains: ['cms.hhs.gov']
+          }
+        }
+      },
+      'Department of Homeland Security': {
+        offices: ['FEDERAL EMERGENCY MANAGEMENT AGENCY', 'US CITIZENSHIP AND IMMIGRATION SERVICES', 'US SECRET SERVICE'],
+        variations: {
+          'FEDERAL EMERGENCY MANAGEMENT AGENCY': {
+            aliases: ['FEMA'],
+            email_domains: ['fema.dhs.gov']
+          },
+          'US CITIZENSHIP AND IMMIGRATION SERVICES': {
+            aliases: ['USCIS'],
+            email_domains: ['uscis.dhs.gov']
+          },
+          'US SECRET SERVICE': {
+            aliases: ['USSS', 'SECRET SERVICE'],
+            email_domains: ['usss.dhs.gov']
+          }
+        }
+      },
+      'Department of Commerce': {
+        offices: ['NATIONAL OCEANIC AND ATMOSPHERIC ADMINISTRATION', 'NATIONAL TELECOMMUNICATIONS AND INFORMATION ADMINISTRATION'],
+        variations: {
+          'NATIONAL OCEANIC AND ATMOSPHERIC ADMINISTRATION': {
+            aliases: ['NOAA'],
+            email_domains: ['noaa.gov']
+          },
+          'NATIONAL TELECOMMUNICATIONS AND INFORMATION ADMINISTRATION': {
+            aliases: ['NTIA'],
+            email_domains: ['ntia']
+          }
+        }
+      },
+      'Department of the Interior': {
+        offices: ['NATIONAL PARK SERVICE', 'FISH AND WILDLIFE SERVICE', 'BUREAU OF OCEAN ENERGY MANAGEMENT'],
+        variations: {
+          'NATIONAL PARK SERVICE': {
+            aliases: ['NPS'],
+            email_domains: ['nps.gov']
+          },
+          'FISH AND WILDLIFE SERVICE': {
+            aliases: ['FWS', 'FISH AND WILDLIFE'],
+            email_domains: ['fws.gov']
+          },
+          'BUREAU OF OCEAN ENERGY MANAGEMENT': {
+            aliases: ['BOEM'],
+            email_domains: ['boem.gov']
+          }
+        }
+      },
+      'Department of the Treasury': {
+        offices: ['INTERNAL REVENUE SERVICE', 'US MINT'],
+        variations: {
+          'INTERNAL REVENUE SERVICE': {
+            aliases: ['IRS'],
+            email_domains: ['irs.gov']
+          },
+          'US MINT': {
+            aliases: ['MINT'],
+            email_domains: ['usmint.treas.gov']
+          }
+        }
+      }
+    },
     // keys for agency look should be all lower case
     AGENCY_LOOKUP: {
       "department of test": "TEST, DEPARTMENT OF",

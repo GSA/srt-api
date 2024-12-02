@@ -30,7 +30,6 @@ const cloneDeep = require('clone-deep')
 const Op = require('sequelize').Op
 const authRoutes = require('./auth.routes')
 const moment = require('moment')
-const { agencyNameVariations } = authRoutes;
 const { getOfficeFromEmail } = require('./auth.routes');
 const { isGSAAdmin } = require('./auth.routes'); // Adjust the path as necessary
 
@@ -367,12 +366,12 @@ function normalizeMatchFilter(filter, field){
 
 
 const applyBasicFilters = (attributes, filter, types) => {
-  // Notice type filter
+  // Notice type filter remains the same
   if (types?.length) {
     attributes.where.noticeType = types;
   }
 
-  // Global text search
+  // Global text search remains the same
   if (filter.globalFilter) {
     attributes.where.searchText = { [Op.like]: `%${filter.globalFilter.toLowerCase()}%` };
   }
@@ -381,6 +380,7 @@ const applyBasicFilters = (attributes, filter, types) => {
 };
 
 const normalizeStandardFilters = (filter) => {
+  // Keep handling office even though it maps to agency field
   ['office', 'agency', 'title', 'solNum', 'reviewRec', 'id'].forEach(f => {
     if (filter[f] && (f !== 'agency' || filter[f].toLowerCase() !== 'government-wide')) {
       filter.filters = filter.filters || {};
@@ -390,11 +390,28 @@ const normalizeStandardFilters = (filter) => {
   return filter;
 };
 
+const getOfficeVariations = (officeName) => {
+  const hierarchy = configuration.getConfig('AGENCY_HIERARCHY');
+  
+  for (const agencyData of Object.values(hierarchy)) {
+    for (const [office, data] of Object.entries(agencyData.variations)) {
+      if (office === officeName || data.aliases.includes(officeName)) {
+        return [office, ...data.aliases];
+      }
+    }
+  }
+  return [officeName];
+};
+
 const applyRegularFilters = (attributes, filters) => {
   if (!filters) return attributes;
 
   Object.entries(filters).forEach(([field, data]) => {
     if (data.matchMode === 'equals' && data.value) {
+      if (field === 'office') {
+        // Skip office field as it's handled in applyAgencyOfficeFilters
+        return;
+      }
       attributes.where[field] = data.value;
     }
   });
@@ -402,6 +419,7 @@ const applyRegularFilters = (attributes, filters) => {
 };
 
 const applyDateFilters = (attributes, filter, config) => {
+  // Date filtering logic remains unchanged
   if (!filter.ignoreDateCutoff && !filter.filters?.solNum) {
     if (config.getConfig('minPredictionCutoffDate')) {
       attributes.where.date = { [Op.gt]: config.getConfig('minPredictionCutoffDate') };
@@ -434,31 +452,59 @@ const applyDateFilters = (attributes, filter, config) => {
 };
 
 const applyAgencyOfficeFilters = (attributes, user, filter) => {
-  if (!isGSAAdmin(user.agency, user.userRole)) {
-    const officeFilter = filter.filters?.office?.value;
-    
-    if (officeFilter) {
-      // Look for matches in both office and agency fields for the office value
-      attributes.where[Op.or] = [
-        { office: officeFilter },
-        { agency: officeFilter }  // This catches cases where EBUY data puts office in agency field
-      ];
-    } else {
-      // Default behavior - filter by user's office
-      attributes.where.office = user.office;
-    }
+  logger.debug('Starting applyAgencyOfficeFilters with:', { user, filter });
 
-    // Always apply agency filter unless it's overridden
-    if (filter.filters?.agency?.value) {
-      attributes.where.agency = filter.filters.agency.value;
+  if (!isGSAAdmin(user.agency, user.userRole)) {
+    const hierarchy = configuration.getConfig('AGENCY_HIERARCHY');
+    const officeFilter = filter.filters?.office?.value;
+    const agencyFilter = filter.filters?.agency?.value;
+
+    if (!agencyFilter && !officeFilter && user.office) {
+      let officeValues = [];
+      const agencyVariations = hierarchy[user.agency]?.variations;
+
+      if (agencyVariations && agencyVariations[user.office]) {
+        // Office is in the hierarchy, get aliases
+        const variations = agencyVariations[user.office]?.aliases || [];
+        officeValues = [user.office, ...variations];
+      } else {
+        // Office not in hierarchy, use the office name as is
+        officeValues = [user.office];
+      }
+
+      // Set filters for agency and office
+      attributes.where = {
+        ...attributes.where,
+        agency: user.agency,
+        office: {
+          [Op.in]: officeValues
+        }
+      };
+
+      logger.debug('Set agency and office filter:', {
+        agency: user.agency,
+        officeValues: officeValues,
+        whereClause: attributes.where
+      });
     } else {
-      attributes.where.agency = user.agency;
+      // Apply any agency or office filters provided in the request
+      if (agencyFilter) {
+        attributes.where.agency = agencyFilter;
+      } else {
+        attributes.where.agency = user.agency;
+      }
+
+      if (officeFilter) {
+        attributes.where.office = officeFilter;
+      }
     }
   }
+
   return attributes;
 };
 
 const applySorting = (attributes, filter) => {
+  // Sorting logic remains unchanged
   attributes.order = [];
   if (filter.sortField && filter.sortField !== 'unsorted') {
     attributes.order.push([filter.sortField, filter.sortOrder < 0 ? 'DESC' : 'ASC']);
@@ -513,7 +559,6 @@ async function getPredictions(filter, user) {
       totalCount: preds.count,
       sampleResults: preds.rows.slice(0, 3).map(r => ({
         agency: r.agency,
-        office: r.office,
         solNum: r.solNum,
       })),
     });

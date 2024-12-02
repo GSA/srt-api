@@ -17,6 +17,7 @@ const config = require('../config/config.js')[env]
 const {common} = require('../config/config.js')
 const {getConfig} = require('../config/configuration')
 const jwtSecret = common.jwtSecret || undefined
+const configuration = require('../config/configuration');
 
 
 const roles = [
@@ -39,15 +40,6 @@ const PROGRAM_MANAGER_ROLE = 1
 const FIVE08_COORDINATOR_ROLE = 2
 const CO_ROLE = 3
 const EXEC_ROLE = 4
-
-const topLevelAgencyMap = {
-  'Department of Defense': ['Department of the Army', 'Department of the Navy', 'Department of the Air Force', 'Space Force', 'Defense Logistics Agency'],
-  'Department of Health and Human Services': ['National Institutes of Health', 'Food and Drug Administration', 'Indian Health Service', 'Centers for Medicare & Medicaid Services'],
-  'Department of Homeland Security': ['Federal Emergency Management Agency', 'U.S. Citizenship and Immigration Services', 'U.S. Secret Service'],
-  'Department of Commerce': ['National Oceanic and Atmospheric Administration', 'National Telecommunications and Information Administration'],
-  'Department of the Interior': ['National Park Service', 'Fish and Wildlife Service', 'Bureau of Ocean Energy Management'],
-  'Department of the Treasury': ['Internal Revenue Service', 'U.S. Mint']
-};
 
 // Load your RSA private key
 let privateKey;
@@ -162,89 +154,30 @@ function createUser(loginGovUser) {
     });
 }
 
-
-const agencyNameVariations = {
-  'Department of Defense': {
-    'Department of the Army': ['DEPT OF THE ARMY', 'DEPARTMENT OF THE ARMY', 'US ARMY', 'ARMY'],
-    'Department of the Navy': ['DEPT OF THE NAVY', 'DEPARTMENT OF THE NAVY', 'US NAVY', 'NAVY'],
-    'Department of the Air Force': ['DEPT OF THE AIR FORCE', 'DEPARTMENT OF THE AIR FORCE', 'US AIR FORCE', 'AIR FORCE'],
-    'Space Force': ['US SPACE FORCE', 'USSF', 'DEPARTMENT OF THE SPACE FORCE'],
-    'Defense Logistics Agency': ['DLA', 'DEFENSE LOGISTICS AGENCY']
-  },
-  'Department of Health and Human Services': {
-    'National Institutes of Health': ['NIH', 'NATIONAL INSTITUTES OF HEALTH'],
-    'Food and Drug Administration': ['FDA', 'FOOD AND DRUG ADMINISTRATION'],
-    'Indian Health Service': ['IHS', 'INDIAN HEALTH SERVICE'],
-    'Centers for Medicare & Medicaid Services': ['CMS', 'CENTER FOR MEDICARE AND MEDICAID SERVICES']
-  },
-  'Department of Homeland Security': {
-    'Federal Emergency Management Agency': ['FEMA'],
-    'U.S. Citizenship and Immigration Services': ['USCIS'],
-    'U.S. Secret Service': ['USSS', 'SECRET SERVICE']
-  },
-  'Department of Commerce': {
-    'National Oceanic and Atmospheric Administration': ['NOAA'],
-    'National Telecommunications and Information Administration': ['NTIA']
-  },
-  'Department of the Interior': {
-    'National Park Service': ['NPS'],
-    'Fish and Wildlife Service': ['FWS', 'FISH AND WILDLIFE'],
-    'Bureau of Ocean Energy Management': ['BOEM']
-  },
-  'Department of the Treasury': {
-    'Internal Revenue Service': ['IRS'],
-    'U.S. Mint': ['MINT', 'US MINT']
-  }
-};
-
-
 function getOfficeFromEmail(email) {
+  if (!email) return null;
   
-  if (!email) {
-    return null;
-  }
-
   const emailLower = email.toLowerCase();
-  // DOD Mappings
-  if (emailLower.includes('army.mil')) return 'DEPT OF THE ARMY';
-  if (emailLower.includes('navy.mil') || emailLower.includes('us.navy.mil')) return 'DEPT OF THE NAVY';
-  if (emailLower.includes('af.mil') || emailLower.includes('us.af.mil')) return 'DEPT OF THE AIR FORCE';
-  if (emailLower.includes('spaceforce.mil')) return 'Space Force';
-  if (emailLower.includes('dla.mil')) return 'DEFENSE LOGISTICS AGENCY';
- 
-  // HHS Mappings
-  if (emailLower.includes('nih.gov')) return 'NATIONAL INSTITUTES OF HEALTH';
-  if (emailLower.includes('fda.hhs.gov')) return 'FOOD AND DRUG ADMINISTRATION';
-  if (emailLower.includes('ihs.gov')) return 'INDIAN HEALTH SERVICE';
-  if (emailLower.includes('cms.hhs.gov')) return 'CENTERS FOR MEDICARE AND MEDICAID SERVICES';
- 
-  // DHS Mappings
-  if (emailLower.includes('fema.dhs.gov')) return 'FEDERAL EMERGENCY MANAGEMENT AGENCY';
-  if (emailLower.includes('uscis.dhs.gov')) return 'US CITIZENSHIP AND IMMIGRATION SERVICES';
-  if (emailLower.includes('usss.dhs.gov')) return 'US SECRET SERVICE';
- 
-  // Commerce Mappings
-  if (emailLower.includes('noaa.gov')) return 'NATIONAL OCEANIC AND ATMOSPHERIC ADMINISTRATION';
-  if (emailLower.includes('ntia')) return 'NATIONAL TELECOMMUNICATIONS AND INFORMATION ADMINISTRATION';
- 
-  // Interior Mappings
-  if (emailLower.includes('nps.gov')) return 'NATIONAL PARK SERVICE';
-  if (emailLower.includes('fws.gov')) return 'US FISH AND WILDLIFE SERVICE';
-  if (emailLower.includes('boem.gov')) return 'BUREAU OF OCEAN ENERGY MANAGEMENT';
- 
-  // Treasury Mappings
-  if (emailLower.includes('irs.gov')) return 'INTERNAL REVENUE SERVICE';
-  if (emailLower.includes('usmint.treas.gov')) return 'US MINT';
-
-
+  const hierarchy = configuration.getConfig('AGENCY_HIERARCHY');
+  
+  // Loop through each agency
+  for (const [agency, agencyData] of Object.entries(hierarchy)) {
+    // Check each office's email domains
+    for (const [officeName, officeData] of Object.entries(agencyData.variations)) {
+      if (officeData.email_domains.some(domain => emailLower.includes(domain))) {
+        return officeName;
+      }
+    }
+  }
+  
   return null;
- }
-
+}
 
 function getParentAgencyFromOffice(office) {
-  return Object.keys(topLevelAgencyMap).find(agency => 
-    topLevelAgencyMap[agency].includes(office)
-  ) || null;
+  const hierarchy = configuration.getConfig('AGENCY_HIERARCHY');
+  return Object.entries(hierarchy).find(([agency, data]) => 
+    data.offices.includes(office)
+  )?.[0] || null;
 }
 
 function grabAgencyFromEmail(email) {
@@ -851,9 +784,5 @@ module.exports = {
   CO_ROLE : CO_ROLE,
   EXEC_ROLE : EXEC_ROLE,
   getOfficeFromEmail,
-  getParentAgencyFromOffice,
-  topLevelAgencyMap,
-  agencyNameVariations
-
-
+  getParentAgencyFromOffice
 }
