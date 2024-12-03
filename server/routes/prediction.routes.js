@@ -1,6 +1,5 @@
 /** @module PredictionRoutes */
 // noinspection JSUnresolvedVariable
-const Sequelize = require('sequelize');
 /** @type {Prediction} **/
 const Prediction = require('../models').Prediction
 /** @type {Solicitation} **/
@@ -30,8 +29,6 @@ const cloneDeep = require('clone-deep')
 const Op = require('sequelize').Op
 const authRoutes = require('./auth.routes')
 const moment = require('moment')
-const { getOfficeFromEmail } = require('./auth.routes');
-const { isGSAAdmin } = require('./auth.routes'); // Adjust the path as necessary
 
 let background_count = 0
 
@@ -44,8 +41,7 @@ let background_count = 0
  * @property {string} startDate Date in YYYY-MM-DD format
  * @property {string} endDate Date in YYYY-MM-DD format
  * @property {string} category_list - "Yes" or "No" value indicating if you want to receive IT Solicitation or non IT solicitations
- * @property {string} userEmail Email address of the user for filtering predictions
- * 
+ *
  *
  */
 
@@ -363,220 +359,142 @@ function normalizeMatchFilter(filter, field){
  * @return {Promise<Array(Prediction)>} All predictions that match the filter
  */
 /** @namespace filter.numDocs */
-
-
-const applyBasicFilters = (attributes, filter, types) => {
-  // Notice type filter remains the same
-  if (types?.length) {
-    attributes.where.noticeType = types;
-  }
-
-  // Global text search remains the same
-  if (filter.globalFilter) {
-    attributes.where.searchText = { [Op.like]: `%${filter.globalFilter.toLowerCase()}%` };
-  }
-
-  return attributes;
-};
-
-const normalizeStandardFilters = (filter) => {
-  // Keep handling office even though it maps to agency field
-  ['office', 'agency', 'title', 'solNum', 'reviewRec', 'id'].forEach(f => {
-    if (filter[f] && (f !== 'agency' || filter[f].toLowerCase() !== 'government-wide')) {
-      filter.filters = filter.filters || {};
-      filter.filters[f] = { value: filter[f], matchMode: 'equals' };
-    }
-  });
-  return filter;
-};
-
-const getOfficeVariations = (officeName) => {
-  const hierarchy = configuration.getConfig('AGENCY_HIERARCHY');
-  
-  for (const agencyData of Object.values(hierarchy)) {
-    for (const [office, data] of Object.entries(agencyData.variations)) {
-      if (office === officeName || data.aliases.includes(officeName)) {
-        return [office, ...data.aliases];
-      }
-    }
-  }
-  return [officeName];
-};
-
-const applyRegularFilters = (attributes, filters) => {
-  if (!filters) return attributes;
-
-  Object.entries(filters).forEach(([field, data]) => {
-    if (data.matchMode === 'equals' && data.value) {
-      if (field === 'office') {
-        // Skip office field as it's handled in applyAgencyOfficeFilters
-        return;
-      }
-      attributes.where[field] = data.value;
-    }
-  });
-  return attributes;
-};
-
-const applyDateFilters = (attributes, filter, config) => {
-  // Date filtering logic remains unchanged
-  if (!filter.ignoreDateCutoff && !filter.filters?.solNum) {
-    if (config.getConfig('minPredictionCutoffDate')) {
-      attributes.where.date = { [Op.gt]: config.getConfig('minPredictionCutoffDate') };
-    } else if (config.getConfig('predictionCutoffDays')) {
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - config.getConfig('predictionCutoffDays'));
-      attributes.where.date = { [Op.gt]: cutoff };
-    }
-  }
-
-  if (filter.startDate) {
-    const start = Date.parse(filter.startDate);
-    const cutoff = Date.parse(config.getConfig('minPredictionCutoffDate', '1990-01-01'));
-    if (start > cutoff) {
-      attributes.where.date = {
-        ...attributes.where.date,
-        [Op.gt]: filter.startDate,
-      };
-    }
-  }
-
-  if (filter.endDate) {
-    attributes.where.date = {
-      ...attributes.where.date,
-      [Op.lt]: filter.endDate,
-    };
-  }
-
-  return attributes;
-};
-
-const applyAgencyOfficeFilters = (attributes, user, filter) => {
-  logger.debug('Starting applyAgencyOfficeFilters with:', { user, filter });
-
-  if (!isGSAAdmin(user.agency, user.userRole)) {
-    const hierarchy = configuration.getConfig('AGENCY_HIERARCHY');
-    const officeFilter = filter.filters?.office?.value;
-    const agencyFilter = filter.filters?.agency?.value;
-
-    if (!agencyFilter && !officeFilter && user.office) {
-      let officeValues = [];
-      const agencyVariations = hierarchy[user.agency]?.variations;
-
-      if (agencyVariations && agencyVariations[user.office]) {
-        // Office is in the hierarchy, get aliases
-        const variations = agencyVariations[user.office]?.aliases || [];
-        officeValues = [user.office, ...variations];
-      } else {
-        // Office not in hierarchy, use the office name as is
-        officeValues = [user.office];
-      }
-
-      // Set filters for agency and office
-      attributes.where = {
-        ...attributes.where,
-        agency: user.agency,
-        office: {
-          [Op.in]: officeValues
-        }
-      };
-
-      logger.debug('Set agency and office filter:', {
-        agency: user.agency,
-        officeValues: officeValues,
-        whereClause: attributes.where
-      });
-    } else {
-      // Apply any agency or office filters provided in the request
-      if (agencyFilter) {
-        attributes.where.agency = agencyFilter;
-      } else {
-        attributes.where.agency = user.agency;
-      }
-
-      if (officeFilter) {
-        attributes.where.office = officeFilter;
-      }
-    }
-  }
-
-  return attributes;
-};
-
-const applySorting = (attributes, filter) => {
-  // Sorting logic remains unchanged
-  attributes.order = [];
-  if (filter.sortField && filter.sortField !== 'unsorted') {
-    attributes.order.push([filter.sortField, filter.sortOrder < 0 ? 'DESC' : 'ASC']);
-  }
-  attributes.order.push(['id', 'DESC']); // Secondary sort by ID
-  return attributes;
-};
-
-async function getPredictions(filter, user) {
+async function getPredictions (filter, user) {
   try {
-    logger.debug('GetPredictions - Start', { filter, user });
+    logger.debug("Starting getPredictions", { filter, userAgency: user?.agency, userRole: user?.userRole })
     
-    // Validate user information
-    if (!user?.agency || !user?.userRole) {
-      logger.warn('Missing user info');
-      return { predictions: [], first: 0, rows: 0, totalCount: 0 };
+    let first = filter.first || 0
+    let max_fetch_rows = filter.rows || configuration.getConfig("defaultMaxPredictions", 1000)
+
+    if ( user === undefined || user.agency === undefined || user.userRole === undefined ) {
+      logger.warn("Missing user information - returning empty result")
+      return []
     }
 
-    // Initialize query parameters
-    const first = filter.first || 0;
-    const max_fetch_rows = filter.rows || configuration.getConfig('defaultMaxPredictions', 1000);
-    
     let attributes = {
       offset: first,
       limit: max_fetch_rows,
-      include: [{ model: SurveyResponse, as: 'feedback' }],
-      where: {},
-      raw: false,
-      nest: true
-    };
+      include: [{
+        model: SurveyResponse,
+        as: 'feedback'
+      }],
+    }
 
-    // Get configured notice types
-    const types = configuration.getConfig('VisibleNoticeTypes', ['Solicitation', 'Combined Synopsis/Solicitation', 'RFQ']);
-
-    // Apply all filters
-    attributes = applyBasicFilters(attributes, filter, types);
-    filter = normalizeStandardFilters(filter);
-    attributes = applyRegularFilters(attributes, filter.filters);
-    attributes = applyDateFilters(attributes, filter, configuration);
-    attributes = applyAgencyOfficeFilters(attributes, user, filter);
-    attributes = applySorting(attributes, filter);
-
-    // Remove empty conditions
-    attributes.where = removeEmptyFrom(attributes.where);
+    let types = configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation', 'RFQ'])
+    logger.debug("Filtering by notice types", { types })
     
-    logger.debug('Final query attributes', { attributes });
+    attributes.where = {
+      noticeType: {
+        [Op.in]: types
+      }
+    }
 
-    // Execute query
-    const preds = await Solicitation.findAndCountAll(attributes);
-    
-    logger.info('Query results', {
-      totalCount: preds.count,
-      sampleResults: preds.rows.slice(0, 3).map(r => ({
-        agency: r.agency,
-        solNum: r.solNum,
-      })),
-    });
+    if (filter.globalFilter) {
+      logger.debug("Applying global filter", { searchText: filter.globalFilter.toLowerCase() })
+      attributes.where.searchText = { [Op.like]: `%${filter.globalFilter.toLowerCase()}%` }
+    }
+
+    for (let f of ['office', 'agency', 'title', 'solNum', 'reviewRec', 'id']) {
+      normalizeMatchFilter(filter, f)
+    }
+
+    if (filter.filters) {
+      logger.debug("Processing PrimeNG filters", { filters: filter.filters })
+      for (let f in filter.filters) {
+        if (filter.filters.hasOwnProperty(f) && filter.filters[f].matchMode === 'equals') {
+          attributes.where[f] = {[Op.eq]: filter.filters[f].value}
+          logger.debug(`Applied filter for field ${f}`, { value: filter.filters[f].value })
+        }
+      }
+    }
+
+    if (!filter.ignoreDateCutoff) {
+      logger.debug("Applying date cutoff filters")
+      if ((!filter.filters) || (!filter.filters.hasOwnProperty('solNum'))) {
+        if (configuration.getConfig("minPredictionCutoffDate")) {
+          const cutoffDate = configuration.getConfig("minPredictionCutoffDate")
+          logger.debug("Using minPredictionCutoffDate", { cutoffDate })
+          attributes.where.date = {[Op.gt]: cutoffDate}
+        } else if (configuration.getConfig("predictionCutoffDays")) {
+          const numDays = configuration.getConfig("predictionCutoffDays")
+          const today = new Date()
+          let cutoff = new Date()
+          cutoff.setDate(today.getDate() - numDays)
+          logger.debug("Using predictionCutoffDays", { numDays, cutoffDate: cutoff })
+          attributes.where.date = {[Op.gt]: cutoff}
+        }
+      }
+    }
+
+    if (filter.startDate) {
+      const start = Date.parse(filter.startDate)
+      const cutoff = Date.parse(configuration.getConfig("minPredictionCutoffDate", '1990-01-01'))
+      logger.debug("Processing start date filter", { startDate: filter.startDate, cutoffDate: cutoff })
+      if (start > cutoff) {
+        attributes.where.date = { [Op.gt]: filter.startDate }
+      }
+    }
+
+    if (filter.endDate) {
+      logger.debug("Processing end date filter", { endDate: filter.endDate })
+      attributes.where.date = (attributes.where.date) ?
+        Object.assign(attributes.where.date, { [Op.lt]: filter.endDate }) :
+        { [Op.lt]: filter.endDate }
+    }
+
+    // Agency access control - check both agency and office fields
+    if (!authRoutes.isGSAAdmin(user.agency, user.userRole)) {
+      logger.debug("Restricting to user's agency and office", { agency: user.agency })
+      attributes.where[Op.or] = [
+        { agency: { [Op.eq]: user.agency } },
+        { office: { [Op.eq]: user.agency } }
+      ]
+    } else {
+      logger.debug("GSA Admin detected - no agency restriction applied")
+    }
+
+    // Set order
+    attributes.order = []
+    if (filter.sortField !== 'unsorted' && filter.sortField) {
+      let direction = filter.sortOrder && filter.sortOrder < 0 ? 'DESC' : 'ASC'
+      logger.debug("Applying sort", { field: filter.sortField, direction })
+      attributes.order.push([filter.sortField, direction])
+    }
+    attributes.order.push(['id', 'DESC'])
+
+    attributes.raw = true
+    attributes.nest = true
+
+    attributes.where = removeEmptyFrom(attributes.where)
+    logger.debug("Final query attributes", { attributes })
+
+    let preds = await Solicitation.findAndCountAll(attributes)
+    logger.debug("Query complete", { 
+      rowCount: preds.count, 
+      firstRow: first, 
+      maxRows: max_fetch_rows,
+      returnedRows: preds.rows.length 
+    })
 
     return {
       predictions: preds.rows,
-      first,
+      first: first,
       rows: Math.min(max_fetch_rows, preds.count),
-      totalCount: preds.count,
-    };
-
+      totalCount: preds.count
+    }
   } catch (e) {
-    logger.error('Error in getPredictions', {
-      error: e,
-      message: e.message,
+    logger.error("Error in getPredictions", { 
+      error: e.message,
       stack: e.stack,
-    });
-    return { predictions: [], first: 0, rows: 0, totalCount: 0 };
+      filter,
+      userAgency: user?.agency
+    })
+    return {
+      predictions: [],
+      first: 0,
+      rows: 0,
+      totalCount: 0
+    }
   }
 }
 
@@ -654,7 +572,6 @@ module.exports = {
     req.body.first = (req.body.first !== undefined) ? req.body.first : 0
     req.body.rows = (req.body.rows !== undefined) ? req.body.rows : 100
     let user = authRoutes.userInfoFromReq(req)
-
 
     return getPredictions(req.body, user)
       .then((predictions) => {

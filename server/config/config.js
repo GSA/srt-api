@@ -198,6 +198,15 @@ module.exports = {
         }
       }
     },
+    UNIQUE_EMAIL_AGENCY_MAPPING: {
+      'usss.dhs.gov': 'US SECRET SERVICE',
+      'fema.dhs.gov': 'FEDERAL EMERGENCY MANAGEMENT AGENCY',
+      'uscis.dhs.gov': 'US CITIZENSHIP AND IMMIGRATION SERVICES',
+      'cms.hhs.gov': 'CENTERS FOR MEDICARE & MEDICAID SERVICES',
+      'fda.hhs.gov': 'FOOD AND DRUG ADMINISTRATION',
+      'us.af.mil': 'DEPT OF THE AIR FORCE',
+      'us.navy.mil': 'DEPT OF THE NAVY'
+    },
     // keys for agency look should be all lower case
     AGENCY_LOOKUP: {
       "department of test": "TEST, DEPARTMENT OF",
@@ -357,7 +366,15 @@ module.exports = {
       "vets": "Veterans' Employment and Training Service",
       "vha": "Veterans Health Administration",
       "voa": "Voice of America",
-      "washington, dc": "District of Columbia"
+      "washington, dc": "District of Columbia",
+      "army": "DEPT OF THE ARMY",
+      "navy": "DEPT OF THE NAVY",
+      "af": "DEPT OF THE AIR FORCE",
+      "spaceforce": "SPACE FORCE", 
+      "dla": "DEFENSE LOGISTICS AGENCY",
+      "ihs": "INDIAN HEALTH SERVICE",
+      "usss": "US SECRET SERVICE",
+      "usmint": "US MINT"
     },
 
     // AGENCY_LOOKUP: {
@@ -428,7 +445,7 @@ module.exports = {
     },
     VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation', 'RFQ'],
     //"minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z",
-    "predictionCutoffDays" : 60,
+    "predictionCutoffDays" : 90,
     "updatePredictionTableMaxRunTime" : 10,
     "updatePredictionTableQueueDelay": 10,
     "logPerformance": false,

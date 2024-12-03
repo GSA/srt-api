@@ -17,8 +17,6 @@ const config = require('../config/config.js')[env]
 const {common} = require('../config/config.js')
 const {getConfig} = require('../config/configuration')
 const jwtSecret = common.jwtSecret || undefined
-const configuration = require('../config/configuration');
-
 
 const roles = [
   { name: "Administrator", casGroup:"AGY-GSA-SRT-ADMINISTRATORS.ROLEMANAGEMENT", priority: 10},
@@ -44,11 +42,10 @@ const EXEC_ROLE = 4
 // Load your RSA private key
 let privateKey;
 try {
-  privateKey = fs.readFileSync(path.resolve(__dirname, '../certs/private.pem'), 'utf8');
+  privateKey = fs.readFileSync(path.resolve(__dirname,'../certs/private.pem'), 'utf8');
 } catch (err) {
   privateKey = process.env.LOGIN_PRIVATE_KEY;
 }
-console.log("Private Key Loaded:", !!privateKey);  // Will print 'true' if key is loaded
 //const publicKey = fs.readFileSync(path.resolve(__dirname,'../certs/public.crt'), 'utf8');
 /**
  * Update a user record in the database to reflect updated info from MAX CAS
@@ -59,12 +56,11 @@ console.log("Private Key Loaded:", !!privateKey);  // Will print 'true' if key i
  * @return {*|PromiseLike<T | never>|Promise<T | never>}
  */
 function updateMAXUser(cas_data, user) {
-  try {
-    logger.log('info', 'Updating MAX user', { 
-      email: cas_data['email-address'],
-      tag: 'updateMAXUser'
-    })
+  let now = new Date()
+  let date = (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getFullYear()
 
+  //update existing
+  try {
     user['firstName'] = cas_data['first-name']
     user['lastName'] = cas_data['last-name']
     user['email'] = cas_data['email-address']
@@ -84,19 +80,20 @@ function updateMAXUser(cas_data, user) {
         logger.log('error', 'error in: updateMAXUser', { error:e, tag: 'updateMAXUser' })
       })
   } catch (e) {
-    logger.log("error", "caught error in auth.routes.js", {error:e, tag: 'updateMAXUser'})
+    logger.log ("error", "caught error in auth.routes.js", {error:e, tag: 'updateMAXUser'})
   }
 }
 
 function updateUser(login_gov_data, user) {
+  // Update thhe user value if differing an save value
   try {
-    logger.log('info', 'Updating Login.gov user', {
-      email: login_gov_data.email,
-      tag: 'updateUser'
-    })
+
+    //console.log("User Found:", user)
 
     if (login_gov_data.given_name !== undefined) user['firstName'] = login_gov_data['given_name']
+
     if (login_gov_data.family_name !== undefined) user['lastName'] = login_gov_data['family_name']
+
     user['maxId'] = user.maxId || login_gov_data.sub
     
     return user.save()
@@ -107,10 +104,9 @@ function updateUser(login_gov_data, user) {
         logger.log('error', 'error in: updateUser', { error:e, tag: 'updateUser' })
       })
   } catch (e) {
-    logger.log("error", "caught error in auth.routes.js", {error:e, tag: 'updateUser'})
+    logger.log ("error", "caught error in auth.routes.js", {error:e, tag: 'updateUser'})
   }
 }
-
 
 function capitalize(s)
 {
@@ -122,14 +118,15 @@ function getGovernmentEmail(emails) {
 }
 
 function createUser(loginGovUser) {
-  logger.log('info', 'Creating new Login.gov user', {
-    email: loginGovUser.email,
-    tag: 'createUser'
-  })
+  let now = new Date()
+  let date = (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getFullYear()
+  
+  //console.log("Login.gov user:", loginGovUser)
 
-  let now = new Date();
-  let date = (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getFullYear();
+  const gov_email = getGovernmentEmail(loginGovUser.all_emails || [])
+
   const user_email = gov_email || loginGovUser.email
+
   let user_data = {
     'firstName': loginGovUser.given_name || null,
     'lastName': loginGovUser.family_name || null,
@@ -137,59 +134,66 @@ function createUser(loginGovUser) {
     'password': null,
     'agency': grabAgencyFromEmail(user_email),
     'position': '',
-    'userRole': 'Executive User',
+    'userRole': 'Executive User', // If we need to handle user roles, we should set it to lowest setting and adjust
     'isRejected': false,
     'isAccepted': true,
     'tempPassword': null,
     'creationDate': date,
     'maxId': loginGovUser.sub
-  };
-
-  return User.create(user_data)
-    .then((u) => {
-      return u;
-    })
-    .catch((e) => {
-      logger.log("error", 'Error in: createUser', {error: e, tag: "createUser"});
-    });
-}
-
-function getOfficeFromEmail(email) {
-  if (!email) return null;
-  
-  const emailLower = email.toLowerCase();
-  const hierarchy = configuration.getConfig('AGENCY_HIERARCHY');
-  
-  // Loop through each agency
-  for (const [agency, agencyData] of Object.entries(hierarchy)) {
-    // Check each office's email domains
-    for (const [officeName, officeData] of Object.entries(agencyData.variations)) {
-      if (officeData.email_domains.some(domain => emailLower.includes(domain))) {
-        return officeName;
-      }
-    }
   }
-  
-  return null;
-}
-
-function getParentAgencyFromOffice(office) {
-  const hierarchy = configuration.getConfig('AGENCY_HIERARCHY');
-  return Object.entries(hierarchy).find(([agency, data]) => 
-    data.offices.includes(office)
-  )?.[0] || null;
+  return User.create(user_data)
+    .then( u => {
+      return u
+    })
+    .catch ( e => {
+      logger.log("error", 'error in: createUser', {error: e, tag:"createUser"})
+    })
 }
 
 function grabAgencyFromEmail(email) {
-  let agency_abbreviance = email.split('@')[1].split('.')[0]
+  // Extract the full domain from the email
+  const fullDomain = email.split('@')[1];
 
-  var agencyName = translateCASAgencyName(agency_abbreviance)
+  // Regex to check for a pattern like "@usss.dhs.gov"
+  // This matches domains in the format of "subdomain.agency.tld" where:
+  // - Subdomain and agency are alphanumeric with optional dots (e.g., "usss.dhs")
+  // - TLD is at least two characters long (e.g., "gov")
+  const regex = /^[a-z0-9]+(?:\.[a-z0-9]+)*\.[a-z]{2,}$/;
+
+  if (regex.test(fullDomain)) {
+    // Check the unique email mapping
+    const agencyName = common.UNIQUE_EMAIL_AGENCY_MAPPING[fullDomain];
+    if (agencyName) {
+      logger.log("info", "Matched agency from unique email mapping", {
+        email,
+        domain: fullDomain,
+        resolved: agencyName,
+        tag: 'grabAgencyFromEmail'
+      });
+      return agencyName;
+    }
+  }
+
+  // If no match in the unique mapping, fall back to original functionality
+  let agency_abbreviance = fullDomain.split('.')[0];
+  logger.log("info", "Extracting agency from email domain", {
+    email,
+    domain: agency_abbreviance,
+    tag: 'grabAgencyFromEmail'
+  });
+
+  let agencyName = translateCASAgencyName(agency_abbreviance);
+  logger.log("info", "Resolved agency name", {
+    abbreviation: agency_abbreviance,
+    resolved: agencyName,
+    tag: 'translateCASAgencyName'
+  });
 
   if (!agencyName) {
-    logger.log("error", 'Agency name not found, update with User Admin Site', {tag:"grabAgencyFromEmail"})
-    agencyName = "No Agency Found"; // replace with your default value
+    logger.log("error", 'Agency name not found', { tag: "grabAgencyFromEmail" });
+    agencyName = "No Agency Found";
   }
-  
+
   return agencyName;
 }
 
@@ -261,22 +265,14 @@ function userOnPasswordOnlyWhitelist(session){
  * @return {*|PromiseLike<T | never>|Promise<T | never>}
  */
 function createMAXUser(cas_data) {
-  let agency = getParentAgencyFromOffice(office) || cas_data['agency-name'];
-
-  logger.log('info', 'Creating new MAX user', {
-    email: cas_data['email-address'],
-    agency: agency,
-    tag: 'createMAXUser'
-  });
-
-  let now = new Date();
-  let date = (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getFullYear();
+  let now = new Date()
+  let date = (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getFullYear()
   let user_data = {
     'firstName': cas_data['first-name'],
-    'lastName': cas_data['last-name'], 
+    'lastName': cas_data['last-name'],
     'email': cas_data['email-address'],
     'password': null,
-    'agency': agency,
+    'agency': cas_data['agency-name'],
     'position': '',
     'userRole': cas_data['userRole'],
     'isRejected': false,
@@ -284,17 +280,16 @@ function createMAXUser(cas_data) {
     'tempPassword': null,
     'creationDate': date,
     'maxId': cas_data['maxId']
-  };
-
+  }
   return User.create(user_data)
-    .then(u => {
-      return u.id;
+    .then( u => {
+      return u.id
     })
-    .catch(e => {
-      logger.log("error", 'error in: createMAXUser', {error: e, tag:"createMAXUser"});
-    });
-}
+    .catch ( e => {
+      logger.log("error", 'error in: createMAXUser', {error: e, tag:"createMAXUser"})
+    })
 
+}
 
 /**
  * Create or update a User table record from the supplied MAX CAS data
@@ -433,12 +428,8 @@ function convertCASNamesToSRT (cas_userinfo) {
   srt_userinfo['lastName'] = srt_userinfo['last-name']
   delete srt_userinfo['last-name']
 
-  // Get office and agency based on email
-  const office = getOfficeFromEmail(srt_userinfo['email'])
-  srt_userinfo['office'] = office
-  srt_userinfo['agency'] = getParentAgencyFromOffice(office) || translateCASAgencyName(srt_userinfo['org-agency-name'])
-  
-  delete srt_userinfo['org-agency-name']
+  srt_userinfo['agency'] = grabAgencyFromEmail(srt_userinfo['email'])
+  delete srt_userinfo['email']
 
   return srt_userinfo;
 }
@@ -574,7 +565,6 @@ module.exports = {
       return jwt.sign(payload, privateKey, { algorithm: 'RS256' });
     };
 
-    
 
     body = {
       client_assertion: client_assertion(),
@@ -705,56 +695,41 @@ module.exports = {
    * @param req
    * @param res
    */
-  casStage2: async function(req, res) {
-    if (!req.session?.cas_userinfo?.['max-id'] && !req.session?.cas_userinfo?.maxId) {
+  casStage2 : async function (req, res) {
+    /** @namespace req.session.cas_userinfo */
+
+    if ( ! ( req.session && req.session['cas_userinfo'] && (req.session.cas_userinfo['max-id'] || req.session.cas_userinfo['maxId']  ))) {
+      // didn't get CAS session info
       return res.status(302)
-        .set('Location', config['srtClientUrl'] + '/auth')
-        .send(`<html lang="en"><body>Login Failed</body></html>`);
+        .set('Location', config['srtClientUrl'] + '/auth') // send them back with no token
+        .send(`<html lang="en"><body>Login Failed</body></html>`)
     }
-  
-    if (!(verifyPIVUsed(req.session) || userOnPasswordOnlyWhitelist(req.session))) {
+
+    if( ! ( verifyPIVUsed(req.session) ||  userOnPasswordOnlyWhitelist(req.session) ) ) {
       req.session.destroy();
       return res.status(302)
-        .set('Location', encodeURI(config['srtClientUrl'] + '/auth?error=<p>PIV or CAC login required.<br> Log out of MAX and return here, then log in using a PIV or CAC.</p>'))
-        .send(`<html lang="en"><body>Login Failed</body></html>`);
+        .set('Location', encodeURI(config['srtClientUrl'] + '/auth?error=<p>PIV or CAC login required.<br> Log out of MAX and return here, then log in using a PIV or CAC.</p>')) // send them back with no token
+        .send(`<html lang="en"><body>Login Failed</body></html>`)
     }
-  
-    const email = req.session.cas_userinfo['email-address'];
-    const maxId = req.session.cas_userinfo['max-id'];
-    
-    // Get office and agency based on email
-    const office = getOfficeFromEmail(email);
-    const agency = getParentAgencyFromOffice(office);
-    
-    // Update cas_userinfo with office and agency
-    req.session.cas_userinfo.office = office;
-    req.session.cas_userinfo['agency-name'] = agency;
-  
-    logger.log('info', `${email} authenticated with MAX CAS ID ${maxId}`, {
-      cas_userinfo: req.session.cas_userinfo,
-      tag: 'casStage2'
-    });
-  
-    const responseJson = await tokenJsonFromCasInfo(req.session.cas_userinfo, common.jwtSecret);
-    const location = `${config['srtClientUrl']}/auth?info=${responseJson}`;
-  
-    const rollList = roles.map(x => x.name);
-    const decoded_user_role = JSON.parse(responseJson).userRole;
-  
-    if (!rollList.includes(decoded_user_role)) {
-      logger.log('info', `${email} does not have a SRT role. Rejecting`, {
-        responseJson,
-        tag: 'casStage2'
-      });
+
+    logger.log('info', req.session.cas_userinfo['email-address'] + ' authenticated with MAX CAS ID ' + req.session.cas_userinfo['max-id'], {cas_userinfo: req.session.cas_userinfo, tag: 'casStage2'})
+
+    let responseJson = await tokenJsonFromCasInfo(req.session.cas_userinfo, common.jwtSecret)
+    let location = `${config['srtClientUrl']}/auth?info=${responseJson}`
+
+    let rollList = roles.map( (x) => x.name)
+    let decoded_user_role = JSON.parse(responseJson).userRole
+    if ( ! rollList.includes(decoded_user_role)) {
+      logger.log('info', req.session.cas_userinfo['email-address'] + ' does not have a SRT role. Rejecting', {responseJson: responseJson, tag: 'casStage2'})
       req.session.destroy();
       return res.status(302)
-        .set('Location', encodeURI(config['srtClientUrl'] + '/auth?error=Your MAX account is not associated with an SRT role. Please contact srt@gsa.gov for more information.'))
-        .send(`<html lang="en"><body>Login Failed</body></html>`);
+        .set('Location', encodeURI(config['srtClientUrl'] + '/auth' + '?error=Your MAX account is not associated with an SRT role. Please contact srt@gsa.gov for more information.')) // send them back with no token
+        .send(`<html lang="en"><body>Login Failed</body></html>`)
     }
-  
+
     return res.status(302)
       .set('Location', location)
-      .send(`<html lang="en"><body>Preparing login</body></html>`);
+      .send(`<html lang="en"><body>Preparing login</body></html>`)
   },
 
   /**
@@ -782,7 +757,7 @@ module.exports = {
   PROGRAM_MANAGER_ROLE : PROGRAM_MANAGER_ROLE,
   FIVE08_COORDINATOR_ROLE : FIVE08_COORDINATOR_ROLE,
   CO_ROLE : CO_ROLE,
-  EXEC_ROLE : EXEC_ROLE,
-  getOfficeFromEmail,
-  getParentAgencyFromOffice
+  EXEC_ROLE : EXEC_ROLE
+
+
 }
