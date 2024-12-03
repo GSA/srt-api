@@ -445,7 +445,7 @@ module.exports = {
     },
     VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation', 'RFQ'],
     //"minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z",
-    "predictionCutoffDays" : 90,
+    "predictionCutoffDays" : 60,
     "updatePredictionTableMaxRunTime" : 10,
     "updatePredictionTableQueueDelay": 10,
     "logPerformance": false,
