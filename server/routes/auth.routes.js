@@ -18,7 +18,6 @@ const {common} = require('../config/config.js')
 const {getConfig} = require('../config/configuration')
 const jwtSecret = common.jwtSecret || undefined
 
-
 const roles = [
   { name: "Administrator", casGroup:"AGY-GSA-SRT-ADMINISTRATORS.ROLEMANAGEMENT", priority: 10},
   { name: "SRT Program Manager", casGroup: "AGY-GSA-SRT-PROGRAM-MANAGERS.ROLEMANAGEMENT", priority: 20},
@@ -152,15 +151,49 @@ function createUser(loginGovUser) {
 }
 
 function grabAgencyFromEmail(email) {
-  let agency_abbreviance = email.split('@')[1].split('.')[0]
+  // Extract the full domain from the email
+  const fullDomain = email.split('@')[1];
 
-  var agencyName = translateCASAgencyName(agency_abbreviance)
+  // Regex to check for a pattern like "@usss.dhs.gov"
+  // This matches domains in the format of "subdomain.agency.tld" where:
+  // - Subdomain and agency are alphanumeric with optional dots (e.g., "usss.dhs")
+  // - TLD is at least two characters long (e.g., "gov")
+  const regex = /^[a-z0-9]+(?:\.[a-z0-9]+)*\.[a-z]{2,}$/;
+
+  if (regex.test(fullDomain)) {
+    // Check the unique email mapping
+    const agencyName = common.UNIQUE_EMAIL_AGENCY_MAPPING[fullDomain];
+    if (agencyName) {
+      logger.log("info", "Matched agency from unique email mapping", {
+        email,
+        domain: fullDomain,
+        resolved: agencyName,
+        tag: 'grabAgencyFromEmail'
+      });
+      return agencyName;
+    }
+  }
+
+  // If no match in the unique mapping, fall back to original functionality
+  let agency_abbreviance = fullDomain.split('.')[0];
+  logger.log("info", "Extracting agency from email domain", {
+    email,
+    domain: agency_abbreviance,
+    tag: 'grabAgencyFromEmail'
+  });
+
+  let agencyName = translateCASAgencyName(agency_abbreviance);
+  logger.log("info", "Resolved agency name", {
+    abbreviation: agency_abbreviance,
+    resolved: agencyName,
+    tag: 'translateCASAgencyName'
+  });
 
   if (!agencyName) {
-    logger.log("error", 'Agency name not found, update with User Admin Site', {tag:"grabAgencyFromEmail"})
-    agencyName = "No Agency Found"; // replace with your default value
+    logger.log("error", 'Agency name not found', { tag: "grabAgencyFromEmail" });
+    agencyName = "No Agency Found";
   }
-  
+
   return agencyName;
 }
 
@@ -395,8 +428,8 @@ function convertCASNamesToSRT (cas_userinfo) {
   srt_userinfo['lastName'] = srt_userinfo['last-name']
   delete srt_userinfo['last-name']
 
-  srt_userinfo['agency'] = translateCASAgencyName(srt_userinfo['org-agency-name'])
-  delete srt_userinfo['org-agency-name']
+  srt_userinfo['agency'] = grabAgencyFromEmail(srt_userinfo['email'])
+  delete srt_userinfo['email']
 
   return srt_userinfo;
 }

@@ -360,18 +360,16 @@ function normalizeMatchFilter(filter, field){
  */
 /** @namespace filter.numDocs */
 async function getPredictions (filter, user) {
-
   try {
+    logger.debug("Starting getPredictions", { filter, userAgency: user?.agency, userRole: user?.userRole })
+    
     let first = filter.first || 0
     let max_fetch_rows = filter.rows || configuration.getConfig("defaultMaxPredictions", 1000)
 
-
     if ( user === undefined || user.agency === undefined || user.userRole === undefined ) {
+      logger.warn("Missing user information - returning empty result")
       return []
     }
-
-    logger.debug("Entering getPredictions")
-    // await updatePredictionTable()
 
     let attributes = {
       offset: first,
@@ -382,8 +380,8 @@ async function getPredictions (filter, user) {
       }],
     }
 
-    // filter to allowed notice types
     let types = configuration.getConfig("VisibleNoticeTypes", ['Solicitation', 'Combined Synopsis/Solicitation', 'RFQ'])
+    logger.debug("Filtering by notice types", { types })
     
     attributes.where = {
       noticeType: {
@@ -391,99 +389,92 @@ async function getPredictions (filter, user) {
       }
     }
 
-    // filter out rows
     if (filter.globalFilter) {
+      logger.debug("Applying global filter", { searchText: filter.globalFilter.toLowerCase() })
       attributes.where.searchText = { [Op.like]: `%${filter.globalFilter.toLowerCase()}%` }
     }
+
     for (let f of ['office', 'agency', 'title', 'solNum', 'reviewRec', 'id']) {
       normalizeMatchFilter(filter, f)
     }
 
-
-    // process PrimeNG filters: filter.filters = { field: { value: 'x', matchMode: 'equals' } }
     if (filter.filters) {
+      logger.debug("Processing PrimeNG filters", { filters: filter.filters })
       for (let f in filter.filters) {
         if (filter.filters.hasOwnProperty(f) && filter.filters[f].matchMode === 'equals') {
           attributes.where[f] = {[Op.eq]: filter.filters[f].value}
+          logger.debug(`Applied filter for field ${f}`, { value: filter.filters[f].value })
         }
       }
     }
 
-
-    try {
-      let agency = (filter && filter.filters && filter.filters.agency && filter.filters.agency.value) || "no agency"
-      logger.log("debug", `Getting predictions for agency ${agency}. Remaining filters in meta data`, {tag: 'getPredictions', filter: filter })
-    } catch (e) {
-      logger.log ("error", "error logging prediction search filter", {error: e})
-    }
-
-    // process dates
-
-    // make sure anything we return is past the date cuttoff - unless we are asking for a specific record!
-    if ( ! filter.ignoreDateCutoff) {
+    if (!filter.ignoreDateCutoff) {
+      logger.debug("Applying date cutoff filters")
       if ((!filter.filters) || (!filter.filters.hasOwnProperty('solNum'))) {
         if (configuration.getConfig("minPredictionCutoffDate")) {
-          attributes.where.date = {[Op.gt]: configuration.getConfig("minPredictionCutoffDate")}
+          const cutoffDate = configuration.getConfig("minPredictionCutoffDate")
+          logger.debug("Using minPredictionCutoffDate", { cutoffDate })
+          attributes.where.date = {[Op.gt]: cutoffDate}
         } else if (configuration.getConfig("predictionCutoffDays")) {
           const numDays = configuration.getConfig("predictionCutoffDays")
           const today = new Date()
           let cutoff = new Date()
           cutoff.setDate(today.getDate() - numDays)
+          logger.debug("Using predictionCutoffDays", { numDays, cutoffDate: cutoff })
           attributes.where.date = {[Op.gt]: cutoff}
         }
       }
     }
 
-
-
     if (filter.startDate) {
-      // double check they aren't asking for data from before the cutoff
       const start = Date.parse(filter.startDate)
       const cutoff = Date.parse(configuration.getConfig("minPredictionCutoffDate", '1990-01-01'))
+      logger.debug("Processing start date filter", { startDate: filter.startDate, cutoffDate: cutoff })
       if (start > cutoff) {
         attributes.where.date = { [Op.gt]: filter.startDate }
       }
     }
 
     if (filter.endDate) {
+      logger.debug("Processing end date filter", { endDate: filter.endDate })
       attributes.where.date = (attributes.where.date) ?
         Object.assign(attributes.where.date, { [Op.lt]: filter.endDate }) :
         { [Op.lt]: filter.endDate }
     }
 
-    // finally, put in an agency filter if this user isn't an admin
-    // want to do it last so it overrides any possible agency setting in the supplied filter
-    if ( ! authRoutes.isGSAAdmin(user.agency, user.userRole)) {
-      attributes.where.agency  = {
-        [Op.eq] : (user && user.agency) ? user.agency : ''
-      }
+    // Agency access control - check both agency and office fields
+    if (!authRoutes.isGSAAdmin(user.agency, user.userRole)) {
+      logger.debug("Restricting to user's agency and office", { agency: user.agency })
+      attributes.where[Op.or] = [
+        { agency: { [Op.eq]: user.agency } },
+        { office: { [Op.eq]: user.agency } }
+      ]
+    } else {
+      logger.debug("GSA Admin detected - no agency restriction applied")
     }
 
-    // set order
+    // Set order
     attributes.order = []
     if (filter.sortField !== 'unsorted' && filter.sortField) {
-      let direction = 'ASC';
-      if (filter.sortOrder && filter.sortOrder < 0) {
-        direction = 'DESC'
-      }
+      let direction = filter.sortOrder && filter.sortOrder < 0 ? 'DESC' : 'ASC'
+      logger.debug("Applying sort", { field: filter.sortField, direction })
       attributes.order.push([filter.sortField, direction])
     }
-
-    // always end with id sort to keep the newest first (all else being equal)
     attributes.order.push(['id', 'DESC'])
 
-    attributes.raw = true // return as plan data not Sequelize object
+    attributes.raw = true
     attributes.nest = true
-    // Debugging Queries:
-    //attributes.logging = console.log
 
-    // Removing where checks if values are not provided. where column = {} leads to sequelize issues
     attributes.where = removeEmptyFrom(attributes.where)
-    
-    // noinspection JSUnresolvedFunction
+    logger.debug("Final query attributes", { attributes })
+
     let preds = await Solicitation.findAndCountAll(attributes)
-
-
+    logger.debug("Query complete", { 
+      rowCount: preds.count, 
+      firstRow: first, 
+      maxRows: max_fetch_rows,
+      returnedRows: preds.rows.length 
+    })
 
     return {
       predictions: preds.rows,
@@ -492,7 +483,12 @@ async function getPredictions (filter, user) {
       totalCount: preds.count
     }
   } catch (e) {
-    logger.log("error", "Error in getPredictions", {tag: "getPredictions", error: e, "error-message": e.message, stack: e.stack})
+    logger.error("Error in getPredictions", { 
+      error: e.message,
+      stack: e.stack,
+      filter,
+      userAgency: user?.agency
+    })
     return {
       predictions: [],
       first: 0,
