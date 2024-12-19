@@ -52,11 +52,8 @@ describe('/api/agencies', () => {
       })
   })
 
- // This test is currently commented out because the `notice` table 
-// does not appear to be used in the production database.
-// Further verification is needed before re-enabling this test.
+ 
 
-/*
 test('/api/AgencyList', async () => {
     console.log('Starting AgencyList test');
     try {
@@ -75,6 +72,6 @@ test('/api/AgencyList', async () => {
     }
   }, 30000); // Increased timeout to 30 seconds
 });
-*/
-})
+
+
 
