@@ -163,6 +163,9 @@ function grabAgencyFromEmail(email) {
   const fullDomain = email.split('@')[1];
 
   // Regex to check for a pattern like "@usss.dhs.gov"
+  // This matches domains in the format of "subdomain.agency.tld" where:
+  // - Subdomain and agency are alphanumeric with optional dots (e.g., "usss.dhs")
+  // - TLD is at least two characters long (e.g., "gov")
   const regex = /^[a-z0-9]+(?:\.[a-z0-9]+)*\.[a-z]{2,}$/;
 
   if (regex.test(fullDomain)) {
