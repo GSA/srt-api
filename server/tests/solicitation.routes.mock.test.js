@@ -257,7 +257,6 @@ describe('solicitation tests',  () => {
 
     expect(activeCount+inactiveCount).toBe(allCount)
   })
+})
 
-
-}) // end describe
 

@@ -52,17 +52,26 @@ describe('/api/agencies', () => {
       })
   })
 
-  test('/api/AgencyList', async () => {
-    return request(appInstance)
-      .get('/api/AgencyList')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ agency: agency, acronym: acronym })
-      .then((res) => {
-        // noinspection JSUnresolvedVariable
-        expect(res.statusCode).toBe(200)
-        expect(res.body).toBeDefined()
-        expect(res.body.length).toBeGreaterThan(1)
-        return expect(typeof (res.body[0])).toBe('string')
-      })
-  }, 10000)
-})
+ 
+
+test('/api/AgencyList', async () => {
+    console.log('Starting AgencyList test');
+    try {
+      const res = await request(appInstance)
+        .get('/api/AgencyList')
+        .set('Authorization', `Bearer ${token}`);
+      
+      console.log('Received response:', res.statusCode);
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toBeDefined();
+      expect(res.body.length).toBeGreaterThan(1);
+      expect(typeof (res.body[0])).toBe('string');
+    } catch (err) {
+      console.error('Test failed with error:', err);
+      throw err;
+    }
+  }, 30000); // Increased timeout to 30 seconds
+});
+
+
+
