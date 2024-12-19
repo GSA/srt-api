@@ -384,6 +384,12 @@ async function computeAnalytics (params, user) {
 
     let solStats = calcSolicitationsAddedOrUpdatedByDate(result.predictions);
 
+    console.log('Compliance:', data.LatestComplianceSolicitation);
+  console.log('Non-Compliance:', data.LatestNonComplianceSolicitation);
+  console.log('Not Applicable:', data.LatestNotApplicableSolicitation);
+  console.log('Cannot Evaluate:', data.LatestCannotEvaluateSolicitation);
+
+  
     let analytics = {
       solStats: solStats,
       ScannedSolicitationChart:
@@ -425,7 +431,8 @@ async function computeAnalytics (params, user) {
           uncompliance: data.LatestNonComplianceSolicitation,
           notApplicable: data.LatestNotApplicableSolicitation,
           cannotEvaluate: data.LatestCannotEvaluateSolicitation
-        },
+        }
+        ,
       UndeterminedSolicitationChart:
         {
           presolicitation: data.LatestPresolicitation,
