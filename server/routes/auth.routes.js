@@ -151,6 +151,14 @@ function createUser(loginGovUser) {
 }
 
 function grabAgencyFromEmail(email) {
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    logger.log("error", "Invalid email provided", {
+      email,
+      tag: 'grabAgencyFromEmail'
+    });
+    return "No Agency Found"; // Return a default value for invalid emails
+  }
+
   // Extract the full domain from the email
   const fullDomain = email.split('@')[1];
 
@@ -175,16 +183,16 @@ function grabAgencyFromEmail(email) {
   }
 
   // If no match in the unique mapping, fall back to original functionality
-  let agency_abbreviance = fullDomain.split('.')[0];
+  const agencyAbbreviance = fullDomain.split('.')[0];
   logger.log("info", "Extracting agency from email domain", {
     email,
-    domain: agency_abbreviance,
+    domain: agencyAbbreviance,
     tag: 'grabAgencyFromEmail'
   });
 
-  let agencyName = translateCASAgencyName(agency_abbreviance);
+  let agencyName = translateCASAgencyName(agencyAbbreviance);
   logger.log("info", "Resolved agency name", {
-    abbreviation: agency_abbreviance,
+    abbreviation: agencyAbbreviance,
     resolved: agencyName,
     tag: 'translateCASAgencyName'
   });
@@ -196,6 +204,7 @@ function grabAgencyFromEmail(email) {
 
   return agencyName;
 }
+
 
 /**
  * @typedef {Object} cookie-session
@@ -615,7 +624,7 @@ module.exports = {
               
               logger.log('info', (srt_userinfo.email || userInfo.email) + ' authenticated with LOGIN.GOV', {cas_userinfo: srt_userinfo, tag: 'Login.gov Auth Token'})
               
-              console.log("srt_userinfo: ", srt_userinfo)
+              logger.log("srt_userinfo: ", srt_userinfo)
 
               let uri_components = {
                 token: jwt.sign({access_token: accessToken, user: srt_userinfo.user, sessionEnd: srt_userinfo.sessionEnd, token_life_in_seconds: getConfig('renewTokenLife')}, common.jwtSecret, { expiresIn: getConfig('renewTokenLife') }), 
@@ -631,8 +640,6 @@ module.exports = {
               }
               let location = `${config['srtClientUrl']}/auth?info=${jsonToURI(uri_components)}`
               
-              //console.log("Redirecting to: ", location)
-
               return res.redirect(302, location);
           })
         });
@@ -661,30 +668,51 @@ module.exports = {
    * @param {Response} res
    * @return {Promise}
    */
-  tokenCheck: function (req, res) {
-
-    let token = req.body.token
-    //console.log("token sent in tokenCheck:", token)
+   tokenCheck: function (req, res) {
+    const token = req.body.token;
+  
     try {
-      if ( token && jwt.verify(token, common.jwtSecret)) {
-        let tokenInfo = jwt.decode(token)
+      if (token && jwt.verify(token, common.jwtSecret)) {
+        const tokenInfo = jwt.decode(token);
+  
+        // Additional logging for debugging
+        logger.log('Decoded Token Info:', tokenInfo);
+  
         /** @namespace tokenInfo.user */
-        
-        //console.log('tokenInfo: ', tokenInfo)
-        
         if (tokenInfo['user'] && tokenInfo['user']['maxId']) {
-          return res.status(200).send(
-            {
-              isLogin: true,
-              isGSAAdmin: isGSAAdmin(tokenInfo.user.agency, tokenInfo.user.userRole)
-            })
+          const agency = tokenInfo.user.agency;
+          const userRole = tokenInfo.user.userRole;
+          const isAdmin = isGSAAdmin(agency, userRole);
+  
+          // Logging details for debugging
+          logger.log('Agency:', agency);
+          logger.log('User Role:', userRole);
+          logger.log('isGSAAdmin Result:', isAdmin);
+  
+          return res.status(200).send({
+            isLogin: true,
+            isGSAAdmin: isAdmin,
+          });
         }
       }
     } catch (e) {
-      logger.log('error', 'caught error in JWT verification, failing safe and returning that the token is not valid', {error:e, tag:'tokenCheck'})
+      // Log error for debugging
+      console.error('Error during JWT verification:', e);
+      logger.log('error', 'Caught error in JWT verification. Failing safe and returning that the token is not valid.', {
+        error: e,
+        tag: 'tokenCheck',
+      });
     }
-    return res.status(200).send({ isLogin: false, isGSAAdmin: false })
+  
+    // Logging fallback response
+    logger.log('Token is either invalid or missing necessary information.');
+    return res.status(200).send({
+      isLogin: false,
+      isGSAAdmin: false,
+    });
   },
+  
+  
 
   /**
    * Function called to create a JWT based on CAS info stored in the session

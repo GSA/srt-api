@@ -83,15 +83,25 @@ module.exports = {
      * @return Promise
      */
   agencyList: function (req, res) {
-    db.sequelize.query('select distinct agency from notice order by agency', { type: db.sequelize.QueryTypes.SELECT })
+    console.log('AgencyList request received');
+    
+    db.sequelize.query(
+      'select distinct agency from notice order by agency', 
+      { 
+        type: db.sequelize.QueryTypes.SELECT,
+        // Add a query timeout
+        timeout: 25000 
+      }
+    )
       .then(agencies => {
+        console.log(`Found ${agencies.length} agencies`);
         let agencyList = []
         agencies.forEach((a) => { agencyList.push(a.agency) })
         return res.status(200).send(agencyList)
       })
       .catch(e => {
-        logger.log('error', 'error in: agencyList', { error:e, tag: 'agencyList' })
-        return res.status(500)
+        logger.log('error', 'error in: agencyList', { error: e, tag: 'agencyList' })
+        return res.status(500).send({ error: 'Internal server error' })
       })
   }
 }

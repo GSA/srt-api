@@ -96,15 +96,25 @@ describe('Analytics routes tests', () => {
         return request(appInstance)
             .post('/api/analytics')
             .set('Authorization', `Bearer ${adminToken}`)
-            .send({agency: 'Government-wide', fromPeriod: '1/1/1900', toPeriod: '12/31/2100'})
+            .send({ agency: 'Government-wide', fromPeriod: '1/1/1900', toPeriod: '12/31/2100' })
             .then((res) => {
-                // noinspection JSUnresolvedVariable
-                expect(res.statusCode).toBe(200)
-                expect(res.body.PredictResultChart).toBeDefined()
-                expect(res.body.PredictResultChart.notApplicable).toBeDefined()
-                expect(res.body.PredictResultChart.notApplicable).toBeGreaterThan(2)
-                return expect(res.body.PredictResultChart).toBeDefined()
-            })
+                // Log the entire response body and focus on PredictResultChart
+                console.log('Full Response Body:', JSON.stringify(res.body, null, 2));
+                console.log('PredictResultChart:', res.body.PredictResultChart);
+                console.log('notApplicable Value:', res.body.PredictResultChart?.notApplicable);
+    
+                // Assertions
+                expect(res.statusCode).toBe(200);
+                expect(res.body.PredictResultChart).toBeDefined();
+                expect(res.body.PredictResultChart.notApplicable).toBeDefined();
+    
+                // Validate 'notApplicable' (adjust expectation if necessary)
+                expect(res.body.PredictResultChart.notApplicable).toBeGreaterThan(2);
+    
+                return expect(res.body.PredictResultChart).toBeDefined();
+            });
+    });
+    
+    
     })
 
-})

@@ -1,7 +1,7 @@
 let user1 = {
   'first-name': 'Phineas',
   'last-name': 'Crowley',
-  'email-address': 'crowley+Phineas@tcg.com',
+  'email-address': 'crowley+Phineas@gsa.gov',
   'password': 'pass',
   'org-agency-name': 'General Services Administration',
   'position': 'director',
@@ -15,7 +15,7 @@ let user1 = {
 let userAcceptedCASData = {
   'first-name': 'Accepted',
   'last-name': 'User',
-  'email-address': 'crowley+accepted@tcg.com',
+  'email-address': 'crowley+accepted@gsa.gov',
   'password': 'pass',
   'org-agency-name': 'General Services Administration',
   'position': 'director',
@@ -30,7 +30,7 @@ let userAcceptedCASData = {
 let adminCASData = {
   'first-name': 'Accepted',
   'last-name': 'User',
-  'email-address': 'crowley+casadmin@tcg.com',
+  'email-address': 'crowley+casadmin@gsa.gov',
   'password': 'pass',
   'org-agency-name': 'General Services Administration',
   'position': 'director',
@@ -45,7 +45,7 @@ let adminCASData = {
 let coordinatorCASData = {
   'first-name': 'Accepted',
   'last-name': 'User',
-  'email-address': 'crowley+cascoordinator@tcg.com',
+  'email-address': 'crowley+cascoordinator@gsa.gov',
   'password': 'pass',
   'org-agency-name': 'Department of Health and Human Services',
   'position': 'director',
@@ -60,7 +60,7 @@ let coordinatorCASData = {
 let userRejected = {
   'first-name': 'Rejected',
   'last-name': 'User',
-  'email-address': 'crowley+rejected@tcg.com',
+  'email-address': 'crowley+rejected@gsa.gov',
   'password': 'pass',
   'org-agency-name': 'General Services Administration',
   'position': 'director',
