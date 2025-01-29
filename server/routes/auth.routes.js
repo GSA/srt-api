@@ -624,7 +624,7 @@ module.exports = {
               
               logger.log('info', (srt_userinfo.email || userInfo.email) + ' authenticated with LOGIN.GOV', {cas_userinfo: srt_userinfo, tag: 'Login.gov Auth Token'})
               
-              console.log("srt_userinfo: ", srt_userinfo)
+              logger.log("srt_userinfo: ", srt_userinfo)
 
               let uri_components = {
                 token: jwt.sign({access_token: accessToken, user: srt_userinfo.user, sessionEnd: srt_userinfo.sessionEnd, token_life_in_seconds: getConfig('renewTokenLife')}, common.jwtSecret, { expiresIn: getConfig('renewTokenLife') }), 
@@ -640,8 +640,6 @@ module.exports = {
               }
               let location = `${config['srtClientUrl']}/auth?info=${jsonToURI(uri_components)}`
               
-              //console.log("Redirecting to: ", location)
-
               return res.redirect(302, location);
           })
         });
@@ -672,14 +670,13 @@ module.exports = {
    */
    tokenCheck: function (req, res) {
     const token = req.body.token;
-    console.log("Token received in tokenCheck:", token);
   
     try {
       if (token && jwt.verify(token, common.jwtSecret)) {
         const tokenInfo = jwt.decode(token);
   
         // Additional logging for debugging
-        console.log('Decoded Token Info:', tokenInfo);
+        logger.log('Decoded Token Info:', tokenInfo);
   
         /** @namespace tokenInfo.user */
         if (tokenInfo['user'] && tokenInfo['user']['maxId']) {
@@ -688,9 +685,9 @@ module.exports = {
           const isAdmin = isGSAAdmin(agency, userRole);
   
           // Logging details for debugging
-          console.log('Agency:', agency);
-          console.log('User Role:', userRole);
-          console.log('isGSAAdmin Result:', isAdmin);
+          logger.log('Agency:', agency);
+          logger.log('User Role:', userRole);
+          logger.log('isGSAAdmin Result:', isAdmin);
   
           return res.status(200).send({
             isLogin: true,
@@ -708,7 +705,7 @@ module.exports = {
     }
   
     // Logging fallback response
-    console.log('Token is either invalid or missing necessary information.');
+    logger.log('Token is either invalid or missing necessary information.');
     return res.status(200).send({
       isLogin: false,
       isGSAAdmin: false,

@@ -737,29 +737,29 @@ describe('prediction tests', () => {
   })
 
   function compare(a, b) {
-  // Handle null/undefined values
-  if (!a && !b) return 0;
-  if (!a) return -1;
-  if (!b) return 1;
+    // Handle null/undefined values
+    if (!a && !b) return 0;
+    if (!a) return -1;
+    if (!b) return 1;
 
-  // Convert dates to timestamps for comparison
-  if (a instanceof Date && b instanceof Date) {
-    return a.getTime() - b.getTime();
+    // Convert dates to timestamps for comparison
+    if (a instanceof Date && b instanceof Date) {
+      return a.getTime() - b.getTime();
+    }
+
+    // Handle string comparisons
+    if (typeof a === 'string' && typeof b === 'string') {
+      return a.localeCompare(b);
+    }
+
+    // Handle numeric comparisons
+    if (typeof a === 'number' && typeof b === 'number') {
+      return a - b;
+    }
+
+    // Convert to strings for any other type
+    return String(a).localeCompare(String(b));
   }
-
-  // Handle string comparisons
-  if (typeof a === 'string' && typeof b === 'string') {
-    return a.localeCompare(b);
-  }
-
-  // Handle numeric comparisons
-  if (typeof a === 'number' && typeof b === 'number') {
-    return a - b;
-  }
-
-  // Convert to strings for any other type
-  return String(a).localeCompare(String(b));
-}
 
 async function getPredictions(event) {
   let res = mocks.mockResponse();

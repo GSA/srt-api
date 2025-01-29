@@ -384,10 +384,10 @@ async function computeAnalytics (params, user) {
 
     let solStats = calcSolicitationsAddedOrUpdatedByDate(result.predictions);
 
-    console.log('Compliance:', data.LatestComplianceSolicitation);
-  console.log('Non-Compliance:', data.LatestNonComplianceSolicitation);
-  console.log('Not Applicable:', data.LatestNotApplicableSolicitation);
-  console.log('Cannot Evaluate:', data.LatestCannotEvaluateSolicitation);
+    logger.log('Compliance:', data.LatestComplianceSolicitation);
+    logger.log('Non-Compliance:', data.LatestNonComplianceSolicitation);
+    logger.log('Not Applicable:', data.LatestNotApplicableSolicitation);
+    logger.log('Cannot Evaluate:', data.LatestCannotEvaluateSolicitation);
 
   
     let analytics = {
