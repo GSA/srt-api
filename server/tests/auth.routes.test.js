@@ -1,6 +1,5 @@
 const request = require('supertest')
 const CASAuthentication = require('cas-authentication');
-let app = null
 const supertestSession = require('supertest-session')
 const mockToken = require('./mocktoken')
 const env = process.env.NODE_ENV || 'development'
@@ -12,6 +11,7 @@ const authRoutes = require('../routes/auth.routes')
 const logger = require('../config/winston')
 const mocks = require('./mocks')
 const { getGovernmentEmail } = require('../routes/auth.routes');
+const { app, clientPromise } = require('../app');
 
 const { userAcceptedCASData } = require('./test.data');
 
@@ -32,7 +32,6 @@ describe('/api/auth/', () => {
     casConfig.dev_mode_user = "dev_user"
     let cas = new CASAuthentication(casConfig)
 
-    const { app, clientPromise } = require('../app');
     appInstance = app(null, cas);
 
     token = await mockToken(myUser, common['jwtSecret'])
@@ -41,6 +40,12 @@ describe('/api/auth/', () => {
   afterAll(async () => {
     await User.destroy({ where: { firstName: 'auth-beforeAllUser' } })
     await User.destroy({ where: {lastName : "AuthTestUser"}})
+    
+    if (clientPromise) {
+      await clientPromise.end(); // Ensure the client is properly closed
+    }
+
+    await appInstance.db.sequelize.close()
   })
 
   test('/api/auth/tokenCheck', async () => {
@@ -150,6 +155,56 @@ describe('/api/auth/', () => {
       })
   })
 
+  test('tokenCheck - user isRejected', async () => {
+    let user = Object.assign({}, myUser, { email: 'rejected@example.com', isRejected: true, isAccepted: true })
+    let token = await mockToken(user, common['jwtSecret'])
+    return User.create(user)
+      .then(() => {
+        return request(appInstance)
+          .post('/api/auth/tokenCheck')
+          .send({ token: token })
+          .then((res) => {
+            expect(res.statusCode).toBe(200)
+            expect(res.body.isLogin).toBe(true)
+            expect(res.body.isGSAAdmin).toBe(false)
+            expect(res.body.isApproved).toBe(false)
+          })
+      })
+  })
+  
+  test('tokenCheck - user not accepted', async () => {
+    let user = Object.assign({}, myUser, { email: 'notaccepted@example.com', isRejected: false, isAccepted: false })
+    let token = await mockToken(user, common['jwtSecret'])
+    return User.create(user)
+      .then(() => {
+        return request(appInstance)
+          .post('/api/auth/tokenCheck')
+          .send({ token: token })
+          .then((res) => {
+            expect(res.statusCode).toBe(200)
+            expect(res.body.isLogin).toBe(true)
+            expect(res.body.isGSAAdmin).toBe(false)
+            expect(res.body.isApproved).toBe(false)
+          })
+      })
+  })
+  
+  test('tokenCheck - user accepted and not rejected', async () => {
+    let user = Object.assign({}, myUser, { email: 'accepted@example.com', isRejected: false, isAccepted: true })
+    let token = await mockToken(user, common['jwtSecret'])
+    return User.create(user)
+      .then(() => {
+        return request(appInstance)
+          .post('/api/auth/tokenCheck')
+          .send({ token: token })
+          .then((res) => {
+            expect(res.statusCode).toBe(200)
+            expect(res.body.isLogin).toBe(true)
+            expect(res.body.isGSAAdmin).toBe(false)
+            expect(res.body.isApproved).toBe(true)
+          })
+      })
+  })
 
   // Test what happens when we send an invalid or null JWT
   test('bad token', () => {

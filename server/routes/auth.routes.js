@@ -136,7 +136,7 @@ function createUser(loginGovUser) {
     'position': '',
     'userRole': 'Executive User', // If we need to handle user roles, we should set it to lowest setting and adjust
     'isRejected': false,
-    'isAccepted': true,
+    'isAccepted': false,
     'tempPassword': null,
     'creationDate': date,
     'maxId': loginGovUser.sub
@@ -683,16 +683,27 @@ module.exports = {
           const agency = tokenInfo.user.agency;
           const userRole = tokenInfo.user.userRole;
           const isAdmin = isGSAAdmin(agency, userRole);
-  
+          let isRejected = tokenInfo.user.isRejected || false;
+          let isAccepted = tokenInfo.user.isAccepted || false;
+
           // Logging details for debugging
           logger.log('Agency:', agency);
           logger.log('User Role:', userRole);
           logger.log('isGSAAdmin Result:', isAdmin);
-  
-          return res.status(200).send({
-            isLogin: true,
-            isGSAAdmin: isAdmin,
-          });
+
+          if ((isRejected || !isAccepted) && !isAdmin) {
+            return res.status(200).send({ 
+                  isApproved: false,
+                  isLogin: true, 
+                  isGSAAdmin: false })
+          }
+
+          return res.status(200).send(
+            {
+              isApproved: true,
+              isLogin: true,
+              isGSAAdmin: isAdmin
+            })
         }
       }
     } catch (e) {
