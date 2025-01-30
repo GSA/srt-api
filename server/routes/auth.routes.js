@@ -624,7 +624,7 @@ module.exports = {
               
               logger.log('info', (srt_userinfo.email || userInfo.email) + ' authenticated with LOGIN.GOV', {cas_userinfo: srt_userinfo, tag: 'Login.gov Auth Token'})
               
-              logger.log("srt_userinfo: ", srt_userinfo)
+              logger.info("srt_userinfo: ", srt_userinfo)
 
               let uri_components = {
                 token: jwt.sign({access_token: accessToken, user: srt_userinfo.user, sessionEnd: srt_userinfo.sessionEnd, token_life_in_seconds: getConfig('renewTokenLife')}, common.jwtSecret, { expiresIn: getConfig('renewTokenLife') }), 
@@ -676,7 +676,7 @@ module.exports = {
         const tokenInfo = jwt.decode(token);
   
         // Additional logging for debugging
-        logger.log('Decoded Token Info:', tokenInfo);
+        logger.info('Decoded Token Info:', tokenInfo);
   
         /** @namespace tokenInfo.user */
         if (tokenInfo['user'] && tokenInfo['user']['maxId']) {
@@ -687,9 +687,9 @@ module.exports = {
           let isAccepted = tokenInfo.user.isAccepted || false;
 
           // Logging details for debugging
-          logger.log('Agency:', agency);
-          logger.log('User Role:', userRole);
-          logger.log('isGSAAdmin Result:', isAdmin);
+          logger.info('Agency:', agency);
+          logger.info('User Role:', userRole);
+          logger.info('isGSAAdmin Result:', isAdmin);
 
           if ((isRejected || !isAccepted) && !isAdmin) {
             return res.status(200).send({ 
