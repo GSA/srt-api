@@ -119,6 +119,7 @@ module.exports = {
   let versionRoutes = require('./routes/version.routes')()
   let noticeTypeRoutes = require('./routes/noticeType.routes')
   let adminReportRoutes = require('./routes/admin.report.routes')
+  let documentRoutes = require('./routes/document.routes')
 
   app.use(bodyParser.json({limit: '50mb'}))
 
@@ -272,6 +273,7 @@ module.exports = {
   app.get('/api/reports/solicitationDownloads', token(), admin_only(), adminReportRoutes.solicitationDownloads)
   app.get('/api/reports/predictionMetrics', token(), admin_only(), adminReportRoutes.predictionReport)
   app.get('/api/reports/noticeTypeChangeReport', token(), admin_only(), adminReportRoutes.noticeTypeChangeReport)
+  app.use('/api', documentRoutes)
 
   app.use(expressWinston.errorLogger({
     transports: transports,
