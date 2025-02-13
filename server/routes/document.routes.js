@@ -1,26 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const { spawn } = require('child_process');
-const path = require('path');
 const logger = require('../config/winston');
 
-// Update paths for srt-ml and use system Python
-const ML_PATH = '/opt/ml';
-const SCRIPT_PATH = path.join(ML_PATH, 'src', 'srt_ml', 'predict', 'analyze_text.py');
+// Use the installed package's analyze_text script
+// When installed via pip, it will be in the Python package directory
 const PYTHON_PATH = 'python3';
+const SCRIPT_NAME = '-m srt_ml.predict.analyze_text';
 
-// Log the paths to verify
-logger.info(`ML_PATH: ${ML_PATH}`);
-logger.info(`SCRIPT_PATH: ${SCRIPT_PATH}`);
 logger.info(`PYTHON_PATH: ${PYTHON_PATH}`);
+logger.info(`SCRIPT_NAME: ${SCRIPT_NAME}`);
 
-// Rest of the router code remains the same since it already handles stdin/stdout correctly
 router.post('/analyze-documents', express.json(), async (req, res) => {
   const results = {};
 
   try {
     const documents = req.body.documents;
-    
+
     if (!documents || Object.keys(documents).length === 0) {
       logger.warn('No document texts were provided.');
       return res.status(400).json({ error: 'No document texts provided' });
@@ -28,37 +24,41 @@ router.post('/analyze-documents', express.json(), async (req, res) => {
 
     logger.info(`Processing ${Object.keys(documents).length} document(s)...`);
 
+    // Process each document
     for (const [filename, text] of Object.entries(documents)) {
       logger.info(`Starting analysis for document: ${filename}`);
 
       try {
-        const prediction = await new Promise((resolve, reject) => {
-          const scraperProcess = spawn(PYTHON_PATH, [
-            SCRIPT_PATH
+        const predictionOutput = await new Promise((resolve, reject) => {
+          // Spawn the Python process with the required command-line arguments
+          const mlProcess = spawn(PYTHON_PATH, [
+            '-m',
+            'srt_ml.predict.analyze_text',
+            '--filename',
+            filename,
+            '--text',
+            text
           ]);
-          
+
           let stdout = '';
           let stderr = '';
-          
-          scraperProcess.stdin.write(text);
-          scraperProcess.stdin.end();
-          
-          scraperProcess.stdout.on('data', (data) => {
+
+          mlProcess.stdout.on('data', (data) => {
             stdout += data;
             logger.info(`ML stdout for ${filename}: ${data.toString().trim()}`);
           });
 
-          scraperProcess.stderr.on('data', (data) => {
+          mlProcess.stderr.on('data', (data) => {
             stderr += data;
             logger.error(`ML stderr for ${filename}: ${data.toString().trim()}`);
           });
 
-          scraperProcess.on('error', (error) => {
+          mlProcess.on('error', (error) => {
             logger.error(`Failed to start ML process for ${filename}: ${error.message}`);
             reject(new Error(`Failed to start ML process: ${error.message}`));
           });
 
-          scraperProcess.on('close', (code) => {
+          mlProcess.on('close', (code) => {
             if (code === 0 && stdout) {
               logger.info(`ML completed successfully for document: ${filename}`);
               resolve(stdout.trim());
@@ -72,26 +72,30 @@ router.post('/analyze-documents', express.json(), async (req, res) => {
 
         let result;
         try {
-          result = JSON.parse(prediction);
+          result = JSON.parse(predictionOutput);
         } catch (parseError) {
           logger.error(`Failed to parse ML output for ${filename}: ${parseError.message}`);
-          logger.error(`Raw output: ${prediction}`);
+          logger.error(`Raw output: ${predictionOutput}`);
           throw new Error('Invalid response from ML process');
         }
-        
+
         if (result.error) {
           throw new Error(result.error);
         }
 
+        // Retrieve the prediction from the correct key
+        const mlPrediction = result.predictions && result.predictions[filename];
+
+        // Interpret the prediction: true means compliant, false means non-compliant
         results[filename] = {
-          status: result.prediction === 1 ? 'compliant' : 'non-compliant',
+          status: mlPrediction === true ? 'compliant' : 'non-compliant',
           text: text,
           details: {
-            prediction: result.prediction,
-            decisionBoundary: result.decision_boundary
+            prediction: mlPrediction,
+            decisionBoundary: result.decision_boundary // if provided by the ML output
           }
         };
-        
+
         logger.info(`Prediction for document ${filename}: ${results[filename].status}`);
       } catch (error) {
         logger.error(`Error processing document ${filename}: ${error.message}`);
