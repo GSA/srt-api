@@ -75,8 +75,8 @@ router.post('/analyze-documents', express.json(), async (req, res) => {
       for (const fname in result.predictions) {
         const prediction = result.predictions[fname];
         logger.info(`Document: ${fname}, Prediction: ${prediction}`);
-        // Convert string booleans to actual booleans if necessary
-        const isCompliant = (prediction === true || prediction === 'True');
+        // Handle both boolean and string cases
+        const isCompliant = prediction === true || prediction === 'True' || prediction === 'compliant';
         transformed[fname] = isCompliant ? 'compliant' : 'non-compliant';
       }
 
