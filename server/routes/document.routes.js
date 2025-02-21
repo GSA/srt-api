@@ -21,6 +21,7 @@ router.post('/analyze-documents', express.json(), async (req, res) => {
 
     // Create a JSON payload to send via STDIN
     const inputData = JSON.stringify({ documents });
+    logger.info(`Sending payload to Python: ${inputData}`);
 
     // Spawn the Python process with piped stdio so we can write to STDIN and read STDOUT
     const pythonProcess = spawn(PYTHON_PATH, SCRIPT_ARGS, { stdio: ['pipe', 'pipe', 'pipe'] });
@@ -49,11 +50,15 @@ router.post('/analyze-documents', express.json(), async (req, res) => {
 
     // When the Python process closes, process the output
     pythonProcess.on('close', (code) => {
+      logger.info(`Python process exited with code: ${code}`);
+      logger.info(`Raw Python output: ${stdout}`);
+
       if (code !== 0) {
         const errorMsg = stderr || `Python process exited with code ${code}`;
         logger.error(`Python process failed: ${errorMsg}`);
         return res.status(500).json({ error: errorMsg });
       }
+
       let result;
       try {
         result = JSON.parse(stdout);
@@ -62,11 +67,20 @@ router.post('/analyze-documents', express.json(), async (req, res) => {
         logger.error(`Raw output: ${stdout}`);
         return res.status(500).json({ error: 'Invalid response from Python process' });
       }
+
+      logger.info(`Parsed Python result: ${JSON.stringify(result)}`);
+
       // Convert boolean predictions into "compliant" / "non-compliant" strings.
       const transformed = {};
       for (const fname in result.predictions) {
-        transformed[fname] = result.predictions[fname] ? 'compliant' : 'non-compliant';
+        const prediction = result.predictions[fname];
+        logger.info(`Document: ${fname}, Prediction: ${prediction}`);
+        // Convert string booleans to actual booleans if necessary
+        const isCompliant = (prediction === true || prediction === 'True');
+        transformed[fname] = isCompliant ? 'compliant' : 'non-compliant';
       }
+
+      logger.info(`Transformed result: ${JSON.stringify(transformed)}`);
       res.json(transformed);
     });
   } catch (error) {
