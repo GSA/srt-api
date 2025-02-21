@@ -2,7 +2,7 @@
 applications:
 - name: srt-api-dev
   memory: 512M
-  disk_quota: 2048M
+  disk_quota: 4096M  # Increased from 2048M
 #  health-check-type: process # don't re-enable....move to port 8080 if you have problems
   instances: 1
   env:
