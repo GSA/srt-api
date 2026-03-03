@@ -3,11 +3,11 @@ module.exports = {
     VISIBLE_NOTICE_TYPES: "VisibleNoticeTypes"
   },
   common: {
-    "jwtSecret" : process.env.JWT_SECRET || ( ( process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development" ) ? "abc123" : null),
-    "sessionLength" : "12h",  // 12 hours
-    "tokenLife" : "30m",  // 30 minutes
-    "renewTokenLife" : "30m", // 30 minutes
-    "casDevModeData" :     {
+    "jwtSecret": process.env.JWT_SECRET || ((process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") ? "abc123" : null),
+    "sessionLength": "12h",  // 12 hours
+    "tokenLife": "30m",  // 30 minutes
+    "renewTokenLife": "30m", // 30 minutes
+    "casDevModeData": {
       "last-name": "Test User",
       "agency-code": "023",
       "org-agency-code": "023",
@@ -40,7 +40,7 @@ module.exports = {
       "authenticationmethod": "urn:max:fips-201-pivcard",
       "email-address": "albert.crowley@gsa.gov"
     },
-    "casDevModeData-Navy" :     {
+    "casDevModeData-Navy": {
       "last-name": "Test User",
       "agency-code": "023",
       "org-agency-code": "023",
@@ -75,13 +75,11 @@ module.exports = {
     },
 
     "PIVLoginCheckRegex": "pivcard",
+    // Pen Test Finding #3: Tighten CORS whitelist (OTG-CLIENT-007)
+    // Only include origins that legitimately need cross-origin access
     "CORSWhitelist": [
       "http://localhost:4200",
       "https://srt.app.cloud.gov",
-      "https://srt-client.app.cloud.gov",
-      "https://srt-client-dev.app.cloud.gov",
-      "https://srt-client-staging.app.cloud.gov",
-      "https://srt-client-prod.app.cloud.gov",
     ],
     "constants": {
       "EMAIL_ACTION": "Sent email to POC",
@@ -234,7 +232,7 @@ module.exports = {
       "general services administration": "General Services Administration",
       "department of defense--military programs": "Department of Defense",
       "department of defense": "Department of Defense",
-      "millennium challenge corporation":"Millennium Challenge Corporation",
+      "millennium challenge corporation": "Millennium Challenge Corporation",
       "acf": "Administration for Children and Families",
       "ahrq": "Agency for Healthcare Research and Quality",
       "ams": "Agricultural Marketing Service",
@@ -370,7 +368,7 @@ module.exports = {
       "army": "DEPT OF THE ARMY",
       "navy": "DEPT OF THE NAVY",
       "af": "DEPT OF THE AIR FORCE",
-      "spaceforce": "SPACE FORCE", 
+      "spaceforce": "SPACE FORCE",
       "dla": "DEFENSE LOGISTICS AGENCY",
       "ihs": "INDIAN HEALTH SERVICE",
       "usss": "US SECRET SERVICE",
@@ -410,50 +408,50 @@ module.exports = {
     //
     // },
     AGENCY_MAP: {
-      "AGRICULTURE, DEPARTMENT OF":"Department of Agriculture",
-      "COMMERCE, DEPARTMENT OF":"Department of Commerce",
-      "DEPT OF DEFENSE":"Department of Defense",
-      "DEPARTMENT OF DEFENSE":"Department of Defense",
-      "Defense Logistics Agency":"Department of Defense",
-      "Other Defense Agencies":"Department of Defense",
-      "Defense Information Systems Agency":"Department of Defense",
-      "EDUCATION, DEPARTMENT OF":"Department of Education",
-      "HEALTH AND HUMAN SERVICES, DEPARTMENT OF":"Department of Health and Human Services",
-      "HOMELAND SECURITY, DEPARTMENT OF":"Department of Homeland Security",
-      "HOUSING AND URBAN DEVELOPMENT, DEPARTMENT OF":"Department of Housing and Urban Development",
-      "JUSTICE, DEPARTMENT OF":"Department of Justice",
-      "LABOR, DEPARTMENT OF":"Department of Labor",
-      "STATE, DEPARTMENT OF":"Department of State",
-      "INTERIOR, DEPARTMENT OF THE":"Department of the Interior",
-      "TREASURY, DEPARTMENT OF THE":"Department of the Treasury",
-      "TRANSPORTATION, DEPARTMENT OF":"Department of Transportation",
-      "ENVIRONMENTAL PROTECTION AGENCY":"Environmental Protection Agency",
-      "EXECUTIVE OFFICE OF THE PRESIDENT":"Executive Office of the President",
-      "GENERAL SERVICES ADMINISTRATION":"General Services Administration",
-      "AGENCY FOR INTERNATIONAL DEVELOPMENT":"Agency for International Development",
-      "NATIONAL AERONAUTICS AND SPACE ADMINISTRATION":"National Aeronautics and Space Administration",
-      "NATIONAL SCIENCE FOUNDATION":"National Science Foundation",
-      "NUCLEAR REGULATORY COMMISSION":"Nuclear Regulatory Commission",
-      "OFFICE OF PERSONNEL MANAGEMENT":"Office of Personnel Management",
-      "SMALL BUSINESS ADMINISTRATION":"Small Business Administration",
-      "SOCIAL SECURITY ADMINISTRATION":"Social Security Administration",
+      "AGRICULTURE, DEPARTMENT OF": "Department of Agriculture",
+      "COMMERCE, DEPARTMENT OF": "Department of Commerce",
+      "DEPT OF DEFENSE": "Department of Defense",
+      "DEPARTMENT OF DEFENSE": "Department of Defense",
+      "Defense Logistics Agency": "Department of Defense",
+      "Other Defense Agencies": "Department of Defense",
+      "Defense Information Systems Agency": "Department of Defense",
+      "EDUCATION, DEPARTMENT OF": "Department of Education",
+      "HEALTH AND HUMAN SERVICES, DEPARTMENT OF": "Department of Health and Human Services",
+      "HOMELAND SECURITY, DEPARTMENT OF": "Department of Homeland Security",
+      "HOUSING AND URBAN DEVELOPMENT, DEPARTMENT OF": "Department of Housing and Urban Development",
+      "JUSTICE, DEPARTMENT OF": "Department of Justice",
+      "LABOR, DEPARTMENT OF": "Department of Labor",
+      "STATE, DEPARTMENT OF": "Department of State",
+      "INTERIOR, DEPARTMENT OF THE": "Department of the Interior",
+      "TREASURY, DEPARTMENT OF THE": "Department of the Treasury",
+      "TRANSPORTATION, DEPARTMENT OF": "Department of Transportation",
+      "ENVIRONMENTAL PROTECTION AGENCY": "Environmental Protection Agency",
+      "EXECUTIVE OFFICE OF THE PRESIDENT": "Executive Office of the President",
+      "GENERAL SERVICES ADMINISTRATION": "General Services Administration",
+      "AGENCY FOR INTERNATIONAL DEVELOPMENT": "Agency for International Development",
+      "NATIONAL AERONAUTICS AND SPACE ADMINISTRATION": "National Aeronautics and Space Administration",
+      "NATIONAL SCIENCE FOUNDATION": "National Science Foundation",
+      "NUCLEAR REGULATORY COMMISSION": "Nuclear Regulatory Commission",
+      "OFFICE OF PERSONNEL MANAGEMENT": "Office of Personnel Management",
+      "SMALL BUSINESS ADMINISTRATION": "Small Business Administration",
+      "SOCIAL SECURITY ADMINISTRATION": "Social Security Administration",
       "LIBRARY OF CONGRESS": "Library of Congress",
       "VETERANS AFFAIRS, DEPARTMENT OF": "Department of Veterans Affairs",
       "NATIONAL ARCHIVES AND RECORDS ADMINISTRATION": "National Archives and Records Administration",
-      "ENERGY, DEPARTMENT OF":"Department of Energy",
-      "MILLENNIUM CHALLENGE CORPORATION":"Millennium Challenge Corporation"
+      "ENERGY, DEPARTMENT OF": "Department of Energy",
+      "MILLENNIUM CHALLENGE CORPORATION": "Millennium Challenge Corporation"
     },
-    VisibleNoticeTypes : ['Solicitation', 'Combined Synopsis/Solicitation', 'RFQ'],
+    VisibleNoticeTypes: ['Solicitation', 'Combined Synopsis/Solicitation', 'RFQ'],
     //"minPredictionCutoffDate" : "2020-02-01T00:00:00.000Z",
-    "predictionCutoffDays" : 60,
-    "updatePredictionTableMaxRunTime" : 10,
+    "predictionCutoffDays": 60,
+    "updatePredictionTableMaxRunTime": 10,
     "updatePredictionTableQueueDelay": 10,
     "logPerformance": false,
     defaultMaxPredictions: 1000
   },
   development: {
     "emailFrom": "crowley+srt@tcg.com",
-    "emailServer" : {
+    "emailServer": {
       "host": "smtp.sendgrid.net",
       "port": 465,
       "secure": true,
@@ -463,13 +461,13 @@ module.exports = {
       }
     },
     "emailLogOnly": false,
-    "spamProtect" : true,
+    "spamProtect": true,
     "srt_server": {
       "port": 3000
     },
     "srtClientUrl": "http://localhost:4200",
-    "logStdOut" : false,
-    "logStdOutLevel" : "debug",
+    "logStdOut": false,
+    "logStdOutLevel": "debug",
     "login_gov_oidc": {
       "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:srt_app",
       "issuer_url": "https://idp.int.identitysandbox.gov/.well-known/openid-configuration",
@@ -478,26 +476,26 @@ module.exports = {
       "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
       "redirect_uri": "http://localhost:3000/odic/callback",
       "logout_endpoint": "https://idp.int.identitysandbox.gov/openid_connect/logout",
-      
+
     },
-    "maxCas" : {
-      "cas_url" : "https://login.test.max.gov/cas/",
-      "service_url" : "http://localhost:3000",
-      "session_name" : "cas_user",
-      "session_info" : "cas_userinfo",
-      "is_dev_mode" : true, // adjust to false when you want to test with MAX
-      "dev_mode_user" : "dev_user",
-      "renew" : true,
-      "renew_query_parameter_name" : "bypassMaxsso",
-      "password-whitelist": [ "samira.isber@gsa.gov", "albert.crowley@gsa.gov" ]
+    "maxCas": {
+      "cas_url": "https://login.test.max.gov/cas/",
+      "service_url": "http://localhost:3000",
+      "session_name": "cas_user",
+      "session_info": "cas_userinfo",
+      "is_dev_mode": true, // adjust to false when you want to test with MAX
+      "dev_mode_user": "dev_user",
+      "renew": true,
+      "renew_query_parameter_name": "bypassMaxsso",
+      "password-whitelist": ["samira.isber@gsa.gov", "albert.crowley@gsa.gov"]
     },
-    "sessionCookieSecure" : false,
-    "SolicitationCountLimit" : 1000,
+    "sessionCookieSecure": false,
+    "SolicitationCountLimit": 1000,
     "logPerformance": false
   },
   "circle": {
     "emailFrom": "crowley+srt@tcg.com",
-    "emailServer" : {
+    "emailServer": {
       "host": "smtp.sendgrid.net",
       "port": 465,
       "secure": true,
@@ -507,13 +505,13 @@ module.exports = {
       }
     },
     "emailLogOnly": false,
-    "spamProtect" : true,
+    "spamProtect": true,
     "srt_server": {
       "port": 3000
     },
     "srtClientUrl": "https://srt-client-dev.app.cloud.gov",
-    "logStdOut" : true,
-    "logStdOutLevel" : "error",
+    "logStdOut": true,
+    "logStdOutLevel": "error",
     "login_gov_oidc": {
       "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:srt_app",
       "issuer_url": "https://idp.int.identitysandbox.gov/.well-known/openid-configuration",
@@ -521,21 +519,21 @@ module.exports = {
       "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
       "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
     },
-    "maxCas" : {
-      "cas_url" : "https://login.test.max.gov/cas/",
-      "service_url" : "http://localhost:3000",
-      "session_name" : "cas_user",
-      "session_info" : "cas_userinfo",
-      "is_dev_mode" : true,
-      "dev_mode_user" : "dev_user",
-      "renew" : true,
-      "renew_query_parameter_name" : "bypassMaxsso"
+    "maxCas": {
+      "cas_url": "https://login.test.max.gov/cas/",
+      "service_url": "http://localhost:3000",
+      "session_name": "cas_user",
+      "session_info": "cas_userinfo",
+      "is_dev_mode": true,
+      "dev_mode_user": "dev_user",
+      "renew": true,
+      "renew_query_parameter_name": "bypassMaxsso"
     },
     "logPerformance": false
   },
   "clouddev": {
     "emailFrom": "crowley+srt@tcg.com",
-    "emailServer" : {
+    "emailServer": {
       "host": "smtp.sendgrid.net",
       "port": 465,
       "secure": true,
@@ -545,13 +543,13 @@ module.exports = {
       }
     },
     "emailLogOnly": false,
-    "spamProtect" : true,
+    "spamProtect": true,
     "srt_server": {
       "port": 8080
     },
     "srtClientUrl": "https://srt-client-dev.app.cloud.gov",
-    "logStdOut" : true,
-    "logStdOutLevel" : "debug",
+    "logStdOut": true,
+    "logStdOutLevel": "debug",
     "login_gov_oidc": {
       "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:srt_app",
       "issuer_url": "https://idp.int.identitysandbox.gov/.well-known/openid-configuration",
@@ -561,22 +559,22 @@ module.exports = {
       "redirect_uri": "http://srt-server-dev.app.cloud.gov/odic/callback",
       "logout_endpoint": "https://idp.int.identitysandbox.gov/openid_connect/logout",
     },
-    "maxCas" : {
-      "cas_url" : "https://login.test.max.gov/cas/",
-      "service_url" : "https://srt-server-dev.app.cloud.gov",
-      "session_name" : "cas_user",
-      "session_info" : "cas_userinfo",
-      "is_dev_mode" : false,
-      "dev_mode_user" : "",
-      "renew" : true,
-      "renew_query_parameter_name" : "bypassMaxsso",
-      "password-whitelist": [ "samira.isber@gsa.gov", "albert.crowley@gsa.gov" ]
+    "maxCas": {
+      "cas_url": "https://login.test.max.gov/cas/",
+      "service_url": "https://srt-server-dev.app.cloud.gov",
+      "session_name": "cas_user",
+      "session_info": "cas_userinfo",
+      "is_dev_mode": false,
+      "dev_mode_user": "",
+      "renew": true,
+      "renew_query_parameter_name": "bypassMaxsso",
+      "password-whitelist": ["samira.isber@gsa.gov", "albert.crowley@gsa.gov"]
     },
     "logPerformance": false
   },
   "cloudstaging": {
     "emailFrom": "crowley+srtstage@tcg.com",
-    "emailServer" : {
+    "emailServer": {
       "host": "smtp.sendgrid.net",
       "port": 465,
       "secure": true,
@@ -586,13 +584,13 @@ module.exports = {
       }
     },
     "emailLogOnly": false,
-    "spamProtect" : true,
+    "spamProtect": true,
     "srt_server": {
       "port": 8080
     },
     "srtClientUrl": "https://srt-client-staging.app.cloud.gov",
-    "logStdOut" : true,
-    "logStdOutLevel" : "debug",
+    "logStdOut": true,
+    "logStdOutLevel": "debug",
     // TODO: May need to make staging Login.gov App (Using as Placeholder for now)
     "login_gov_oidc": {
       "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:srt_app_staging",
@@ -603,23 +601,23 @@ module.exports = {
       "redirect_uri": "http://srt-server-staging.app.cloud.gov/odic/callback",
       "logout_endpoint": "https://idp.int.identitysandbox.gov/openid_connect/logout",
     },
-    "maxCas" : {
-      "cas_url" : "https://login.test.max.gov/cas/",
-      "service_url" : "https://srt-server-staging.app.cloud.gov",
-      "session_name" : "cas_user",
-      "session_info" : "cas_userinfo",
-      "is_dev_mode" : false,
-      "dev_mode_user" : "dev_user",
-      "renew" : true,
-      "renew_query_parameter_name" : "bypassMaxsso",
-      "password-whitelist": [ "samira.isber@gsa.gov", "albert.crowley@gsa.gov" ]
+    "maxCas": {
+      "cas_url": "https://login.test.max.gov/cas/",
+      "service_url": "https://srt-server-staging.app.cloud.gov",
+      "session_name": "cas_user",
+      "session_info": "cas_userinfo",
+      "is_dev_mode": false,
+      "dev_mode_user": "dev_user",
+      "renew": true,
+      "renew_query_parameter_name": "bypassMaxsso",
+      "password-whitelist": ["samira.isber@gsa.gov", "albert.crowley@gsa.gov"]
     },
     "logPerformance": false
     // "SolicitationCountLimit" : 10000
   },
   "test": {
     "emailFrom": "crowley+srt@tcg.com",
-    "emailServer" : {
+    "emailServer": {
       "host": "smtp.sendgrid.net",
       "port": 465,
       "secure": true,
@@ -628,13 +626,13 @@ module.exports = {
         "pass": "ENV variable SENDGRID_API_KEY"
       }
     },
-    "spamProtect" : true,
+    "spamProtect": true,
     "srt_server": {
       "port": 8080
     },
     "srtClientUrl": "https://srt-client-dev.app.cloud.gov",
-    "logStdOut" : true,
-    "logStdOutLevel" : "debug",
+    "logStdOut": true,
+    "logStdOutLevel": "debug",
     "login_gov_oidc": {
       "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:srt_app",
       "issuer_url": "https://idp.int.identitysandbox.gov/.well-known/openid-configuration",
@@ -642,21 +640,21 @@ module.exports = {
       "token_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/token",
       "user_endpoint": "https://idp.int.identitysandbox.gov/api/openid_connect/userinfo",
     },
-    "maxCas" : {
-      "cas_url" : "https://login.test.max.gov/cas/",
-      "service_url" : "https://srt-server-test.app.cloud.gov",
-      "session_name" : "cas_user",
-      "session_info" : "cas_userinfo",
-      "is_dev_mode" : false,
-      "dev_mode_user" : "",
-      "renew" : true,
-      "renew_query_parameter_name" : "bypassMaxsso"
+    "maxCas": {
+      "cas_url": "https://login.test.max.gov/cas/",
+      "service_url": "https://srt-server-test.app.cloud.gov",
+      "session_name": "cas_user",
+      "session_info": "cas_userinfo",
+      "is_dev_mode": false,
+      "dev_mode_user": "",
+      "renew": true,
+      "renew_query_parameter_name": "bypassMaxsso"
     },
     "logPerformance": false
   },
   "production": {
     "emailFrom": "crowley+srt@tcg.com",
-    "emailServer" : {
+    "emailServer": {
       "host": "smtp.sendgrid.net",
       "port": 465,
       "secure": true,
@@ -666,13 +664,13 @@ module.exports = {
       }
     },
     "emailLogOnly": false,
-    "spamProtect" : true,
+    "spamProtect": true,
     "srt_server": {
       "port": 8080
     },
     "srtClientUrl": "https://srt.app.cloud.gov",
-    "logStdOut" : true,
-    "logStdOutLevel" : "debug",
+    "logStdOut": true,
+    "logStdOutLevel": "debug",
     // TODO: Will need to make production Login.gov App (Using as Placeholder for now)
     "login_gov_oidc": {
       "client_id": "urn:gov:gsa:openidconnect.profiles:sp:sso:office_of_government_wide_policy:gsa_srt",
@@ -683,16 +681,16 @@ module.exports = {
       "logout_endpoint": "https://secure.login.gov/openid_connect/logout",
       "redirect_uri": "https://srt-server.app.cloud.gov/odic/callback",
     },
-    "maxCas" : {
-      "cas_url" : "https://login.max.gov/cas/",
-      "service_url" : "https://srt-server.app.cloud.gov",
-      "cas_version" : "2.0",
-      "session_name" : "cas_user",
-      "session_info" : "cas_userinfo",
-      "is_dev_mode" : false,
-      "dev_mode_user" : "",
-      "renew" : true,
-      "renew_query_parameter_name" : "bypassMaxsso"
+    "maxCas": {
+      "cas_url": "https://login.max.gov/cas/",
+      "service_url": "https://srt-server.app.cloud.gov",
+      "cas_version": "2.0",
+      "session_name": "cas_user",
+      "session_info": "cas_userinfo",
+      "is_dev_mode": false,
+      "dev_mode_user": "",
+      "renew": true,
+      "renew_query_parameter_name": "bypassMaxsso"
     },
     "logPerformance": false
   }
