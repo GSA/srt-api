@@ -80,6 +80,10 @@ module.exports = {
     "CORSWhitelist": [
       "http://localhost:4200",
       "https://srt.app.cloud.gov",
+      "https://srt-client.app.cloud.gov",
+      "https://srt-client-dev.app.cloud.gov",
+      "https://srt-client-staging.app.cloud.gov",
+      "https://srt-client-prod.app.cloud.gov",
     ],
     "constants": {
       "EMAIL_ACTION": "Sent email to POC",
