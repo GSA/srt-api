@@ -51,14 +51,17 @@ jobs:
         name: Checkout
         uses: actions/checkout@v3.5.3          
       -
-        name: Update Cloud Foundry Public Key and Repository
-        run: |
-          wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo gpg --dearmor -o /usr/share/keyrings/cli.cloudfoundry.org.gpg
-          echo "deb [signed-by=/usr/share/keyrings/cli.cloudfoundry.org.gpg] https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
-          sudo apt-get update
-      -
         name: Install Cloud Foundry CLI
-        run: sudo apt-get install -y cf8-cli
+        run: |
+          # Download CF CLI v8 directly (avoids flaky Debian repo/GitHub CDN 500s)
+          for i in 1 2 3; do
+            curl -fsSL "https://packages.cloudfoundry.org/stable?release=linux64-binary&version=v8&source=github" -o /tmp/cf-cli.tgz && break
+            echo "Retry $i: CF CLI download failed, retrying in 10s..."
+            sleep 10
+          done
+          tar -xzf /tmp/cf-cli.tgz -C /tmp
+          sudo install /tmp/cf8 /usr/local/bin/cf
+          cf version
       -
         name: Cloud Foundry Login
         env:
