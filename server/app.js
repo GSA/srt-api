@@ -96,6 +96,23 @@ module.exports = {
 
   app.disable('x-powered-by');
 
+  // Pen Test Finding #1: Add HSTS header (OTG-CONFIG-007)
+  app.use((req, res, next) => {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    next();
+  });
+
+  // Pen Test Finding #4: Remove information disclosure headers (OTG-INFO-009)
+  app.use((req, res, next) => {
+    res.removeHeader('X-Powered-By');
+    res.removeHeader('Server');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    next();
+  });
+
   if (db === undefined) {
     db = require('./models/index')
   }
@@ -123,9 +140,17 @@ module.exports = {
 
   app.use(bodyParser.json({limit: '50mb'}))
 
-  // setup CORS
+  // setup CORS (Pen Test Finding #3: Tighten CORS origin handling - OTG-CLIENT-007)
   function corsTest (origin, callback) {
-    if (origin === undefined || common.CORSWhitelist.indexOf(origin) !== -1) {
+    if (origin === undefined) {
+      // Requests with no Origin header (server-to-server, same-origin)
+      // In production, do not reflect CORS headers for missing origins
+      if (env === 'production') {
+        callback(null, false)
+      } else {
+        callback(null, true)
+      }
+    } else if (common.CORSWhitelist.indexOf(origin) !== -1) {
       callback(null, true)
     } else {
       logger.log('warn', 'Request from origin ' + origin + ' not allowed by CORS.', { tag: 'CORS' })
