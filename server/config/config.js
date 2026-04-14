@@ -79,6 +79,9 @@ module.exports = {
     // Only include origins that legitimately need cross-origin access
     "CORSWhitelist": [
       "http://localhost:4200",
+      "http://127.0.0.1:4200",
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
       "https://srt.app.cloud.gov",
       "https://srt-client.app.cloud.gov",
       "https://srt-client-dev.app.cloud.gov",

@@ -5,7 +5,7 @@ let dbConfig = {
   "development": {
     "username": "circleci",
     "password": "srtpass",
-    "database": "srt",
+    "database": "SRT",
     "host": "localhost",
     "port": 5432,
     "dialect": "postgres",
@@ -21,7 +21,7 @@ let dbConfig = {
   "circle": {
     "username": "circleci",
     "password": "srtpass",
-    "database": "srt",
+    "database": "SRT",
     "host": "localhost",
     "port": 5432,
     "dialect": "postgres",
@@ -53,7 +53,7 @@ if (process.env.VCAP_SERVICES) {
     },
   }
 
-  dbConfig= {
+  dbConfig = {
     development: dbSettings
   }
 

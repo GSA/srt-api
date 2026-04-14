@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 const fs = require('fs');
 const path = require("path");
 //const util = require('node:util'); 
-const {jsonToURI} = require('../utilities.js');
+const { jsonToURI } = require('../utilities.js');
 
 const { Op } = require('sequelize');
 const logger = require('../config/winston')
@@ -14,23 +14,23 @@ const ms = require('ms')
 const fetch = require('node-fetch');
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
-const {common} = require('../config/config.js')
-const {getConfig} = require('../config/configuration')
+const { common } = require('../config/config.js')
+const { getConfig } = require('../config/configuration')
 const jwtSecret = common.jwtSecret || undefined
 
 const roles = [
-  { name: "Administrator", casGroup:"AGY-GSA-SRT-ADMINISTRATORS.ROLEMANAGEMENT", priority: 10},
-  { name: "SRT Program Manager", casGroup: "AGY-GSA-SRT-PROGRAM-MANAGERS.ROLEMANAGEMENT", priority: 20},
-  { name: "Section 508 Coordinator", casGroup: "AGY-GSA-SRT-508-COORDINATOR", priority: 30},
-  { name: "CO / COR", casGroup: "AGY-GSA-SRT-CONTRACTINGOFFICERS", priority: 40},
-  { name: "Executive User", casGroup: "AGY-GSA-SRT-USERS", priority: 50}
- ]
+  { name: "Administrator", casGroup: "AGY-GSA-SRT-ADMINISTRATORS.ROLEMANAGEMENT", priority: 10 },
+  { name: "SRT Program Manager", casGroup: "AGY-GSA-SRT-PROGRAM-MANAGERS.ROLEMANAGEMENT", priority: 20 },
+  { name: "Section 508 Coordinator", casGroup: "AGY-GSA-SRT-508-COORDINATOR", priority: 30 },
+  { name: "CO / COR", casGroup: "AGY-GSA-SRT-CONTRACTINGOFFICERS", priority: 40 },
+  { name: "Executive User", casGroup: "AGY-GSA-SRT-USERS", priority: 50 }
+]
 const roleKeys = {
-  "ADMIN_ROLE" : 0,
-  "PROGRAM_MANAGER_ROLE" : 1,
-  "508_COORDINATOR_ROLE" : 2,
-  "CO_ROLE" : 3,
-  "EXEC_ROLE" : 4
+  "ADMIN_ROLE": 0,
+  "PROGRAM_MANAGER_ROLE": 1,
+  "508_COORDINATOR_ROLE": 2,
+  "CO_ROLE": 3,
+  "EXEC_ROLE": 4
 }
 
 const ADMIN_ROLE = 0
@@ -42,7 +42,7 @@ const EXEC_ROLE = 4
 // Load your RSA private key
 let privateKey;
 try {
-  privateKey = fs.readFileSync(path.resolve(__dirname,'../certs/private.pem'), 'utf8');
+  privateKey = fs.readFileSync(path.resolve(__dirname, '../certs/private.pem'), 'utf8');
 } catch (err) {
   privateKey = process.env.LOGIN_PRIVATE_KEY;
 }
@@ -77,10 +77,10 @@ function updateMAXUser(cas_data, user) {
         return user['id']
       })
       .catch(e => {
-        logger.log('error', 'error in: updateMAXUser', { error:e, tag: 'updateMAXUser' })
+        logger.log('error', 'error in: updateMAXUser', { error: e, tag: 'updateMAXUser' })
       })
   } catch (e) {
-    logger.log ("error", "caught error in auth.routes.js", {error:e, tag: 'updateMAXUser'})
+    logger.log("error", "caught error in auth.routes.js", { error: e, tag: 'updateMAXUser' })
   }
 }
 
@@ -95,22 +95,21 @@ function updateUser(login_gov_data, user) {
     if (login_gov_data.family_name !== undefined) user['lastName'] = login_gov_data['family_name']
 
     user['maxId'] = user.maxId || login_gov_data.sub
-    
+
     return user.save()
       .then(() => {
         return user
       })
       .catch(e => {
-        logger.log('error', 'error in: updateUser', { error:e, tag: 'updateUser' })
+        logger.log('error', 'error in: updateUser', { error: e, tag: 'updateUser' })
       })
   } catch (e) {
-    logger.log ("error", "caught error in auth.routes.js", {error:e, tag: 'updateUser'})
+    logger.log("error", "caught error in auth.routes.js", { error: e, tag: 'updateUser' })
   }
 }
 
-function capitalize(s)
-{
-    return s[0].toUpperCase() + s.slice(1);
+function capitalize(s) {
+  return s[0].toUpperCase() + s.slice(1);
 }
 
 function getGovernmentEmail(emails) {
@@ -120,7 +119,7 @@ function getGovernmentEmail(emails) {
 function createUser(loginGovUser) {
   let now = new Date()
   let date = (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getFullYear()
-  
+
   //console.log("Login.gov user:", loginGovUser)
 
   const gov_email = getGovernmentEmail(loginGovUser.all_emails || [])
@@ -142,11 +141,11 @@ function createUser(loginGovUser) {
     'maxId': loginGovUser.sub
   }
   return User.create(user_data)
-    .then( u => {
+    .then(u => {
       return u
     })
-    .catch ( e => {
-      logger.log("error", 'error in: createUser', {error: e, tag:"createUser"})
+    .catch(e => {
+      logger.log("error", 'error in: createUser', { error: e, tag: "createUser" })
     })
 }
 
@@ -224,9 +223,9 @@ function verifyPIVUsed(session) {
   // verify that we got a PIV login
   let authMethod = session['cas_userinfo']['authenticationmethod'] || session['cas_userinfo']['samlauthenticationstatementauthmethod']
   let pivRegex = new RegExp(getConfig('PIVLoginCheckRegex'))
-  if( ! authMethod.match(pivRegex)) {
+  if (!authMethod.match(pivRegex)) {
     let userEmail = session['cas_userinfo']['email-address']
-    logger.log('info', `User ${userEmail} was rejected due to login type ${authMethod}`, {tag: 'casStage2', 'cas_userinfo': session['cas_userinfo']})
+    logger.log('info', `User ${userEmail} was rejected due to login type ${authMethod}`, { tag: 'casStage2', 'cas_userinfo': session['cas_userinfo'] })
     return false
   }
   return true
@@ -241,25 +240,25 @@ function verifyPIVUsed(session) {
  * @param session
  * @returns {boolean}
  */
-function userOnPasswordOnlyWhitelist(session){
+function userOnPasswordOnlyWhitelist(session) {
   let userEmail = session && session['cas_userinfo'] && session['cas_userinfo']['email-address'];
   let whitelist = getConfig("maxCas:password-whitelist")
 
   logger.log("info", "password whitelist is: " + whitelist)
 
-  if (! (userEmail && whitelist) ) {
+  if (!(userEmail && whitelist)) {
     return false;
   }
 
   // normalize input so it can be an array or a string
-  if (typeof(whitelist) == 'string') {
-    whitelist = [ whitelist]
+  if (typeof (whitelist) == 'string') {
+    whitelist = [whitelist]
   }
 
   let match = false;
-  whitelist.forEach( e => {
-    if (userEmail === e ) {
-      logger.log("warn", `A user was allowed to access SRT with a password-only login`, {tag: 'Auth', whitelist: whitelist, email: userEmail })
+  whitelist.forEach(e => {
+    if (userEmail === e) {
+      logger.log("warn", `A user was allowed to access SRT with a password-only login`, { tag: 'Auth', whitelist: whitelist, email: userEmail })
       match = true;
     }
   })
@@ -291,11 +290,11 @@ function createMAXUser(cas_data) {
     'maxId': cas_data['maxId']
   }
   return User.create(user_data)
-    .then( u => {
+    .then(u => {
       return u.id
     })
-    .catch ( e => {
-      logger.log("error", 'error in: createMAXUser', {error: e, tag:"createMAXUser"})
+    .catch(e => {
+      logger.log("error", 'error in: createMAXUser', { error: e, tag: "createMAXUser" })
     })
 
 }
@@ -312,10 +311,10 @@ async function createOrUpdateMAXUser(cas_data) {
     cas_data.maxId = cas_data['max-id'] || cas_data.maxId
 
     if (!cas_data.maxId) {
-      logger.log('error', "Trying to make a token without a MAX ID", {cas_data: cas_data, tag: 'createOrUpdateMAXUser'})
+      logger.log('error', "Trying to make a token without a MAX ID", { cas_data: cas_data, tag: 'createOrUpdateMAXUser' })
       return false
     }
-    let u = await User.findOne({where: {'maxId': cas_data["maxId"]}})
+    let u = await User.findOne({ where: { 'maxId': cas_data["maxId"] } })
     if (u) {
       return updateMAXUser(cas_data, u)
     } else {
@@ -323,7 +322,7 @@ async function createOrUpdateMAXUser(cas_data) {
 
     }
   } catch (e) {
-    logger.log("error", "Error caught in create/update MAX User", {error: e, tag: "create/update MAX User"})
+    logger.log("error", "Error caught in create/update MAX User", { error: e, tag: "create/update MAX User" })
   }
 }
 
@@ -338,7 +337,7 @@ async function createOrUpdateLoginGovUser(login_gov_data) {
       }
     });
 
-    logger.log("info", "User found in DB", {user: u, tag: "createOrUpdateLoginGovUser"})
+    logger.log("info", "User found in DB", { user: u, tag: "createOrUpdateLoginGovUser" })
 
     if (u) {
       return updateUser(login_gov_data, u)
@@ -348,11 +347,11 @@ async function createOrUpdateLoginGovUser(login_gov_data) {
 
   } catch (e) {
 
-    logger.log("error", "Error caught in create/update Login.gov User", {error: e.message, tag: "create/update Login.gov User"})
+    logger.log("error", "Error caught in create/update Login.gov User", { error: e.message, tag: "create/update Login.gov User" })
 
     return res.status(302)
-        .set('Location', encodeURI(config['srtClientUrl'] + '/auth' + '?error=Database Error creating user account. Please contact srt@gsa.gov.')) // send them back with no token
-        .send(`<html lang="en"><body>Login Failed</body></html>`)
+      .set('Location', encodeURI(config['srtClientUrl'] + '/auth' + '?error=Database Error creating user account. Please contact srt@gsa.gov.')) // send them back with no token
+      .send(`<html lang="en"><body>Login Failed</body></html>`)
 
   }
 }
@@ -365,12 +364,12 @@ async function createOrUpdateLoginGovUser(login_gov_data) {
  * @param {string} roleList Comma separated string of CAS roles
  * @return {string} user role string as used by the UI
  */
-function mapCASRoleToUserRole (roleList) {
+function mapCASRoleToUserRole(roleList) {
   let mostPrivilegedRole = ""
   let priority = 99999;
   roleList = roleList || "";
   for (let casGroup of roleList.split(',')) {
-    let match = roles.filter( (role) => role.casGroup === casGroup )
+    let match = roles.filter((role) => role.casGroup === casGroup)
     if (match.length > 0 && match[0].priority < priority) {
       mostPrivilegedRole = match[0].name
       priority = match[0].priority
@@ -384,7 +383,7 @@ function mapCASRoleToUserRole (roleList) {
  * @param roleName
  * @return {string|null}
  */
-function roleNameToCASGroup (roleName) {
+function roleNameToCASGroup(roleName) {
   for (let r of roles) {
     if (r.name === roleName) {
       return r.casGroup
@@ -405,11 +404,11 @@ function translateCASAgencyName(cas_agency) {
   let agencyLookupDictionary = getConfig("AGENCY_LOOKUP", {})
 
   // special case for config lookups - if we got this from the environment it's going to be a string
-  if (typeof(agencyLookupDictionary) === 'string') {
+  if (typeof (agencyLookupDictionary) === 'string') {
     try {
       agencyLookupDictionary = JSON.parse(agencyLookupDictionary)
-    } catch(e) {
-      logger.log("error", "Error parsing AGENCY_LOOKUP. Should be JSON", {tag: "traslate CAS", AGENCY_LOOKUP: agencyLookupDictionary})
+    } catch (e) {
+      logger.log("error", "Error parsing AGENCY_LOOKUP. Should be JSON", { tag: "traslate CAS", AGENCY_LOOKUP: agencyLookupDictionary })
     }
   }
 
@@ -423,7 +422,7 @@ function translateCASAgencyName(cas_agency) {
  * @param {Object} cas_userinfo cas user information
  * @return {Object} user info reformatted into the expected JavaScript conventions
  */
-function convertCASNamesToSRT (cas_userinfo) {
+function convertCASNamesToSRT(cas_userinfo) {
   let srt_userinfo = Object.assign({}, cas_userinfo)
 
   delete srt_userinfo['max-id']
@@ -453,11 +452,11 @@ function convertCASNamesToSRT (cas_userinfo) {
  * @param sessionEnd
  * @return {Promise<string>}
  */
-async function tokenJsonFromCasInfo (cas_userinfo, secret, expireTime, sessionStart, sessionEnd) {
+async function tokenJsonFromCasInfo(cas_userinfo, secret, expireTime, sessionStart, sessionEnd) {
   cas_userinfo.userRole = mapCASRoleToUserRole(cas_userinfo.grouplist)
   cas_userinfo['maxId'] = (cas_userinfo['max-id']) ? cas_userinfo['max-id'] : cas_userinfo.maxId
 
-  if ( ! cas_userinfo['maxId']) {
+  if (!cas_userinfo['maxId']) {
     // no MAX ID, return an empty token
     return "{}";
   }
@@ -465,17 +464,17 @@ async function tokenJsonFromCasInfo (cas_userinfo, secret, expireTime, sessionSt
   cas_userinfo['id'] = await createOrUpdateMAXUser(cas_userinfo)
 
   let srt_userinfo = convertCASNamesToSRT(cas_userinfo)
-  srt_userinfo.sessionStart = sessionStart || Math.floor (new Date().getTime() / 1000)
-  srt_userinfo.sessionEnd = sessionEnd || Math.floor ((new Date().getTime() + ms(getConfig('sessionLength')) )/ 1000)
+  srt_userinfo.sessionStart = sessionStart || Math.floor(new Date().getTime() / 1000)
+  srt_userinfo.sessionEnd = sessionEnd || Math.floor((new Date().getTime() + ms(getConfig('sessionLength'))) / 1000)
 
-  let token = jwt.sign({user: srt_userinfo}, secret, { expiresIn: expireTime || getConfig('tokenLife') })
-  logger.log("debug", "creating a token valid for " + getConfig('tokenLife') )
+  let token = jwt.sign({ user: srt_userinfo }, secret, { expiresIn: expireTime || getConfig('tokenLife') })
+  logger.log("debug", "creating a token valid for " + getConfig('tokenLife'))
   return JSON.stringify({
     token: token,
     firstName: srt_userinfo['firstName'],
     lastName: srt_userinfo['lastName'],
     agency: srt_userinfo['agency'],
-    email:  srt_userinfo['email'],
+    email: srt_userinfo['email'],
     position: '',
     maxId: srt_userinfo['maxId'],
     id: srt_userinfo['id'],
@@ -491,7 +490,7 @@ async function tokenJsonFromCasInfo (cas_userinfo, secret, expireTime, sessionSt
  * @return {boolean}
  */
 function isGSAAdmin(agency, role) {
-  return  agency && agency.toLowerCase() === 'general services administration' &&
+  return agency && agency.toLowerCase() === 'general services administration' &&
     (role === roles[ADMIN_ROLE].name || role === roles[PROGRAM_MANAGER_ROLE].name)
 }
 
@@ -501,7 +500,7 @@ function userInfoFromReq(req) {
     // noinspection JSUnresolvedVariable
     return (jwt.decode(token)).user
   } catch (error) {
-    logger.log("info", `error decoding token`, {tag: 'userInfoFromReq', error: error})
+    logger.log("info", `error decoding token`, { tag: 'userInfoFromReq', error: error })
   }
   return null;
 }
@@ -514,14 +513,15 @@ function getUserInfo(access_token) {
     cache: "no-cache",
     headers: {
       "Authorization": `Bearer ${access_token}`,
-    }})
-    .then( (userResponse) => {
-        let userRsp = userResponse.json().then( (rspJson) => {            
-            return rspJson
-        })
-        return userRsp
-      });
-  
+    }
+  })
+    .then((userResponse) => {
+      let userRsp = userResponse.json().then((rspJson) => {
+        return rspJson
+      })
+      return userRsp
+    });
+
   return user;
 }
 
@@ -539,17 +539,17 @@ module.exports = {
     let user = (jwt.decode(oldToken)).user
 
     // verify that the original login wasn't more than [sessionLength] ago
-    let cutOff = user.sessionStart + (ms(getConfig('sessionLength')) /1000)
+    let cutOff = user.sessionStart + (ms(getConfig('sessionLength')) / 1000)
     if (cutOff < Math.floor(Date.now() / 1000)) {
-      return res.status(401).send({msg: 'token expired'})
+      return res.status(401).send({ msg: 'token expired' })
     }
 
-    user.renewTime = Math.round (new Date().getTime() / 1000)
-    let newToken = jwt.sign({user: user}, common.jwtSecret, { expiresIn: getConfig('renewTokenLife') })
-    logger.log("debug", "creating a renewal token valid for " + getConfig('renewTokenLife') )
+    user.renewTime = Math.round(new Date().getTime() / 1000)
+    let newToken = jwt.sign({ user: user }, common.jwtSecret, { expiresIn: getConfig('renewTokenLife') })
+    logger.log("debug", "creating a renewal token valid for " + getConfig('renewTokenLife'))
     //console.log("debug", "creating a renewal token valid for " + getConfig('renewTokenLife') )
 
-    return res.status(200).send({token: newToken, token_life_in_seconds: ms(getConfig('renewTokenLife'))/1000 })
+    return res.status(200).send({ token: newToken, token_life_in_seconds: ms(getConfig('renewTokenLife')) / 1000 })
   },
 
   grabToken: async function (req, res) {
@@ -590,26 +590,26 @@ module.exports = {
         // 'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: JSON.stringify(body)
-    }).then( (tokenResponse) => {
+    }).then((tokenResponse) => {
       //console.log("tokenResponse ", tokenResponse)
-      tokenResponse.json().then( (rspJson) => {
+      tokenResponse.json().then((rspJson) => {
         accessToken = rspJson.access_token
         expiresIn = rspJson.expires_in
         idToken = rspJson.id_token
         //console.log("rspJson ", rspJson)
-        
-        if ( !accessToken ) {
+
+        if (!accessToken) {
           // didn't get a Login Access Token 
           return res.status(302)
             .set('Location', config['srtClientUrl'] + '/auth') // send them back with no token
             .send(`<html lang="en"><body>Login Failed</body></html>`)
         }
 
-        getUserInfo(accessToken).then( (userInfo) => {
+        getUserInfo(accessToken).then((userInfo) => {
           // console.log("user ", userInfo)
           userInfo.accessToken = accessToken
 
-          if ( !userInfo.sub ) {
+          if (!userInfo.sub) {
             // didn't get a Login.gov UUID 
             return res.status(302)
               .set('Location', config['srtClientUrl'] + '/auth') // send them back with no token
@@ -617,18 +617,18 @@ module.exports = {
           }
 
           createOrUpdateLoginGovUser(userInfo)
-            .then( (stored_user) => {
+            .then((stored_user) => {
               let srt_userinfo = Object.assign({}, stored_user)
               srt_userinfo.user = stored_user.dataValues
-              srt_userinfo.user.sessionEnd = Math.floor ((new Date().getTime() + ms(getConfig('sessionLength')) )/ 1000)
-              
-              logger.log('info', (srt_userinfo.email || userInfo.email) + ' authenticated with LOGIN.GOV', {cas_userinfo: srt_userinfo, tag: 'Login.gov Auth Token'})
-              
+              srt_userinfo.user.sessionEnd = Math.floor((new Date().getTime() + ms(getConfig('sessionLength'))) / 1000)
+
+              logger.log('info', (srt_userinfo.email || userInfo.email) + ' authenticated with LOGIN.GOV', { cas_userinfo: srt_userinfo, tag: 'Login.gov Auth Token' })
+
               logger.info("srt_userinfo: ", srt_userinfo)
 
               let uri_components = {
-                token: jwt.sign({access_token: accessToken, user: srt_userinfo.user, sessionEnd: srt_userinfo.sessionEnd, token_life_in_seconds: getConfig('renewTokenLife')}, common.jwtSecret, { expiresIn: getConfig('renewTokenLife') }), 
-                token_life_in_seconds: expiresIn, 
+                token: jwt.sign({ access_token: accessToken, user: srt_userinfo.user, sessionEnd: srt_userinfo.sessionEnd, token_life_in_seconds: getConfig('renewTokenLife') }, common.jwtSecret, { expiresIn: getConfig('renewTokenLife') }),
+                token_life_in_seconds: expiresIn,
                 email: srt_userinfo.email || userInfo.email,
                 email_verified: userInfo.email_verified,
                 agency: srt_userinfo.agency || null,
@@ -639,9 +639,9 @@ module.exports = {
                 loginMethod: "login.gov",
               }
               let location = `${config['srtClientUrl']}/auth?info=${jsonToURI(uri_components)}`
-              
+
               return res.redirect(302, location);
-          })
+            })
         });
 
 
@@ -668,16 +668,16 @@ module.exports = {
    * @param {Response} res
    * @return {Promise}
    */
-   tokenCheck: function (req, res) {
+  tokenCheck: function (req, res) {
     const token = req.body.token;
-  
+
     try {
       if (token && jwt.verify(token, common.jwtSecret)) {
         const tokenInfo = jwt.decode(token);
-  
+
         // Additional logging for debugging
         logger.info('Decoded Token Info:', tokenInfo);
-  
+
         /** @namespace tokenInfo.user */
         if (tokenInfo['user'] && tokenInfo['user']['maxId']) {
           const agency = tokenInfo.user.agency;
@@ -692,10 +692,11 @@ module.exports = {
           logger.info('isGSAAdmin Result:', isAdmin);
 
           if ((isRejected || !isAccepted) && !isAdmin) {
-            return res.status(200).send({ 
-                  isApproved: false,
-                  isLogin: true, 
-                  isGSAAdmin: false })
+            return res.status(200).send({
+              isApproved: false,
+              isLogin: true,
+              isGSAAdmin: false
+            })
           }
 
           return res.status(200).send(
@@ -714,7 +715,7 @@ module.exports = {
         tag: 'tokenCheck',
       });
     }
-  
+
     // Logging fallback response
     logger.log('Token is either invalid or missing necessary information.');
     return res.status(200).send({
@@ -722,8 +723,8 @@ module.exports = {
       isGSAAdmin: false,
     });
   },
-  
-  
+
+
 
   /**
    * Function called to create a JWT based on CAS info stored in the session
@@ -734,32 +735,32 @@ module.exports = {
    * @param req
    * @param res
    */
-  casStage2 : async function (req, res) {
+  casStage2: async function (req, res) {
     /** @namespace req.session.cas_userinfo */
 
-    if ( ! ( req.session && req.session['cas_userinfo'] && (req.session.cas_userinfo['max-id'] || req.session.cas_userinfo['maxId']  ))) {
+    if (!(req.session && req.session['cas_userinfo'] && (req.session.cas_userinfo['max-id'] || req.session.cas_userinfo['maxId']))) {
       // didn't get CAS session info
       return res.status(302)
         .set('Location', config['srtClientUrl'] + '/auth') // send them back with no token
         .send(`<html lang="en"><body>Login Failed</body></html>`)
     }
 
-    if( ! ( verifyPIVUsed(req.session) ||  userOnPasswordOnlyWhitelist(req.session) ) ) {
+    if (!(verifyPIVUsed(req.session) || userOnPasswordOnlyWhitelist(req.session))) {
       req.session.destroy();
       return res.status(302)
         .set('Location', encodeURI(config['srtClientUrl'] + '/auth?error=<p>PIV or CAC login required.<br> Log out of MAX and return here, then log in using a PIV or CAC.</p>')) // send them back with no token
         .send(`<html lang="en"><body>Login Failed</body></html>`)
     }
 
-    logger.log('info', req.session.cas_userinfo['email-address'] + ' authenticated with MAX CAS ID ' + req.session.cas_userinfo['max-id'], {cas_userinfo: req.session.cas_userinfo, tag: 'casStage2'})
+    logger.log('info', req.session.cas_userinfo['email-address'] + ' authenticated with MAX CAS ID ' + req.session.cas_userinfo['max-id'], { cas_userinfo: req.session.cas_userinfo, tag: 'casStage2' })
 
     let responseJson = await tokenJsonFromCasInfo(req.session.cas_userinfo, common.jwtSecret)
     let location = `${config['srtClientUrl']}/auth?info=${responseJson}`
 
-    let rollList = roles.map( (x) => x.name)
+    let rollList = roles.map((x) => x.name)
     let decoded_user_role = JSON.parse(responseJson).userRole
-    if ( ! rollList.includes(decoded_user_role)) {
-      logger.log('info', req.session.cas_userinfo['email-address'] + ' does not have a SRT role. Rejecting', {responseJson: responseJson, tag: 'casStage2'})
+    if (!rollList.includes(decoded_user_role)) {
+      logger.log('info', req.session.cas_userinfo['email-address'] + ' does not have a SRT role. Rejecting', { responseJson: responseJson, tag: 'casStage2' })
       req.session.destroy();
       return res.status(302)
         .set('Location', encodeURI(config['srtClientUrl'] + '/auth' + '?error=Your MAX account is not associated with an SRT role. Please contact srt@gsa.gov for more information.')) // send them back with no token
@@ -772,31 +773,55 @@ module.exports = {
   },
 
   /**
+   * Fast-track login for development environment, creating a test admin profile.
+   */
+  devLogin: async function (req, res) {
+    if (env !== 'development') {
+      return res.status(403).send('Forbidden: Dev login is only available in development mode.');
+    }
+    const dev_user = {
+      'email-address': 'admin@gsa.gov',
+      'first-name': 'Dev',
+      'last-name': 'Admin',
+      'agency-name': 'General Services Administration',
+      'grouplist': 'AGY-GSA-SRT-ADMINISTRATORS.ROLEMANAGEMENT',
+      'max-id': 'dev_admin_max_123'
+    };
+
+    let responseJson = await tokenJsonFromCasInfo(dev_user, common.jwtSecret);
+    let location = `${config['srtClientUrl']}/auth?info=${encodeURIComponent(responseJson)}`;
+
+    return res.status(302)
+      .set('Location', location)
+      .send(`<html lang="en"><body>Preparing dev login</body></html>`);
+  },
+
+  /**
    * Take a pile of info from the CAS response and turn it into a token in our format
    *
    * @param cas_userinfo
    * @return {string} JSON string
    */
-  tokenJsonFromCasInfo : tokenJsonFromCasInfo,
+  tokenJsonFromCasInfo: tokenJsonFromCasInfo,
 
-  mapCASRoleToUserRole : mapCASRoleToUserRole,
-  roleNameToCASGroup   : roleNameToCASGroup,
+  mapCASRoleToUserRole: mapCASRoleToUserRole,
+  roleNameToCASGroup: roleNameToCASGroup,
   createOrUpdateMAXUser: createOrUpdateMAXUser,
   createOrUpdateLoginGovUser: createOrUpdateLoginGovUser,
-  userInfoFromReq      : userInfoFromReq,
-  isGSAAdmin           : isGSAAdmin,
+  userInfoFromReq: userInfoFromReq,
+  isGSAAdmin: isGSAAdmin,
   passwordOnlyWhitelist: userOnPasswordOnlyWhitelist,
   translateCASAgencyName: translateCASAgencyName,
   getGovernmentEmail: getGovernmentEmail,
 
-  roles : roles,
-  roleKeys : roleKeys,
+  roles: roles,
+  roleKeys: roleKeys,
 
-  ADMIN_ROLE : ADMIN_ROLE,
-  PROGRAM_MANAGER_ROLE : PROGRAM_MANAGER_ROLE,
-  FIVE08_COORDINATOR_ROLE : FIVE08_COORDINATOR_ROLE,
-  CO_ROLE : CO_ROLE,
-  EXEC_ROLE : EXEC_ROLE
+  ADMIN_ROLE: ADMIN_ROLE,
+  PROGRAM_MANAGER_ROLE: PROGRAM_MANAGER_ROLE,
+  FIVE08_COORDINATOR_ROLE: FIVE08_COORDINATOR_ROLE,
+  CO_ROLE: CO_ROLE,
+  EXEC_ROLE: EXEC_ROLE
 
 
 }
