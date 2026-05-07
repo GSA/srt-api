@@ -20,6 +20,7 @@ const pg = require('pg');
 const querystring = require('querystring');
 const ragRoutesFactory = require('./routes/rag.routes');
 const ragAnalyticsRoutesFactory = require('./routes/rag-analytics.routes');
+const adminManagementRoutesFactory = require('./routes/admin.management.routes');
 
 const { Issuer, Strategy, generators } = require('openid-client');
 
@@ -32,7 +33,7 @@ const pgPool = new pg.Pool({
   password: dbConfig.password,
   host: dbConfig.host,
   port: dbConfig.port,
-
+  ssl: env !== 'development' ? { rejectUnauthorized: false } : false
 });
 
 
@@ -305,6 +306,22 @@ module.exports = {
     app.get('/api/reports/noticeTypeChangeReport', token(), admin_only(), adminReportRoutes.noticeTypeChangeReport)
     app.use('/api', documentRoutes)
 
+    // Admin Management Routes (user CRUD, analytics, audit, health)
+    const adminMgmt = adminManagementRoutesFactory(pgPool)
+    app.get('/api/admin/users', token(), admin_only(), adminMgmt.listUsers)
+    app.put('/api/admin/users/:id', token(), admin_only(), adminMgmt.updateUser)
+    app.put('/api/admin/users/:id/toggle-status', token(), admin_only(), adminMgmt.toggleUserStatus)
+    app.put('/api/admin/users/bulk-deactivate', token(), admin_only(), adminMgmt.bulkDeactivate)
+    app.get('/api/admin/audit-log', token(), admin_only(), adminMgmt.getAuditLog)
+    app.get('/api/admin/analytics/overview', token(), admin_only(), adminMgmt.getAnalyticsOverview)
+    app.get('/api/admin/analytics/feature-usage', token(), admin_only(), adminMgmt.getFeatureUsage)
+    app.get('/api/admin/system-health', token(), admin_only(), adminMgmt.getSystemHealth)
+    app.get('/api/admin/scheduled-pipeline-stats', token(), admin_only(), adminMgmt.getScheduledPipelineStats)
+    app.get('/api/admin/system-logs', token(), admin_only(), adminMgmt.getSystemLogs)
+    app.get('/api/admin/agencies', token(), admin_only(), adminMgmt.listAgencies)
+    app.post('/api/analytics/track', token(), adminMgmt.trackEvent)
+    app.post('/api/analytics/track-batch', token(), adminMgmt.trackBatch)
+
     // RAG Analysis routes (no token auth for dev)
     const ragRoutes = ragRoutesFactory(pgPool)
     app.get('/api/rag/solicitations', ragRoutes.listSolicitations)
@@ -320,6 +337,24 @@ module.exports = {
     app.get('/api/rag-analytics/document-intelligence', ragAnalyticsRoutes.getDocumentIntelligence)
     app.get('/api/rag-analytics/vector-violations', ragAnalyticsRoutes.getVectorViolations)
     app.get('/api/rag-analytics/agency-leaderboard', ragAnalyticsRoutes.getAgencyLeaderboard)
+
+    app.get('/api/rag-analytics/playground/status', ragAnalyticsRoutes.getPlaygroundStatus)
+    app.get('/api/rag-analytics/adhoc-usage', ragAnalyticsRoutes.getAdhocUsage)
+    app.get('/api/rag-analytics/stages', ragAnalyticsRoutes.listStages)
+    app.post('/api/rag-analytics/stages', ragAnalyticsRoutes.saveStage)
+    app.delete('/api/rag-analytics/stages/:stageId', ragAnalyticsRoutes.deleteStage)
+    app.post('/api/rag-analytics/stages/generate-examples', ragAnalyticsRoutes.generateExamples)
+    app.get('/api/rag-analytics/pipelines', ragAnalyticsRoutes.listPipelines)
+    app.post('/api/rag-analytics/pipelines', ragAnalyticsRoutes.savePipeline)
+    app.delete('/api/rag-analytics/pipelines/:templateId', ragAnalyticsRoutes.deletePipeline)
+    app.get('/api/rag-analytics/playground/list-models', ragAnalyticsRoutes.listPlaygroundModels)
+    app.post('/api/rag-analytics/playground/test-completion', ragAnalyticsRoutes.testPlaygroundCompletion)
+    app.post('/api/rag-analytics/playground/test-embeddings', ragAnalyticsRoutes.testPlaygroundEmbeddings)
+    app.post('/api/rag-analytics/playground/package-synthesis', ragAnalyticsRoutes.packageSynthesis)
+    app.post('/api/rag-analytics/playground/execute-pipeline', ragAnalyticsRoutes.executePipeline)
+    app.post('/api/rag-analytics/playground/execute-stage', ragAnalyticsRoutes.executeStage)
+    app.post('/api/rag-analytics/playground/generate-prompt', ragAnalyticsRoutes.generatePrompt)
+    app.post('/api/rag-analytics/playground/analyze', ragAnalyticsRoutes.playgroundAnalyze)
 
     app.use(expressWinston.errorLogger({
       transports: transports,

@@ -27,13 +27,7 @@ ARG default_environment=development
 # Set NODE_ENV environment variable
 ENV NODE_ENV=${environment:-$default_environment}
 
-# Set SNYK TOKEN environment variable
-ARG SNYK_TOKEN
-ENV SNYK_TOKEN=${SNYK_TOKEN}
-RUN yarn global add snyk@latest
-RUN snyk auth "$SNYK_TOKEN"
-
-# Check environment and install dependencies
+# Install dependencies
 RUN yarn install
 
 # Create and activate Python virtual environment

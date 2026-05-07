@@ -5,7 +5,7 @@ const appInstance = app(); // If the function requires parameters, pass them her
 
 const db = require('./models')
 // noinspection JSUnresolvedVariable
-const port = config.srt_server.port
+const port = process.env.PORT || config.srt_server.port
 
 
 db.sequelize.sync().then(() => {
