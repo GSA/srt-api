@@ -92,7 +92,7 @@ class USAIAdapter {
         };
     }
 
-    async chatCompletion(system, user, model, retries = 3, delay = 2000) {
+    async chatCompletion(system, user, model, retries = 3, delay = 2000, temperature = 0.2) {
         model = model || this.defaultModel;
         const payload = {
             model: model,
@@ -100,7 +100,7 @@ class USAIAdapter {
                 { role: 'system', content: system },
                 { role: 'user', content: user }
             ],
-            temperature: 0.2,
+            temperature: temperature,
             max_tokens: 4000
         };
 

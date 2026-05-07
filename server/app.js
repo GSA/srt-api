@@ -329,6 +329,10 @@ module.exports = {
     app.get('/api/rag/solicitation/:solNum/documents', ragRoutes.getDocuments)
     app.get('/api/rag/solicitation/:solNum/matches', ragRoutes.getMatches)
 
+    // Pipeline V2 (Laura's prompts)
+    const pipelineV2Routes = require('./routes/pipeline-v2.routes')(pgPool)
+    app.post('/api/pipeline-v2/analyze', pipelineV2Routes.analyze)
+
     // Advanced RAG Analytics Routes for Dashboarding
     const ragAnalyticsRoutes = ragAnalyticsRoutesFactory(pgPool)
     app.get('/api/rag-analytics/tri-state', ragAnalyticsRoutes.getTriState)
