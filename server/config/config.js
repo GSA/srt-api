@@ -457,14 +457,13 @@ module.exports = {
     defaultMaxPredictions: 1000
   },
   development: {
-    "emailFrom": "crowley+srt@tcg.com",
+    "emailFrom": "srt-noreply@gsa.gov",
     "emailServer": {
-      "host": "smtp.sendgrid.net",
-      "port": 465,
-      "secure": true,
-      "auth": {
-        "user": "apikey",
-        "pass": "ENV variable SENDGRID_API_KEY"
+      "host": "159.142.160.13",
+      "port": 25,
+      "secure": false,
+      "tls": {
+        "rejectUnauthorized": false
       }
     },
     "emailLogOnly": false,
@@ -539,14 +538,13 @@ module.exports = {
     "logPerformance": false
   },
   "clouddev": {
-    "emailFrom": "crowley+srt@tcg.com",
+    "emailFrom": "srt-noreply@gsa.gov",
     "emailServer": {
-      "host": "smtp.sendgrid.net",
-      "port": 465,
-      "secure": true,
-      "auth": {
-        "user": "apikey",
-        "pass": "ENV variable SENDGRID_API_KEY"
+      "host": "smtp.gsa.gov",
+      "port": 25,
+      "secure": false,
+      "tls": {
+        "rejectUnauthorized": false
       }
     },
     "emailLogOnly": false,

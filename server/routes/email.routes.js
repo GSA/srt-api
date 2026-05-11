@@ -38,10 +38,8 @@ function sendMessage (message) {
     delete message.text
   }
 
-  if (process.env.SENDGRID_API_KEY) {
-    config.emailServer.auth.pass = process.env.SENDGRID_API_KEY
-  }
-
+  // GSA internal SMTP relay (smtp.gsa.gov) — no auth required
+  // Per Ted Kruelski: new DNS lookup per email for best load balancing
   let transporter = nodemailer.createTransport(config.emailServer)
   logger.log('info', 'Sending email to ' + message.to + ' with subject ' + message.subject, { tag: 'email' })
 
