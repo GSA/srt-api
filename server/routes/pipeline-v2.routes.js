@@ -191,6 +191,106 @@ Return ONLY valid JSON:
 };
 
 // ══════════════════════════════════════════════════════════════════
+// PROMPTS V3 (FAR-grounded — May 14, 2026, from SRT_PROMPTS_v3.docx)
+// Only applicability and ICT classification changed; others same as v2
+// ══════════════════════════════════════════════════════════════════
+
+const PROMPTS_V3 = {
+  ...PROMPTS,
+  applicability: {
+    system: `You are a Section 508 compliance expert working with federal acquisition professionals to include Section 508 in solicitation language as required or otherwise indicated by FAR, particularly part 39.104. Analyze the document text and determine if Section 508 of the Rehabilitation Act and updated Federal Acquisition Requirements related to Section 508 apply to this document.
+
+CRITICAL EXCLUSION RULES — Section 508 does NOT apply to:
+- Construction, demolition, dredging, excavation, or landscaping projects
+- Passive mechanical components (bearings, seals, valves, gaskets, hose clamps)
+- Analog instruments without digital displays (mechanical gauges, pointer meters)
+- Bulk commodities: clothing, boots, food, medical supplies, chemicals
+- Physical repair/maintenance of structures (roofing, plumbing, HVAC ducting)
+- Ammunition, missiles, or munitions components without user interfaces
+- Cables, fiber optics
+- Temperature sensor with no display
+
+CRITICAL INCLUSION RULES — Section 508 DOES apply to:
+- Any procurement involving software, software licenses, web applications, or cloud services
+- Hardware with user-facing digital displays, interfaces, or touchscreens
+- IT services, help desk, managed services, system integration
+- Telecommunications and network equipment
+- Any product requiring a VPAT or Accessibility Conformance Report (ACR)
+
+Return ONLY valid JSON with these fields:
+{
+  "is_508_applicable": true/false,
+  "confidence_score": 1-10,
+  "key_eit_indicators": ["specific technology keywords found"],
+  "applicability_explanation": "2-3 sentences explaining decision",
+  "accessibility_considerations": "specific accessibility features needed or None",
+  "is_physical_only": true/false,
+  "has_explicit_508_mention": true/false,
+  "is_cots_product": true/false,
+  "ict_complexity": "Simple/Medium/Complex"
+}`,
+    user: (text) => `Determine if Section 508 applies to this document:\n\n${text.substring(0, 50000)}`
+  },
+
+  ictClassification: {
+    system: `You are an ICT classification expert for federal procurement. Analyze this solicitation document and identify what types of Information and Communication Technology are BEING PROCURED (bought/contracted for). If a particular product is being requested, use outside sources to determine if the product mentioned is ICT under the specifications in the previous prompt.
+
+Full text of the FAR as it relates to ICT and accessibility: When acquiring ICT, agencies must ensure that—
+(a) Federal employees with disabilities have access to and use of information and data that is comparable to the access and use by Federal employees who are not individuals with disabilities; and
+(b) Members of the public with disabilities seeking information or services from an agency have access to and use of information and data that is comparable to the access to and use of information and data by members of the public who are not individuals with disabilities.
+
+39.104-3 Applicability.
+(a) General. Unless an exception at 39.104-4 or an exemption at 39.104-5 applies, acquisitions for ICT supplies and services must meet the applicable ICT accessibility standards at 36 CFR 1194.1.
+(b) Commercial products and commercial services. When acquiring commercial products and commercial services, an agency must comply with those ICT accessibility standards that can be met with supplies or services that are available in the commercial marketplace and that best address the agency's needs, but see 39.104-5(a)(3).
+(c) Legacy ICT. Any component or portion of existing ICT (i.e., ICT that was procured, maintained, or used on or before January 18, 2018) is not required to comply with the current ICT accessibility standards if it—
+(1) Complies with an earlier standard issued according to section 508 of the Rehabilitation Act of 1973 (29 U.S.C. 794d), which is set forth in Appendix D to 36 CFR 1194.1); and
+(2) Has not been altered (i.e., a change that affects interoperability, the user interface, or access to information or data) after January 18, 2018.
+(d) Alterations of legacy ICT. When altering any component or portion of existing ICT, after January 18, 2018, the component or portion must be modified to conform to the current ICT accessibility standards in 36 CFR 1194.1.
+
+39.104-4 Exceptions.
+(a) The requirements in 39.104-2 do not apply to acquisitions for—
+(1) National security systems. ICT operated by agencies as part of a national security system, as defined by 40 U.S.C. 11103(a);
+(2) Incidental contract items. ICT acquired by a contractor incidental to a contract, i.e., for in-house use by the contractor to perform the contract; or
+(3) Maintenance or monitoring spaces. The portions of ICT that are operable parts or status indicators located in spaces frequented only by service personnel for maintenance, repair, or occasional monitoring of equipment.
+
+39.104-5 Exemptions.
+(a) Allowable exemptions. An agency may grant an exemption for the following:
+(1) Undue burden. When an agency determines the acquisition of ICT conforming with all the applicable ICT accessibility standards would impose an undue burden on the agency.
+(2) Fundamental alteration. When an agency determines that acquisition of ICT that conforms with all applicable ICT accessibility standards would result in a fundamental alteration in the nature of the ICT.
+(3) Nonavailability of conforming commercial products and commercial services. Where there are no commercial products and commercial services that fully conform to the ICT accessibility standards.
+
+Only mark a type as true if the solicitation is actually acquiring that type of ICT.
+Do NOT mark true just because the document mentions a website URL, uses email, or references technology in passing.
+
+The question is: what ICT is the government buying?
+
+For example:
+- A solicitation to buy laptops → Hardware=true
+- A solicitation for a web application → Web=true, Software=true
+- A solicitation that mentions "submit via email" → Telecommunications=false (email is just the submission method, not what's being procured)
+- A solicitation for an MRI machine with software → Hardware=true, Software=true, Medical_Devices=true
+- A solicitation for software licenses - software license=true or software licenses=true
+
+Return ONLY valid JSON:
+{
+  "ict_types": {
+    "Web": true/false,
+    "Software": true/false,
+    "Hardware": true/false,
+    "Electronic_Content": true/false,
+    "Telecommunications": true/false,
+    "Multimedia": true/false,
+    "Medical_Devices": true/false
+  },
+  "hardware_component": "Yes"/"No",
+  "software_component": "Yes"/"No",
+  "explanation": "brief explanation of what ICT is being procured"
+}`,
+    user: (text) => `Classify ICT types in this text:\n\n${text.substring(0, 50000)}`
+  }
+};
+
+// ══════════════════════════════════════════════════════════════════
 // HELPER: Run srt-ml prediction
 // ══════════════════════════════════════════════════════════════════
 
@@ -315,9 +415,14 @@ module.exports = function (pgPool) {
         res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
       }
 
+      // Select prompt set based on pipeline_version parameter
+      const pipelineVersion = req.body.pipeline_version || 'v2';
+      const activePrompts = pipelineVersion === 'v3' ? PROMPTS_V3 : PROMPTS;
+      const pipelineLabel = pipelineVersion === 'v3' ? '3.0-far-grounded' : '2.0-laura';
+
       try {
         const startTime = Date.now();
-        sendEvent('stage', { stage: 'init', message: 'Pipeline V2 starting...' });
+        sendEvent('stage', { stage: 'init', message: `Pipeline ${pipelineVersion.toUpperCase()} starting...` });
 
         // ── Extract text ──────────────────────────────────────────
         let text = '';
@@ -348,8 +453,8 @@ module.exports = function (pgPool) {
         let machineReadable = null;
         let machineReadableDebug = {};
         try {
-          const systemPrompt = PROMPTS.machineReadable.system;
-          const userPrompt = PROMPTS.machineReadable.user(text);
+          const systemPrompt = activePrompts.machineReadable.system;
+          const userPrompt = activePrompts.machineReadable.user(text);
           const raw = await usaiAdapter.chatCompletion(systemPrompt, userPrompt, GEMINI_PRO, 3, 2000, 0.1);
           machineReadable = usaiAdapter.parseJsonResponse(raw);
           machineReadableDebug = { system_prompt: systemPrompt, user_prompt: userPrompt.substring(0, 500) + '...', raw_response: raw, parsed: machineReadable };
@@ -363,8 +468,8 @@ module.exports = function (pgPool) {
           const mlResult = await mlPromise;
           const totalTime = Date.now() - startTime;
           const finalResult = {
-            pipeline_version: '2.0',
-            pipeline_name: 'laura_prompts',
+            pipeline_version: pipelineLabel,
+            pipeline_name: pipelineLabel,
             file_name: fileName,
             generated_at: new Date().toISOString(),
             processing_time_ms: totalTime,
@@ -396,8 +501,8 @@ module.exports = function (pgPool) {
         let isSolicitation = null;
         let isSolicitationDebug = {};
         try {
-          const systemPrompt = PROMPTS.isSolicitation.system;
-          const userPrompt = PROMPTS.isSolicitation.user(text);
+          const systemPrompt = activePrompts.isSolicitation.system;
+          const userPrompt = activePrompts.isSolicitation.user(text);
           const raw = await usaiAdapter.chatCompletion(systemPrompt, userPrompt, GEMINI_PRO, 3, 2000, 0.1);
           isSolicitation = usaiAdapter.parseJsonResponse(raw);
           isSolicitationDebug = { system_prompt: systemPrompt, user_prompt: userPrompt.substring(0, 500) + '...', raw_response: raw, parsed: isSolicitation };
@@ -411,8 +516,8 @@ module.exports = function (pgPool) {
           const mlResult = await mlPromise;
           const totalTime = Date.now() - startTime;
           const finalResult = {
-            pipeline_version: '2.0',
-            pipeline_name: 'laura_prompts',
+            pipeline_version: pipelineLabel,
+            pipeline_name: pipelineLabel,
             file_name: fileName,
             generated_at: new Date().toISOString(),
             processing_time_ms: totalTime,
@@ -447,8 +552,8 @@ module.exports = function (pgPool) {
         let applicability = null;
         let applicabilityDebug = {};
         try {
-          const systemPrompt = PROMPTS.applicability.system;
-          const userPrompt = PROMPTS.applicability.user(text);
+          const systemPrompt = activePrompts.applicability.system;
+          const userPrompt = activePrompts.applicability.user(text);
           const raw = await usaiAdapter.chatCompletion(systemPrompt, userPrompt, GEMINI_PRO, 3, 2000, 0.1);
           applicability = usaiAdapter.parseJsonResponse(raw);
           applicabilityDebug = { system_prompt: systemPrompt, user_prompt: userPrompt.substring(0, 500) + '...', raw_response: raw, parsed: applicability };
@@ -462,8 +567,8 @@ module.exports = function (pgPool) {
         let ictClassification = null;
         let ictDebug = {};
         try {
-          const systemPrompt = PROMPTS.ictClassification.system;
-          const userPrompt = PROMPTS.ictClassification.user(text);
+          const systemPrompt = activePrompts.ictClassification.system;
+          const userPrompt = activePrompts.ictClassification.user(text);
           const raw = await usaiAdapter.chatCompletion(systemPrompt, userPrompt, GEMINI_PRO, 3, 2000, 0.3);
           ictClassification = usaiAdapter.parseJsonResponse(raw);
           ictDebug = { system_prompt: systemPrompt, user_prompt: userPrompt.substring(0, 500) + '...', raw_response: raw, parsed: ictClassification };
@@ -517,8 +622,8 @@ module.exports = function (pgPool) {
             } : null
           };
 
-          const systemPrompt = PROMPTS.documentSummary.system;
-          const userPrompt = PROMPTS.documentSummary.user(analysisContext);
+          const systemPrompt = activePrompts.documentSummary.system;
+          const userPrompt = activePrompts.documentSummary.user(analysisContext);
           const raw = await usaiAdapter.chatCompletion(systemPrompt, userPrompt, GEMINI_PRO);
           documentSummary = usaiAdapter.parseJsonResponse(raw);
           summaryDebug = { system_prompt: systemPrompt, user_prompt: userPrompt.substring(0, 1000) + '...', raw_response: raw, parsed: documentSummary };
@@ -534,8 +639,8 @@ module.exports = function (pgPool) {
         // ── Final output ──────────────────────────────────────────
         const totalTime = Date.now() - startTime;
         const finalResult = {
-          pipeline_version: '2.0',
-          pipeline_name: 'laura_prompts',
+          pipeline_version: pipelineLabel,
+          pipeline_name: pipelineLabel,
           file_name: fileName,
           generated_at: new Date().toISOString(),
           processing_time_ms: totalTime,
