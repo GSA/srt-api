@@ -321,6 +321,7 @@ module.exports = {
     app.get('/api/admin/agencies', token(), admin_only(), adminMgmt.listAgencies)
     app.post('/api/analytics/track', token(), adminMgmt.trackEvent)
     app.post('/api/analytics/track-batch', token(), adminMgmt.trackBatch)
+    app.post('/api/admin/send-bulk-email', token(), admin_only(), adminMgmt.sendBulkEmail)
 
     // RAG Analysis routes (no token auth for dev)
     const ragRoutes = ragRoutesFactory(pgPool)
@@ -359,6 +360,7 @@ module.exports = {
     app.post('/api/rag-analytics/playground/execute-stage', ragAnalyticsRoutes.executeStage)
     app.post('/api/rag-analytics/playground/generate-prompt', ragAnalyticsRoutes.generatePrompt)
     app.post('/api/rag-analytics/playground/analyze', ragAnalyticsRoutes.playgroundAnalyze)
+    app.post('/api/rag-analytics/art-lookup', token(), ragAnalyticsRoutes.artLookup)
 
     app.use(expressWinston.errorLogger({
       transports: transports,

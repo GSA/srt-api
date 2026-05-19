@@ -769,6 +769,76 @@ module.exports = function (pgPool) {
         logger.log('error', 'Error listing agencies', { error: err.message, tag: 'admin-agencies' })
         return res.status(500).json({ error: 'Failed to list agencies' })
       }
+    },
+
+    // ═════════════════════════════════════════════════════════════════
+    // BULK EMAIL
+    // ═════════════════════════════════════════════════════════════════
+
+    /**
+     * POST /api/admin/send-bulk-email
+     * Send an email to filtered recipients using AWS SES.
+     */
+    sendBulkEmail: async function (req, res) {
+      try {
+        const { templateId, subject, body, recipientMode, agency, role, inactivityDays } = req.body
+
+        if (!subject || !body) {
+          return res.status(400).json({ error: 'Subject and body are required' })
+        }
+
+        // Get recipients based on mode
+        let where = { isAccepted: true, isRejected: false }
+        if (agency) where.agency = agency
+
+        let users = await User.findAll({ where })
+
+        if (role) {
+          users = users.filter(u => u.userRole === role)
+        }
+
+        if (recipientMode === 'inactive' && inactivityDays) {
+          logger.log('info', 'Inactive filter requested — sending to all active users for now', { tag: 'bulk-email' })
+        }
+
+        const emails = users.map(u => u.email).filter(e => e)
+
+        if (emails.length === 0) {
+          return res.status(400).json({ error: 'No recipients found matching criteria' })
+        }
+
+        // Send emails using nodemailer
+        const emailRoutes = require('./email.routes')
+        let sent = 0
+        let failed = 0
+
+        for (const toEmail of emails) {
+          try {
+            await emailRoutes.sendMessage({
+              to: toEmail,
+              subject: subject,
+              html: body
+            })
+            sent++
+          } catch (e) {
+            failed++
+            logger.log('warn', `Failed to send to ${toEmail}: ${e.message}`, { tag: 'bulk-email' })
+          }
+        }
+
+        await auditLog(req, 'bulk_email', 'email', templateId, null, {
+          templateId, recipientMode, agency, role, sent, failed, totalRecipients: emails.length
+        })
+
+        logger.log('info', `Admin sent bulk email: ${sent} sent, ${failed} failed`, {
+          tag: 'bulk-email', admin: getAdminEmail(req), templateId, sent, failed
+        })
+
+        return res.status(200).json({ sent, failed, total: emails.length })
+      } catch (err) {
+        logger.log('error', 'Error sending bulk email', { error: err.message, tag: 'bulk-email' })
+        return res.status(500).json({ error: 'Failed to send bulk email' })
+      }
     }
   }
 }

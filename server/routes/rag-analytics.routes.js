@@ -1219,6 +1219,86 @@ Return ONLY valid JSON:
                     return res.status(500).json({ success: false, error: err.message });
                 }
             });
+        },
+
+        /**
+         * POST /api/rag-analytics/art-lookup
+         * Standalone ART requirements lookup by ICT types.
+         * Used by the report detail page for non-compliant solicitations.
+         */
+        artLookup: async function (req, res) {
+            try {
+                const { ict_types } = req.body;
+                if (!ict_types || !Array.isArray(ict_types) || ict_types.length === 0) {
+                    return res.status(400).json({ error: 'ict_types array required' });
+                }
+
+                // Build a simple ICT classification object for the ART mapping
+                const ictClassification = {
+                    ict_types: {},
+                    hardware_component: 'No',
+                    software_component: 'No'
+                };
+                for (const t of ict_types) {
+                    ictClassification.ict_types[t] = true;
+                    if (t === 'Hardware') ictClassification.hardware_component = 'Yes';
+                    if (t === 'Software' || t === 'Web') ictClassification.software_component = 'Yes';
+                }
+
+                // Use LLM to map ICT to ART API format
+                const artMappingSystem = `You are mapping ICT classification results into the ART (Accessibility Requirements Tool) API request format.
+
+The ART API accepts a JSON body with these fields:
+- "ict_type": array of ["it-prod", "it-serv", "it-none"]
+- "software_group": object with "cloud_services": array of ["saas", "paas", "other", "idk"], "software_purchase": array of ["web-app", "auth-tool", "software-infrastructure", "other"]
+- "hardware_group": object with "hardware_items": array of ["computer", "tablet", "printers_scanners_copiers", "multi-functional", "peripheral", "kiosk", "mobile", "video-teleconference-equipment", "video-monitor", "other", "none"]
+- "support": array of ["technical", "call", "doc", "training"]
+- "solicitation_phase": always "solicitation-development"
+
+Based on the ICT types: ${JSON.stringify(ict_types)}, generate the appropriate ART API request body.
+Return ONLY valid JSON.`;
+
+                const adapter = require('../shared/rag_services/usai_adapter');
+                const artBodyChat = await adapter.chatCompletion(artMappingSystem, `Map these ICT types to ART API format: ${JSON.stringify(ict_types)}`, adapter.defaultCheapModel);
+                let artBody = adapter.parseJsonResponse(artBodyChat) || {};
+
+                // Ensure required fields
+                artBody.solicitation_phase = 'solicitation-development';
+                if (!artBody.ict_type) {
+                    artBody.ict_type = ict_types.includes('Software') || ict_types.includes('Web') ? ['it-prod', 'it-serv'] : ['it-prod'];
+                }
+
+                // Validate ict_type
+                const VALID_ICT_TYPE = ['it-prod', 'it-serv', 'it-none'];
+                if (artBody.ict_type) {
+                    artBody.ict_type = artBody.ict_type.filter(v => VALID_ICT_TYPE.includes(v));
+                    if (artBody.ict_type.length === 0) artBody.ict_type = ['it-prod'];
+                }
+
+                // Call ART API
+                const artApiUrl = process.env.ART_API_URL || 'https://art-api-dev.app.cloud.gov';
+                const artResponse = await fetch(`${artApiUrl}/v1/get508Languages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(artBody)
+                });
+
+                if (!artResponse.ok) {
+                    const artError = await artResponse.text();
+                    return res.status(502).json({ error: `ART API returned ${artResponse.status}`, detail: artError });
+                }
+
+                const artData = await artResponse.json();
+                return res.json({
+                    language: artData,
+                    art_body_sent: artBody,
+                    active_ict_types: ict_types,
+                    source: 'ART API'
+                });
+            } catch (err) {
+                logger.log('error', 'ART lookup failed', { error: err.message, tag: 'art-lookup' });
+                return res.status(500).json({ error: 'ART lookup failed: ' + err.message });
+            }
         }
     }
 }

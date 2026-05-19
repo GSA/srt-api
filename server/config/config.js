@@ -538,13 +538,17 @@ module.exports = {
     "logPerformance": false
   },
   "clouddev": {
-    "emailFrom": "srt-noreply@gsa.gov",
+    "emailFrom": "srt-noreply@ses-ce93a4007031377b.appmail.cloud.gov",
     "emailServer": {
-      "host": "smtp.gsa.gov",
-      "port": 25,
+      "host": "email-smtp-fips.us-gov-west-1.amazonaws.com",
+      "port": 587,
       "secure": false,
+      "auth": {
+        "user": "ENV variable SES_SMTP_USER",
+        "pass": "ENV variable SES_SMTP_PASS"
+      },
       "tls": {
-        "rejectUnauthorized": false
+        "rejectUnauthorized": true
       }
     },
     "emailLogOnly": false,
