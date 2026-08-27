@@ -49,16 +49,7 @@ module.exports = function (pgPool) {
             try {
                 const { solNum } = req.params
                 const result = await pgPool.query(
-                    `WITH deduped_docs AS (
-                       SELECT DISTINCT ON (file_name) * FROM "rag-documents" WHERE solicitation_id = (SELECT id FROM "rag-solicitations" WHERE solicitation_number = $1) ORDER BY file_name, created_at DESC
-                     )
-                     SELECT s.*,
-                     (SELECT COUNT(*) FROM deduped_docs) AS total_files,
-                     (SELECT COUNT(*) FROM deduped_docs WHERE is_508_applicable = true) AS applicable_files,
-                     (SELECT COUNT(*) FROM deduped_docs WHERE is_compliant = true) AS compliant_files,
-                     (SELECT COALESCE(SUM(matches_found), 0) FROM deduped_docs) AS total_matches,
-                     (SELECT AVG(confidence_score) / 100.0 FROM deduped_docs) AS average_quality_score
-                     FROM "rag-solicitations" s WHERE s.solicitation_number = $1`,
+                    `SELECT * FROM "rag-solicitations" WHERE solicitation_number = $1`,
                     [solNum]
                 )
 
@@ -67,13 +58,6 @@ module.exports = function (pgPool) {
                 }
 
                 const sol = result.rows[0]
-
-                // Business rules mapping to UI expectations
-                sol.ai_applicable = sol.applicable_files >= 1;
-                sol.ai_compliant = sol.compliant_files >= 1;
-                sol.last_analyzed_at = sol.created_at || sol.date;
-                sol.ai_overall_risk_level = sol.compliance_confidence || 'Medium';
-
                 return res.json(sol)
             } catch (err) {
                 logger.log('error', 'Error fetching RAG solicitation detail', { error: err.message, tag: 'rag', solNum: req.params.solNum })

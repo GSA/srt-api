@@ -38,7 +38,10 @@ class VectorMatching {
         this.chunkTexts = [];
     }
 
-    async buildIndex(standardsText, model = 'cohere_english_v3') {
+    // Default from the adapter, not a literal: the standards index and the
+    // document chunks in runVectorMatching() MUST use the same embedding model
+    // or the cosine scores below are comparing vectors from different spaces.
+    async buildIndex(standardsText, model = usaiAdapter.defaultEmbeddingModel) {
         const chunks = chunkText(standardsText, 1000, 100);
         this.chunkTexts = chunks;
         this.index = [];
@@ -76,7 +79,9 @@ class VectorMatching {
         for (let i = 0; i < processLimit; i++) {
             const chunk = docChunks[i];
             try {
-                const emb = await usaiAdapter.getEmbeddings(chunk);
+                // Explicit model — this previously passed none, so the payload
+                // shipped without a model field while buildIndex() used cohere.
+                const emb = await usaiAdapter.getEmbeddings(chunk, usaiAdapter.defaultEmbeddingModel);
                 
                 // Compare to all standards
                 let bestMatchScore = -1;

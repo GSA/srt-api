@@ -406,7 +406,9 @@ ORDER BY true_compliance_rate DESC;
         testPlaygroundCompletion: async function (req, res) {
             try {
                 const adapter = require('../shared/rag_services/usai_adapter');
-                const model = req.query.model || req.body.model || 'claude_3_5_sonnet';
+                // Fall back to the adapter's default rather than a hardcoded name —
+                // 'claude_3_5_sonnet' is not in USAI's catalog and always 422'd.
+                const model = req.query.model || req.body.model || adapter.defaultModel;
                 const result = await adapter.testCompletion(model);
                 return res.status(result.status_code || 200).json(result);
             } catch (err) {
@@ -1233,47 +1235,70 @@ Return ONLY valid JSON:
                     return res.status(400).json({ error: 'ict_types array required' });
                 }
 
-                // Build a simple ICT classification object for the ART mapping
-                const ictClassification = {
-                    ict_types: {},
-                    hardware_component: 'No',
-                    software_component: 'No'
+                // Build ART API body deterministically from ICT types — no LLM needed
+                const artBody = {
+                    solicitation_phase: 'solicitation-development',
+                    ict_type: []
                 };
-                for (const t of ict_types) {
-                    ictClassification.ict_types[t] = true;
-                    if (t === 'Hardware') ictClassification.hardware_component = 'Yes';
-                    if (t === 'Software' || t === 'Web') ictClassification.software_component = 'Yes';
+
+                const hasSoftware = ict_types.includes('Software') || ict_types.includes('Web');
+                const hasHardware = ict_types.includes('Hardware');
+                const hasTelecom = ict_types.includes('Telecommunications');
+                const hasContent = ict_types.includes('Electronic_Content') || ict_types.includes('Multimedia');
+
+                // Determine ict_type
+                if (hasSoftware || hasHardware || hasTelecom) {
+                    artBody.ict_type.push('it-prod');
+                }
+                if (ict_types.includes('Web') || ict_types.includes('Software')) {
+                    artBody.ict_type.push('it-serv');
+                }
+                if (artBody.ict_type.length === 0) {
+                    artBody.ict_type = ['it-prod'];
+                }
+                // Dedupe
+                artBody.ict_type = [...new Set(artBody.ict_type)];
+
+                // Software group
+                if (hasSoftware) {
+                    artBody.software_group = {
+                        software_web: ict_types.includes('Web'),
+                        create_electronic_content: hasContent
+                    };
+                    if (ict_types.includes('Web')) {
+                        artBody.software_group.software_purchase = ['web-app'];
+                        // ART API validation rejects cloud_services unless create_electronic_content
+                        // is true (it treats false as missing), which 400s for web solicitations with
+                        // no electronic content. Only send cloud_services when content is present.
+                        if (hasContent) {
+                            artBody.software_group.cloud_services = ['saas'];
+                        }
+                    } else {
+                        artBody.software_group.software_purchase = ['other'];
+                    }
                 }
 
-                // Use LLM to map ICT to ART API format
-                const artMappingSystem = `You are mapping ICT classification results into the ART (Accessibility Requirements Tool) API request format.
-
-The ART API accepts a JSON body with these fields:
-- "ict_type": array of ["it-prod", "it-serv", "it-none"]
-- "software_group": object with "cloud_services": array of ["saas", "paas", "other", "idk"], "software_purchase": array of ["web-app", "auth-tool", "software-infrastructure", "other"]
-- "hardware_group": object with "hardware_items": array of ["computer", "tablet", "printers_scanners_copiers", "multi-functional", "peripheral", "kiosk", "mobile", "video-teleconference-equipment", "video-monitor", "other", "none"]
-- "support": array of ["technical", "call", "doc", "training"]
-- "solicitation_phase": always "solicitation-development"
-
-Based on the ICT types: ${JSON.stringify(ict_types)}, generate the appropriate ART API request body.
-Return ONLY valid JSON.`;
-
-                const adapter = require('../shared/rag_services/usai_adapter');
-                const artBodyChat = await adapter.chatCompletion(artMappingSystem, `Map these ICT types to ART API format: ${JSON.stringify(ict_types)}`, adapter.defaultCheapModel);
-                let artBody = adapter.parseJsonResponse(artBodyChat) || {};
-
-                // Ensure required fields
-                artBody.solicitation_phase = 'solicitation-development';
-                if (!artBody.ict_type) {
-                    artBody.ict_type = ict_types.includes('Software') || ict_types.includes('Web') ? ['it-prod', 'it-serv'] : ['it-prod'];
+                // Hardware group
+                if (hasHardware) {
+                    artBody.hardware_group = {
+                        hardware_items: ['computer', 'other']
+                    };
                 }
 
-                // Validate ict_type
-                const VALID_ICT_TYPE = ['it-prod', 'it-serv', 'it-none'];
-                if (artBody.ict_type) {
-                    artBody.ict_type = artBody.ict_type.filter(v => VALID_ICT_TYPE.includes(v));
-                    if (artBody.ict_type.length === 0) artBody.ict_type = ['it-prod'];
+                // Electronic content
+                if (hasContent) {
+                    artBody.electronic_content = {
+                        is_public: true
+                    };
                 }
+
+                // Support (always include doc for ICT procurements)
+                artBody.support = ['doc'];
+                if (hasTelecom) {
+                    artBody.support.push('technical');
+                }
+
+                logger.log('info', 'ART lookup - deterministic body', { artBody: JSON.stringify(artBody), ict_types, tag: 'art-lookup' });
 
                 // Call ART API
                 const artApiUrl = process.env.ART_API_URL || 'https://art-api-dev.app.cloud.gov';
@@ -1285,7 +1310,8 @@ Return ONLY valid JSON.`;
 
                 if (!artResponse.ok) {
                     const artError = await artResponse.text();
-                    return res.status(502).json({ error: `ART API returned ${artResponse.status}`, detail: artError });
+                    logger.log('warn', 'ART API error', { status: artResponse.status, error: artError, artBody, tag: 'art-lookup' });
+                    return res.status(502).json({ error: `ART API returned ${artResponse.status}`, detail: artError, art_body_sent: artBody });
                 }
 
                 const artData = await artResponse.json();

@@ -133,7 +133,7 @@ module.exports = function (pgPool) {
     updateUser: async function (req, res) {
       try {
         const userId = req.params.id
-        const { agency, userRole, isAccepted, isRejected, rejectionNote } = req.body
+        const { agency, userRole, isAccepted, isRejected, rejectionNote, reviewStatus } = req.body
 
         const user = await User.findOne({ where: { id: userId } })
         if (!user) {
@@ -142,13 +142,16 @@ module.exports = function (pgPool) {
         }
 
         const changes = {}
-        const before = { agency: user.agency, userRole: user.userRole, isAccepted: user.isAccepted, isRejected: user.isRejected }
+        const before = { agency: user.agency, userRole: user.userRole, isAccepted: user.isAccepted, isRejected: user.isRejected, reviewStatus: user.reviewStatus }
 
         if (agency !== undefined) { user.agency = agency; changes.agency = agency }
         if (userRole !== undefined) { user.userRole = userRole; changes.userRole = userRole }
         if (isAccepted !== undefined) { user.isAccepted = isAccepted; changes.isAccepted = isAccepted }
         if (isRejected !== undefined) { user.isRejected = isRejected; changes.isRejected = isRejected }
         if (rejectionNote !== undefined) { user.rejectionNote = rejectionNote; changes.rejectionNote = rejectionNote }
+        // reviewStatus: admin-set state that overrides derived status. Empty
+        // string clears it (back to derived Active/Pending/Deactivated).
+        if (reviewStatus !== undefined) { user.reviewStatus = reviewStatus || null; changes.reviewStatus = reviewStatus || null }
 
         await user.save()
 
@@ -750,6 +753,81 @@ module.exports = function (pgPool) {
      * GET /api/admin/agencies
      * List all agencies with user counts.
      */
+    // ═════════════════════════════════════════════════════════════════
+    // ADMIN OVERVIEW (Phase 3: ops freshness + headline counts)
+    // ═════════════════════════════════════════════════════════════════
+
+    /**
+     * GET /api/admin/overview
+     *
+     * Headline numbers for the admin console, most importantly ingestion
+     * freshness: hours since the newest solicitation was ingested. The July
+     * 2026 feed outage ran silently for 12 days in prod because nothing
+     * surfaced this number — the Operations banner built on it turns amber
+     * at 24h and red at 48h.
+     */
+    getOverview: async function (req, res) {
+      try {
+        const [users, ingest, week] = await Promise.all([
+          pgPool.query(`SELECT
+              COUNT(*)::int AS total,
+              COUNT(*) FILTER (WHERE "isAccepted" = false AND "isRejected" = false)::int AS pending
+            FROM "Users"`),
+          pgPool.query(`SELECT MAX("createdAt") AS last_ingest FROM solicitations`),
+          pgPool.query(`SELECT COUNT(*)::int AS n FROM solicitations WHERE "createdAt" > NOW() - INTERVAL '7 days'`)
+        ])
+
+        // rag-solicitations only exists where the AI review stack is deployed;
+        // report null rather than erroring in environments without it.
+        let analyzed = null
+        try {
+          const r = await pgPool.query(`SELECT COUNT(*)::int AS n FROM "rag-solicitations"`)
+          analyzed = r.rows[0].n
+        } catch (e) { /* table absent — fine */ }
+
+        const lastIngest = ingest.rows[0].last_ingest
+        const hoursSince = lastIngest ? (Date.now() - new Date(lastIngest).getTime()) / 3600000 : null
+
+        return res.status(200).send({
+          users_total: users.rows[0].total,
+          users_pending: users.rows[0].pending,
+          last_ingest: lastIngest,
+          hours_since_ingest: hoursSince === null ? null : Math.round(hoursSince * 10) / 10,
+          ingested_last_7d: week.rows[0].n,
+          analyzed_total: analyzed
+        })
+      } catch (err) {
+        logger.log('error', 'admin overview failed', { error: err.message, tag: 'admin-overview' })
+        return res.status(500).send({ error: 'Unable to load overview.' })
+      }
+    },
+
+    /**
+     * GET /api/admin/last-logins
+     *
+     * email -> most recent authentication timestamp, derived from the same
+     * winston_logs entries the login report uses. Feeds the Users table's
+     * Last-login column.
+     */
+    getLastLogins: async function (req, res) {
+      try {
+        const sql = `SELECT COALESCE(meta#>>'{cas_userinfo, user, email}', meta#>>'{cas_userinfo, email-address}') AS email,
+                            MAX(timestamp) AS last_login
+                       FROM winston_logs
+                      WHERE message LIKE '%authenticated with%'
+                      GROUP BY 1`
+        const rows = await pgPool.query(sql)
+        const map = {}
+        for (const r of rows.rows) {
+          if (r.email) map[r.email.toLowerCase()] = r.last_login
+        }
+        return res.status(200).send({ last_logins: map })
+      } catch (err) {
+        logger.log('error', 'last-logins failed', { error: err.message, tag: 'admin-overview' })
+        return res.status(500).send({ error: 'Unable to load last logins.' })
+      }
+    },
+
     listAgencies: async function (req, res) {
       try {
         const result = await pgPool.query(`

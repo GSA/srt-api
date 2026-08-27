@@ -5,11 +5,26 @@ class USAIAdapter {
     constructor() {
         this.apiKey = process.env.USAI_API;
         this.baseUrl = process.env.USAI_BASE_URL || 'https://api.gsa.usai.gov/api/v1';
-        this.defaultModel = process.env.USAI_MODEL || 'claude_4_5_sonnet';
-        this.defaultCheapModel = process.env.USAI_CHEAP_MODEL || 'claude_3_5_haiku';
+        // Defaults track the best models USAI currently offers. Both are
+        // overridable per-environment via USAI_MODEL / USAI_CHEAP_MODEL.
+        //
+        // IMPORTANT: every name here must appear in GET /models. USAI 422s on
+        // unknown models, and because these are fallbacks behind unset env vars,
+        // a stale name fails silently at call time rather than at boot. The old
+        // defaults (claude_4_5_sonnet, claude_3_5_haiku) predated the current
+        // catalog — the haiku one did not exist at all and 422'd every call.
+        this.defaultModel = process.env.USAI_MODEL || 'claude_4_8_opus';
+        this.defaultCheapModel = process.env.USAI_CHEAP_MODEL || 'claude_4_5_haiku';
+        // Embeddings are only comparable to other embeddings from the SAME model —
+        // cosine similarity across two different models is meaningless, and fails
+        // silently as bad scores rather than as an error. Both sides of vector
+        // matching (the standards index and the document chunks) must resolve to
+        // this one value. cohere_english_v3 is the strongest English retrieval
+        // model in USAI's catalog.
+        this.defaultEmbeddingModel = process.env.USAI_EMBED_MODEL || 'cohere_english_v3';
     }
 
-    async testCompletion(model = 'claude_3_5_sonnet') {
+    async testCompletion(model = process.env.USAI_MODEL || 'claude_4_8_opus') {
         const payload = {
             model: model,
             messages: [{ role: 'user', content: 'Return the word "HELLO" as JSON: {"message": "HELLO"}' }],
@@ -122,6 +137,18 @@ class USAIAdapter {
                     continue;
                 }
                 const err = await response.text();
+                // Newer models (claude_4_8_opus among them) reject `temperature`
+                // outright: "ValidationException: `temperature` is deprecated for
+                // this model." Strip it and retry once rather than maintaining a
+                // per-model allow-list that goes stale every catalog update.
+                if (/temperature/i.test(err) && payload.temperature !== undefined) {
+                    logger.log('warn', `USAI rejected temperature for ${model}; retrying without it`, { model, tag: 'usai-retry' });
+                    delete payload.temperature;
+                    i--; // can only fire once (the field is gone), so it must not
+                         // burn a retry — and on the last iteration a bare
+                         // `continue` would exit the loop and return undefined.
+                    continue;
+                }
                 throw new Error(`USAI API Error: ${err}`);
             }
 
@@ -130,7 +157,7 @@ class USAIAdapter {
         }
     }
 
-    async getEmbeddings(text, model, retries = 3, delay = 2000) {
+    async getEmbeddings(text, model = this.defaultEmbeddingModel, retries = 3, delay = 2000) {
         model = model || 'cohere_english_v3';
         
         // Sanitize input text — remove excessive dots/periods, control chars, and normalize whitespace

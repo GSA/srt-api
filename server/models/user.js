@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     isRejected: DataTypes.BOOLEAN,
     userRole: DataTypes.STRING,
     rejectionNote: DataTypes.STRING,
+    reviewStatus: DataTypes.STRING,
     creationDate: DataTypes.STRING,
     tempPassword: DataTypes.STRING,
     maxId: DataTypes.STRING

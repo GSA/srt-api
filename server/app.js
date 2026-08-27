@@ -285,7 +285,10 @@ module.exports = {
     app.get('/api/solicitation/:id', token(), solicitationRoutes.get)
     app.post('/api/solicitation/:id', token(), solicitationRoutes.update)
     app.post('/api/solicitation/art/:id', token(), solicitationRoutes.postArtLanguage)
-    app.post('/api/feedback', token(), solicitationRoutes.solicitationFeedback)
+    // /api/feedback is mounted below by the new feedback.routes module, which
+    // handles all three sources (manual_upload, solicitation_detail, contact_us).
+    // The previous duplicate registration here ran the legacy handler first and
+    // returned 500 for Contact Us submissions ("Failed to send message").
     app.get('/api/surveys', token(), surveyRoutes.getSurveyQuestions)
     app.get('/api/surveys/:solNum', token(), surveyRoutes.get)
     app.post('/api/surveys/:solNum', token(), surveyRoutes.postResponse)
@@ -318,10 +321,18 @@ module.exports = {
     app.get('/api/admin/system-health', token(), admin_only(), adminMgmt.getSystemHealth)
     app.get('/api/admin/scheduled-pipeline-stats', token(), admin_only(), adminMgmt.getScheduledPipelineStats)
     app.get('/api/admin/system-logs', token(), admin_only(), adminMgmt.getSystemLogs)
+    app.get('/api/admin/overview', token(), admin_only(), adminMgmt.getOverview)
+    app.get('/api/admin/last-logins', token(), admin_only(), adminMgmt.getLastLogins)
     app.get('/api/admin/agencies', token(), admin_only(), adminMgmt.listAgencies)
     app.post('/api/analytics/track', token(), adminMgmt.trackEvent)
     app.post('/api/analytics/track-batch', token(), adminMgmt.trackBatch)
     app.post('/api/admin/send-bulk-email', token(), admin_only(), adminMgmt.sendBulkEmail)
+
+    // Feedback Routes
+    const feedbackRoutes = require('./routes/feedback.routes')(pgPool)
+    app.post('/api/feedback', token(), feedbackRoutes.submitFeedback)
+    app.get('/api/admin/feedback', token(), admin_only(), feedbackRoutes.listFeedback)
+    app.put('/api/admin/feedback/:id/status', token(), admin_only(), feedbackRoutes.updateFeedbackStatus)
 
     // RAG Analysis routes (no token auth for dev)
     const ragRoutes = ragRoutesFactory(pgPool)
@@ -333,6 +344,20 @@ module.exports = {
     // Pipeline V2 (Laura's prompts)
     const pipelineV2Routes = require('./routes/pipeline-v2.routes')(pgPool)
     app.post('/api/pipeline-v2/analyze', pipelineV2Routes.analyze)
+
+    // Pipeline V4 (BM25 Gatekeeper — David's)
+    const pipelineV4Routes = require('./routes/pipeline-v4.routes')(pgPool)
+    // token() is required: this endpoint runs a chain of LLM calls per request,
+    // so leaving it open let anyone on the internet spend the USAI budget. The
+    // handler's emailFromReq() only attributes drafts — it never rejects.
+    app.post('/api/pipeline-v4/analyze', token(), pipelineV4Routes.analyze)
+
+    // My Drafts — per-user auto-saved manual-upload analyses with version
+    // history. Owner-scoped via the JWT; no admin listing by design.
+    const draftsRoutes = require('./routes/drafts.routes')(pgPool)
+    app.get('/api/drafts', token(), draftsRoutes.list)
+    app.get('/api/drafts/:id', token(), draftsRoutes.get)
+    app.delete('/api/drafts/:id', token(), draftsRoutes.remove)
 
     // Advanced RAG Analytics Routes for Dashboarding
     const ragAnalyticsRoutes = ragAnalyticsRoutesFactory(pgPool)
