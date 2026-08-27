@@ -704,3 +704,34 @@ module.exports = {
     "logPerformance": false
   }
 }
+
+// ---------------------------------------------------------------------------
+// SES credentials come from the cloud.gov service binding, never from source.
+//
+// This mirrors the VCAP_SERVICES pattern already used for Postgres in
+// dbConfig.js. Hardcoding broker-issued SMTP credentials here is what put a
+// live GovCloud key into git history in May 2026; reading them from the
+// binding means a `cf unbind-service` / `cf bind-service` rotation is picked
+// up on the next restage with no code change and nothing to leak.
+//
+// Only applies when an aws-ses instance is actually bound, so environments
+// that send through SendGrid are unaffected.
+// ---------------------------------------------------------------------------
+if (process.env.VCAP_SERVICES) {
+  try {
+    const VCAP = JSON.parse(process.env.VCAP_SERVICES)
+    const ses = VCAP['aws-ses'] && VCAP['aws-ses'][0] && VCAP['aws-ses'][0]['credentials']
+    const env = process.env.NODE_ENV || 'development'
+
+    if (ses && module.exports[env] && module.exports[env].emailServer) {
+      module.exports[env].emailServer.host = ses['smtp_server']
+      module.exports[env].emailServer.auth = {
+        user: ses['smtp_user'],
+        pass: ses['smtp_password']
+      }
+    }
+  } catch (e) {
+    // Malformed VCAP_SERVICES: leave the static config in place rather than
+    // crashing the app at require time.
+  }
+}

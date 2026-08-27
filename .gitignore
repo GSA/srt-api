@@ -52,3 +52,8 @@ docker/certs/private.pem
 docker/certs/public.crt
 private.pem
 public.crt
+.env
+.env.*
+.claude/
+.venv/
+venv/
