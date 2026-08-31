@@ -126,12 +126,21 @@ function createUser(loginGovUser) {
 
   const user_email = gov_email || loginGovUser.email
 
+  const resolved_agency = grabAgencyFromEmail(user_email)
+
+  // When the domain could not be mapped, keep it so an administrator can see
+  // what needs categorising. 'Needs Review' on its own is not actionable.
+  const unresolved_domain = (resolved_agency === NEEDS_REVIEW && user_email && user_email.includes('@'))
+    ? user_email.split('@')[1].toLowerCase()
+    : null
+
   let user_data = {
     'firstName': loginGovUser.given_name || null,
     'lastName': loginGovUser.family_name || null,
     'email': user_email,
     'password': null,
-    'agency': grabAgencyFromEmail(user_email),
+    'agency': resolved_agency,
+    'unresolvedDomain': unresolved_domain,
     'position': '',
     'userRole': 'Executive User', // If we need to handle user roles, we should set it to lowest setting and adjust
     'isRejected': false,
@@ -189,6 +198,21 @@ function grabAgencyFromEmail(email) {
     tag: 'grabAgencyFromEmail'
   });
 
+  // translateCASAgencyName returns its input unchanged when the lookup misses,
+  // which used to mean an unrecognised domain silently became an agency name:
+  // @wv.gov produced an agency called "wv", @gmail.com produced "gmail". Test
+  // dictionary membership instead of comparing strings, because 25 AGENCY_LOOKUP
+  // entries legitimately map to themselves (e.g. "department of agriculture").
+  if (!isKnownAgencyKey(agencyAbbreviance)) {
+    logger.log("info", "Unrecognised email domain, routing to review", {
+      email,
+      domain: fullDomain,
+      unresolvedKey: agencyAbbreviance,
+      tag: 'grabAgencyFromEmail'
+    });
+    return NEEDS_REVIEW;
+  }
+
   let agencyName = translateCASAgencyName(agencyAbbreviance);
   logger.log("info", "Resolved agency name", {
     abbreviation: agencyAbbreviance,
@@ -198,10 +222,34 @@ function grabAgencyFromEmail(email) {
 
   if (!agencyName) {
     logger.log("error", 'Agency name not found', { tag: "grabAgencyFromEmail" });
-    agencyName = "No Agency Found";
+    return NEEDS_REVIEW;
   }
 
   return agencyName;
+}
+
+/**
+ * Sentinel agency for users whose email domain is not yet mapped. These users
+ * are visible in admin for categorisation; they are deliberately not granted a
+ * solicitation feed until an administrator assigns a real agency, because the
+ * visibility check is an exact agency match and this value matches nothing.
+ */
+const NEEDS_REVIEW = 'Needs Review'
+
+/**
+ * True when the key resolves to a real AGENCY_LOOKUP entry (or an environment
+ * override), as opposed to falling through to getConfig's passthrough default.
+ */
+function isKnownAgencyKey(key) {
+  if (!key || typeof key !== 'string') return false
+  const lower = key.toLowerCase()
+  if (lower in process.env) return true
+
+  let dict = getConfig("AGENCY_LOOKUP", {})
+  if (typeof dict === 'string') {
+    try { dict = JSON.parse(dict) } catch (e) { return false }
+  }
+  return Object.prototype.hasOwnProperty.call(dict, lower)
 }
 
 
@@ -812,6 +860,9 @@ module.exports = {
   isGSAAdmin: isGSAAdmin,
   passwordOnlyWhitelist: userOnPasswordOnlyWhitelist,
   translateCASAgencyName: translateCASAgencyName,
+  grabAgencyFromEmail: grabAgencyFromEmail,
+  isKnownAgencyKey: isKnownAgencyKey,
+  NEEDS_REVIEW: NEEDS_REVIEW,
   getGovernmentEmail: getGovernmentEmail,
 
   roles: roles,

@@ -74,7 +74,13 @@ let loginGovClient = Issuer.discover(config['login_gov_oidc']['issuer_url'])
       nonce: nonce,
       state: state,
       redirect_uri: config['login_gov_oidc']["redirect_uri"],
-      scope: "openid email profile",
+      // all_emails is required for getGovernmentEmail() in auth.routes.js to
+      // work. Without it Login.gov returns only the account's primary email, so
+      // a user whose primary is personal (gmail) but who also holds a verified
+      // .gov address arrives as the personal address and resolves to the wrong
+      // agency. This is why getGovernmentEmail has always received an empty
+      // array despite being correctly implemented and wired in.
+      scope: "openid email all_emails profile",
     }
 
     const client = new oidcIssuer.Client({

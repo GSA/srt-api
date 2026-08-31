@@ -5,6 +5,9 @@ module.exports = (sequelize, DataTypes) => {
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,
     agency: DataTypes.STRING,
+    // original email domain when agency could not be resolved; see
+    // grabAgencyFromEmail in auth.routes.js
+    unresolvedDomain: DataTypes.STRING,
     email: DataTypes.STRING,
     password: DataTypes.STRING,
     position: DataTypes.STRING,
