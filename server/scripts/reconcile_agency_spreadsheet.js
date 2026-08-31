@@ -34,11 +34,14 @@ const path = require('path')
 // ── Argument handling ────────────────────────────────────────────────
 
 function parseArgs (argv) {
-  const args = { csv: null, report: null, apply: false }
+  const args = { csv: null, report: null, apply: false, database: null }
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === '--csv') { args.csv = argv[++i] }
     else if (argv[i] === '--report') { args.report = argv[++i] }
     else if (argv[i] === '--apply') { args.apply = true }
+    // Lets the whole run be pointed at a clone, so an import can be rehearsed
+    // before it touches the real database.
+    else if (argv[i] === '--database') { args.database = argv[++i] }
   }
   return args
 }
@@ -348,7 +351,8 @@ async function main () {
     const { Pool } = require('pg')
     const dbConfig = require('../config/dbConfig')
     const env = process.env.NODE_ENV || 'development'
-    const cfg = dbConfig[env] || dbConfig.development
+    const base = dbConfig[env] || dbConfig.development
+    const cfg = args.database ? { ...base, database: args.database } : base
 
     pool = new Pool({
       host: cfg.host, port: cfg.port || 5432, database: cfg.database,
@@ -368,7 +372,7 @@ async function main () {
       await pool.end(); pool = null
     } else {
       const hasDomains = names.includes('agency_domains')
-      const agencyRows = (await pool.query('SELECT id, agency, acronym FROM "Agencies"')).rows
+      const agencyRows = (await pool.query('SELECT id, agency, acronym FROM "Agencies" ORDER BY id')).rows
       const domainRows = hasDomains
         ? (await pool.query('SELECT id, domain, "agencyId" FROM agency_domains')).rows
         : []
@@ -402,7 +406,11 @@ async function main () {
         v => v.some(a => (userCounts.get(a.agency) || 0) > 0 || (predCounts.get(a.agency) || 0) > 0)
       )
 
-      const byKey = new Map(agencyRows.map(a => [canonicalKey(a.agency), a]))
+      const byKey = new Map()
+      for (const a of agencyRows) {
+        const k = canonicalKey(a.agency)
+        if (!byKey.has(k)) byKey.set(k, a)   // lowest id wins, as in the import
+      }
       const domainByName = new Map(domainRows.map(d => [d.domain, d]))
 
       const buckets = {
@@ -484,11 +492,283 @@ async function main () {
   }
 
   if (args.apply) {
-    console.error('\n--apply is not implemented until the report has been reviewed and the')
-    console.error('flagged rows resolved. Import is a separate, deliberate step.')
-    process.exit(3)
+    if (!reconciliation) {
+      console.error('\nRefusing to import: no SRT database was reachable, so there is nothing')
+      console.error(`to reconcile against (${dbSkipReason}).`)
+      process.exit(3)
+    }
+    if (!reconciliation.hasDomainsTable) {
+      console.error('\nRefusing to import: agency_domains does not exist. Run the Phase 2')
+      console.error('migrations first, or domain mappings have nowhere to go.')
+      process.exit(3)
+    }
+    await applyImport({ rows, canon, findings, database: args.database })
   }
 
+}
+
+// ── Import (5.7) ─────────────────────────────────────────────────────
+
+/**
+ * Write the reconciled spreadsheet into SRT.
+ *
+ * Runs in a single transaction: either the whole sheet lands or none of it does.
+ * Idempotent, so re-running after a partial failure or a corrected sheet does
+ * not duplicate anything.
+ *
+ * What it deliberately does NOT do:
+ *
+ *   It never overwrites a domain that already points somewhere. A domain
+ *   pointing at a different agency than the sheet says is a disagreement
+ *   between two sources of truth, and resolving it is a decision, not a merge.
+ *
+ *   It never reparents an agency that already exists. The sheet is treated as
+ *   authoritative for what is missing, not for correcting what is there.
+ *
+ *   It never writes deviationSourceId. Every deviation cell in the source is
+ *   empty and the mechanism ships unpopulated.
+ *
+ *   It never deletes. 438 agencies in SRT do not appear in the sheet and stay
+ *   exactly as they are.
+ */
+/** Would pointing `childId` at `parentId` close a loop? Read-only. */
+async function wouldCycle (client, childId, parentId) {
+  let cursor = parentId
+  let depth = 0
+  while (cursor && depth < 50) {
+    if (Number(cursor) === Number(childId)) return true
+    const r = await client.query('SELECT "parentId" FROM "Agencies" WHERE id = $1', [cursor])
+    if (!r.rows.length) return false
+    cursor = r.rows[0].parentId
+    depth++
+  }
+  return depth >= 50
+}
+
+async function applyImport ({ rows, canon, findings, database }) {
+  const { Pool } = require('pg')
+  const dbConfig = require('../config/dbConfig')
+  const env = process.env.NODE_ENV || 'development'
+  const base = dbConfig[env] || dbConfig.development
+  const cfg = database ? { ...base, database } : base
+
+  console.log(`\nImporting into database: ${cfg.database} @ ${cfg.host}`)
+
+  const pool = new Pool({
+    host: cfg.host, port: cfg.port || 5432, database: cfg.database,
+    user: cfg.username, password: cfg.password,
+    ...(cfg.dialectOptions && cfg.dialectOptions.ssl ? { ssl: cfg.dialectOptions.ssl } : {})
+  })
+  const client = await pool.connect()
+
+  const created = { agencies: [], domains: [], scopes: 0 }
+  const enriched = { parents: [], types: [] }
+  const conflicts = { parentDiffers: [], parentCycle: [] }
+  let passes = 0
+  const skipped = { domainsAlreadyMapped: [], domainsPointingElsewhere: [], agenciesAlreadyPresent: 0 }
+
+  try {
+    await client.query('BEGIN')
+
+    const load = async () => (await client.query(
+      'SELECT id, agency, "parentId", "agencyType" FROM "Agencies" ORDER BY id')).rows
+    let agencyRows = await load()
+
+    // SRT holds 62 pairs of agencies that are the same body under two
+    // spellings, so a canonical key can match more than one row. Ordering by id
+    // and keeping the first occurrence makes the choice deterministic: the
+    // lowest id always wins. Without this the map keeps whichever row Postgres
+    // returned last, which can differ between runs, and consecutive imports
+    // enrich different halves of the same duplicate pair.
+    const byKey = new Map()
+    for (const a of agencyRows) {
+      const k = canonicalKey(a.agency)
+      if (!byKey.has(k)) byKey.set(k, a)
+    }
+
+    const insertAgency = async (name, parentId, agencyType) => {
+      const res = await client.query(
+        `INSERT INTO "Agencies" (agency, "parentId", "agencyType", active, provenance, "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, true, 'spreadsheet_import', NOW(), NOW())
+         RETURNING id, agency`,
+        [name, parentId, agencyType]
+      )
+      const row = res.rows[0]
+      byKey.set(canonicalKey(row.agency), row)
+      created.agencies.push({ name: row.agency, parentId, agencyType })
+
+      // Every agency sees its own solicitations. Matches the Phase 2 seed and
+      // the read path's fallback, so a newly imported agency behaves the same
+      // as one that has been there all along.
+      await client.query(
+        `INSERT INTO agency_solicitation_scope ("agencyId", "visibleAgencyId", "createdAt", "updatedAt")
+         VALUES ($1, $1, NOW(), NOW())`,
+        [row.id]
+      )
+      created.scopes++
+      return row
+    }
+
+    // Parents first, so a component always has something to attach to.
+    const parentNames = new Set()
+    for (const r of rows) {
+      const p = canon(r.parent)
+      if (p) parentNames.add(p)
+    }
+    for (const name of [...parentNames].sort()) {
+      if (!byKey.has(canonicalKey(name))) {
+        await insertAgency(name, null, 'federal_agency')
+      }
+    }
+
+    // Then every entity, attached to its parent where the sheet names one.
+    //
+    // Repeated until nothing changes. One pass is not enough: a row can name a
+    // parent that only acquires its own place in the hierarchy later in the same
+    // pass, and the child then reads a stale value. Two passes reach a fixed
+    // point on the current sheet; the loop is capped so a pathological input
+    // cannot spin.
+    let pass = 0
+    let changedThisPass = 1
+    while (changedThisPass > 0 && pass < 5) {
+      changedThisPass = 0
+      pass++
+      skipped.agenciesAlreadyPresent = 0
+
+      for (const r of rows) {
+        const name = canon(r.entity)
+        if (!name) continue
+        const parentName = canon(r.parent)
+        const parent = parentName ? byKey.get(canonicalKey(parentName)) : null
+
+        if (!byKey.has(canonicalKey(name))) {
+          await insertAgency(name, parent ? parent.id : null, r.agencyType)
+          changedThisPass++
+          continue
+        }
+
+        // The agency is already in SRT. Fill in what is blank; never overwrite a
+        // value someone has already set. Most of the 629 pre-existing agencies
+        // are flat rows with no parent and a placeholder type, and the
+        // spreadsheet's main contribution is exactly that missing structure.
+        // Skipping them outright would drop most of the hierarchy it describes.
+        const current = byKey.get(canonicalKey(name))
+        const sets = []
+        const vals = []
+
+        if (parent && !current.parentId && parent.id !== current.id) {
+          if (await wouldCycle(client, current.id, parent.id)) {
+            if (pass === 1) {
+              conflicts.parentCycle.push({ line: r.line, agency: name, parent: parent.agency })
+            }
+          } else {
+            sets.push(`"parentId" = $${sets.length + 1}`)
+            vals.push(parent.id)
+            current.parentId = parent.id
+            enriched.parents.push({ agency: name, parent: parent.agency })
+          }
+        } else if (parent && current.parentId && current.parentId !== parent.id) {
+          if (pass === 1) {
+            const held = agencyRows.find(a => a.id === current.parentId) || byKey.get(canonicalKey(name))
+            conflicts.parentDiffers.push({
+              line: r.line, agency: name,
+              sheetParent: parent.agency,
+              srtParent: (agencyRows.find(a => a.id === current.parentId) || {}).agency || `id ${current.parentId}`
+            })
+          }
+        }
+
+        // needs_review is the placeholder the Phase 2 seed left behind, so
+        // replacing it fills a blank rather than overriding a judgement.
+        if (current.agencyType === 'needs_review' && r.agencyType !== 'needs_review') {
+          sets.push(`"agencyType" = $${sets.length + 1}`)
+          vals.push(r.agencyType)
+          current.agencyType = r.agencyType
+          enriched.types.push({ agency: name, type: r.agencyType })
+        }
+
+        if (sets.length) {
+          vals.push(current.id)
+          await client.query(
+            `UPDATE "Agencies" SET ${sets.join(', ')}, "updatedAt" = NOW() WHERE id = $${vals.length}`,
+            vals
+          )
+          changedThisPass++
+        } else {
+          skipped.agenciesAlreadyPresent++
+        }
+      }
+    }
+
+    // Domains last, once every agency they point at exists.
+    for (const r of rows) {
+      if (!r.domain) continue
+      const name = canon(r.entity)
+      const agency = byKey.get(canonicalKey(name))
+      if (!agency) continue
+
+      const existing = await client.query('SELECT id, "agencyId" FROM agency_domains WHERE domain = $1', [r.domain])
+      if (existing.rows.length) {
+        const cur = existing.rows[0]
+        if (cur.agencyId === agency.id) skipped.domainsAlreadyMapped.push(r.domain)
+        else skipped.domainsPointingElsewhere.push({ domain: r.domain, wanted: name })
+        continue
+      }
+
+      await client.query(
+        `INSERT INTO agency_domains (domain, "agencyId", active, source, "originalRawValue", "createdAt", "updatedAt")
+         VALUES ($1, $2, true, 'spreadsheet_import', $3, NOW(), NOW())`,
+        [r.domain, agency.id, cleanText(r.raw.domain)]
+      )
+      created.domains.push({ domain: r.domain, agency: name })
+    }
+
+    passes = pass
+    await client.query('COMMIT')
+  } catch (e) {
+    await client.query('ROLLBACK')
+    console.error('\nImport rolled back, nothing was written.')
+    console.error(e.message)
+    client.release(); await pool.end()
+    process.exit(1)
+  }
+
+  client.release()
+  await pool.end()
+
+  console.log('\nImport applied.')
+  console.log(`  passes to reach a stable state: ${passes}`)
+  console.log(`  agencies created:        ${created.agencies.length}`)
+  console.log(`  self-scope rows created: ${created.scopes}`)
+  console.log(`  domains mapped:          ${created.domains.length}`)
+  console.log(`  existing agencies given a parent:  ${enriched.parents.length}`)
+  console.log(`  existing agencies given a type:    ${enriched.types.length}`)
+  console.log(`  agencies already present, unchanged: ${skipped.agenciesAlreadyPresent}`)
+  console.log(`  domains already mapped:   ${skipped.domainsAlreadyMapped.length}`)
+  if (skipped.domainsPointingElsewhere.length) {
+    console.log(`  domains left alone because they point elsewhere: ${skipped.domainsPointingElsewhere.length}`)
+    for (const d of skipped.domainsPointingElsewhere) {
+      console.log(`    ${d.domain} (sheet says ${d.wanted})`)
+    }
+  }
+  if (conflicts.parentDiffers.length) {
+    console.log(`\n  ${conflicts.parentDiffers.length} agency/agencies already have a different parent, left alone:`)
+    for (const c of conflicts.parentDiffers) {
+      console.log(`    ${c.agency}: SRT says ${c.srtParent}, sheet says ${c.sheetParent}`)
+    }
+  }
+  if (conflicts.parentCycle.length) {
+    console.log(`\n  ${conflicts.parentCycle.length} parent assignment(s) refused because they would loop:`)
+    for (const c of conflicts.parentCycle) console.log(`    ${c.agency} under ${c.parent}`)
+  }
+  if (findings.typos.length) {
+    console.log(`\n  ${findings.typos.length} suspected typo(s) imported as written, not corrected:`)
+    for (const t of findings.typos) console.log(`    line ${t.line}: ${t.name}`)
+  }
+  if (findings.unclassified.length) {
+    console.log(`\n  ${findings.unclassified.length} row(s) imported as needs_review pending a decision:`)
+    for (const u of findings.unclassified) console.log(`    line ${u.line}: ${u.entity}`)
+  }
 }
 
 // ── Report (5.6) ─────────────────────────────────────────────────────
