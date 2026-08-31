@@ -5,6 +5,12 @@ module.exports = (sequelize, DataTypes) => {
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,
     agency: DataTypes.STRING,
+    // Foreign key into Agencies. Added alongside the agency name string rather
+    // than replacing it, because the rest of the application still reads the
+    // name. Scope resolution depends on this being declared: solicitationScopeFor
+    // falls back to an exact name match when it is null, so an undeclared column
+    // here would silently disable agency scoping everywhere.
+    agencyId: DataTypes.INTEGER,
     // original email domain when agency could not be resolved; see
     // grabAgencyFromEmail in auth.routes.js
     unresolvedDomain: DataTypes.STRING,
@@ -21,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
     maxId: DataTypes.STRING
   }, {});
   User.associate = function(models) {
-    // associations can be defined here
+    User.belongsTo(models.Agency, { foreignKey: 'agencyId' })
   };
   return User;
 };

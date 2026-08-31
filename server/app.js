@@ -20,6 +20,7 @@ const pg = require('pg');
 const querystring = require('querystring');
 const ragRoutesFactory = require('./routes/rag.routes');
 const ragAnalyticsRoutesFactory = require('./routes/rag-analytics.routes');
+const adminAgencyRoutesFactory = require('./routes/admin.agency.routes');
 const adminManagementRoutesFactory = require('./routes/admin.management.routes');
 
 const { Issuer, Strategy, generators } = require('openid-client');
@@ -330,6 +331,21 @@ module.exports = {
     app.get('/api/admin/overview', token(), admin_only(), adminMgmt.getOverview)
     app.get('/api/admin/last-logins', token(), admin_only(), adminMgmt.getLastLogins)
     app.get('/api/admin/agencies', token(), admin_only(), adminMgmt.listAgencies)
+
+    // Agency hierarchy, domain mapping, solicitation access, and deviation
+    // inheritance. Everything here previously required a config change and a
+    // deploy. Admin only: these edits change who can see which solicitations.
+    const adminAgency = adminAgencyRoutesFactory(pgPool)
+    app.get('/api/admin/agency-management', token(), admin_only(), adminAgency.listAgencyManagement)
+    app.post('/api/admin/agencies', token(), admin_only(), adminAgency.createAgency)
+    app.put('/api/admin/agencies/:id', token(), admin_only(), adminAgency.updateAgency)
+    app.put('/api/admin/agencies/:id/scope', token(), admin_only(), adminAgency.setSolicitationScope)
+    app.put('/api/admin/agencies/:id/deviation', token(), admin_only(), adminAgency.setDeviationSource)
+    app.post('/api/admin/agency-domains', token(), admin_only(), adminAgency.createDomain)
+    app.put('/api/admin/agency-domains/:id', token(), admin_only(), adminAgency.updateDomain)
+    app.delete('/api/admin/agency-domains/:id', token(), admin_only(), adminAgency.deleteDomain)
+    app.get('/api/admin/needs-review', token(), admin_only(), adminAgency.listNeedsReview)
+    app.post('/api/admin/needs-review/resolve', token(), admin_only(), adminAgency.resolveNeedsReview)
     app.post('/api/analytics/track', token(), adminMgmt.trackEvent)
     app.post('/api/analytics/track-batch', token(), adminMgmt.trackBatch)
     app.post('/api/admin/send-bulk-email', token(), admin_only(), adminMgmt.sendBulkEmail)
