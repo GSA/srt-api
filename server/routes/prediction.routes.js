@@ -24,6 +24,7 @@ const SqlString = require('sequelize/lib/sql-string')
 const env = process.env.NODE_ENV || 'development'
 const config = require('../config/config.js')[env]
 const configuration = require('../config/configuration')
+const agencyScope = require('../shared/agency_scope')
 const getConfig = configuration.getConfig
 const cloneDeep = require('clone-deep')
 const Op = require('sequelize').Op
@@ -442,12 +443,24 @@ async function getPredictions (filter, user) {
         { [Op.lt]: filter.endDate }
     }
 
-    // Agency access control - check both agency and office fields
+    // Agency access control - check both agency and office fields.
+    //
+    // The scope comes from agency_solicitation_scope rather than the user's
+    // agency string alone, so a component can be scoped to more than its own
+    // name (a CMS user seeing CMS and HHS, for instance). This is deliberately
+    // NOT derived from the parent hierarchy: parentage drives deviation
+    // inheritance, not visibility, and conflating them is what this work exists
+    // to prevent.
+    //
+    // solicitationScopeFor falls back to [user.agency] when the user has no
+    // agencyId or the agency has no scope rows, so behaviour is unchanged until
+    // scopes are configured.
     if (!authRoutes.isGSAAdmin(user.agency, user.userRole)) {
-      logger.debug("Restricting to user's agency and office", { agency: user.agency })
+      const scopeNames = await agencyScope.solicitationScopeFor(user, db)
+      logger.debug("Restricting to user's agency scope", { agency: user.agency, scope: scopeNames })
       attributes.where[Op.or] = [
-        { agency: { [Op.eq]: user.agency } },
-        { office: { [Op.eq]: user.agency } }
+        { agency: { [Op.in]: scopeNames } },
+        { office: { [Op.in]: scopeNames } }
       ]
     } else {
       logger.debug("GSA Admin detected - no agency restriction applied")
