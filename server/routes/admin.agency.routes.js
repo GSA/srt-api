@@ -19,6 +19,7 @@ const db = require('../models/index')
 const Agency = require('../models').Agency
 const AgencyDomain = require('../models').AgencyDomain
 const AgencySolicitationScope = require('../models').AgencySolicitationScope
+const AgencyAlias = require('../models').AgencyAlias
 const User = require('../models').User
 const logger = require('../config/winston')
 const jwt = require('jsonwebtoken')
@@ -95,10 +96,14 @@ module.exports = function (pgPool) {
      */
     listAgencyManagement: async function (req, res) {
       try {
-        const [agencies, domains, scopes] = await Promise.all([
+        const [agencies, domains, scopes, aliases] = await Promise.all([
           Agency.findAll({ order: [['agency', 'ASC']] }),
           AgencyDomain.findAll(),
-          AgencySolicitationScope.findAll()
+          AgencySolicitationScope.findAll(),
+          // Alternate spellings. A merged duplicate lives on as an alias, so
+          // without these the admin screen cannot explain why an agency
+          // disappeared or which names it now answers to.
+          AgencyAlias.findAll().catch(() => [])
         ])
 
         const byId = new Map(agencies.map(a => [a.id, a]))
@@ -121,6 +126,12 @@ module.exports = function (pgPool) {
             id: d.id, domain: d.domain, active: d.active,
             source: d.source, originalRawValue: d.originalRawValue
           })
+        }
+
+        const aliasesByAgency = new Map()
+        for (const a of aliases) {
+          if (!aliasesByAgency.has(a.agency_id)) aliasesByAgency.set(a.agency_id, [])
+          aliasesByAgency.get(a.agency_id).push({ id: a.id, alias: a.alias })
         }
 
         const scopeByAgency = new Map()
@@ -150,6 +161,7 @@ module.exports = function (pgPool) {
             provenance: a.provenance,
             parent: parent ? { id: parent.id, agency: parent.agency } : null,
             domains: domainsByAgency.get(a.id) || [],
+            aliases: aliasesByAgency.get(a.id) || [],
             activeUsers: Number(c.active_users || 0),
             totalUsers: Number(c.total_users || 0),
             solicitationAccess: visibleIds.map(id => ({

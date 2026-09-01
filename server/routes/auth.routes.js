@@ -161,7 +161,10 @@ function createUser(loginGovUser) {
   if (policy.decline) {
     user_data.isRejected = true
     user_data.rejectionNote = policy.reason
-    user_data.reviewStatus = 'auto_declined'
+    // Matches the vocabulary the admin Users screen already uses, so an
+    // auto-declined account displays and filters exactly like one an
+    // administrator declined by hand, and can be changed the same way.
+    user_data.reviewStatus = 'Declined (Personal Email)'
     logger.log('info', 'Auto-declining registration from a personal address', {
       email: user_email, tag: 'auto-decline'
     })
