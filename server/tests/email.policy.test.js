@@ -101,15 +101,26 @@ describe('malformed input', () => {
 })
 
 describe('the decline notice', () => {
-  test('tells the person how to appeal and does not throw when mail fails', async () => {
+  test('addresses the recipient and reaches the right mailbox', async () => {
+    const sent = []
+    const ok = { sendMessage: async (m) => { sent.push(m); return { success: true } } }
+    await policy.notifyDeclined('someone@gmail.com', ok, 'Tuyet')
+    expect(sent).toHaveLength(1)
+    expect(sent[0].to).toBe('someone@gmail.com')
+    expect(sent[0].subject).toBe('Government Email Address Required')
+    expect(sent[0].text).toContain('Tuyet')
+  })
+
+  test('leaves no placeholder behind when no name is known', async () => {
+    // Greeting someone as "Hello {{first_name}}" is worse than no name at all.
     const sent = []
     const ok = { sendMessage: async (m) => { sent.push(m); return { success: true } } }
     await policy.notifyDeclined('someone@gmail.com', ok)
-    expect(sent).toHaveLength(1)
-    expect(sent[0].to).toBe('someone@gmail.com')
-    expect(sent[0].text).toContain('srt@gsa.gov')
-    expect(sent[0].text.toLowerCase()).toContain('state')
+    expect(sent[0].text).not.toContain('{{')
+    expect(sent[0].text).not.toContain('first_name')
+  })
 
+  test('a mail failure does not throw, because the decline still stands', async () => {
     const broken = { sendMessage: async () => { throw new Error('smtp down') } }
     await expect(policy.notifyDeclined('someone@gmail.com', broken)).resolves.toBe(false)
   })

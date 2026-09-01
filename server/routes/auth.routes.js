@@ -175,7 +175,7 @@ async function createUser(loginGovUser) {
       if (policy.decline) {
         // Not awaited. A mail failure must not fail the login, and
         // notifyDeclined logs its own errors.
-        emailPolicy.notifyDeclined(user_email, emailRoutes)
+        emailPolicy.notifyDeclined(user_email, emailRoutes, user_data.firstName)
       }
       return u
     })

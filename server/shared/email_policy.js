@@ -97,30 +97,54 @@ function evaluate (email) {
  * Tell the person why, and how to get it overturned. A decline with no
  * explanation just produces an email to the help desk.
  */
-async function notifyDeclined (email, emailRoutes) {
+async function notifyDeclined (email, emailRoutes, firstName) {
   const supportAddress = getConfig('srtSupportEmail', 'srt@gsa.gov')
-  const subject = 'About your Solicitation Review Tool request'
-  const body = [
-    'Thank you for requesting access to the Solicitation Review Tool.',
-    '',
-    'Your request was not approved because it was submitted with a personal email',
-    'address. SRT accounts are normally issued to government staff using a',
-    'government address.',
-    '',
-    'If you work for a federal, state, local, or tribal government and cannot use a',
-    'government address for this, please reply to ' + supportAddress + ' and tell us',
-    'your agency and role. We can review the request and approve it manually.',
-    '',
-    'Solicitation Review Tool',
-    'Government-wide IT Accessibility Program'
-  ].join('\n')
+
+  // Prefer the Section 508 Program's own wording. "Government Email Needed" is
+  // step 5 of their email SOP and is exactly this situation, so an auto-decline
+  // should read identically to one sent by hand from the SRT mailbox. The
+  // fallback below only applies if the template has been removed.
+  let subject = 'Government Email Address Required'
+  let body = null
 
   try {
-    await emailRoutes.sendMessage({
-      to: email,
-      subject,
-      text: body.replace(/\n/g, '<br/>')
+    const db = require('../models/index')
+    if (db && db.EmailTemplate) {
+      const t = await db.EmailTemplate.findOne({
+        where: { templateKey: 'government_email_needed', active: true }
+      })
+      if (t && t.body) {
+        subject = t.subject || subject
+        body = t.body
+      }
+    }
+  } catch (e) {
+    logger.log('error', 'Could not load the decline template, using the built-in text', {
+      error: e.message, tag: 'auto-decline'
     })
+  }
+
+  if (!body) {
+    body = [
+      '<p>Hello,</p>',
+      '<p>You have requested SRT access with an email address not assigned to an individual',
+      'government employee. Please use your government email with Login.gov to resubmit your',
+      'request to SRT.</p>',
+      '<p>If you work for a federal, state, local, or tribal government and cannot use a government',
+      'address for this, please reply to ' + supportAddress + ' and tell us your agency and role.',
+      'We can review the request and approve it manually.</p>',
+      '<p>Thank you,<br>SRT Team</p>'
+    ].join('\n')
+  }
+
+  // The templates address the recipient by name. With no name available, drop
+  // the placeholder rather than greeting someone as "Hello {{first_name}}".
+  body = body.replace(/\{\{\s*first_name\s*\}\}/g, firstName ? String(firstName).trim() : '')
+             .replace(/<p>Hello\s*<\/p>/gi, '<p>Hello,</p>')
+             .replace(/Hello\s+([,<])/g, 'Hello$1')
+
+  try {
+    await emailRoutes.sendMessage({ to: email, subject, text: body })
     logger.log('info', 'Sent auto-decline notice', { email, tag: 'auto-decline' })
     return true
   } catch (e) {
