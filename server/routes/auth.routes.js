@@ -118,7 +118,7 @@ function getGovernmentEmail(emails) {
   return emails.find(email => email.endsWith('.gov') || email.endsWith('.mil')) || null;
 }
 
-function createUser(loginGovUser) {
+async function createUser(loginGovUser) {
   let now = new Date()
   let date = (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getFullYear()
 
@@ -128,7 +128,7 @@ function createUser(loginGovUser) {
 
   const user_email = gov_email || loginGovUser.email
 
-  const resolved_agency = grabAgencyFromEmail(user_email)
+  const resolved_agency = await resolveAgencyForEmail(user_email)
 
   // When the domain could not be mapped, keep it so an administrator can see
   // what needs categorising. 'Needs Review' on its own is not actionable.
@@ -182,6 +182,52 @@ function createUser(loginGovUser) {
     .catch(e => {
       logger.log("error", 'error in: createUser', { error: e, tag: "createUser" })
     })
+}
+
+/**
+ * Resolve an email address to an agency, preferring the agency_domains table.
+ *
+ * grabAgencyFromEmail below reads the two hardcoded config maps, which between
+ * them cover 172 entries and cannot be changed without a deploy. The domain
+ * table is the replacement: it holds everything from Laura's spreadsheet and
+ * anything an administrator maps through the admin screen, and it is the reason
+ * the import was worth doing. Without this lookup those rows sit in the database
+ * unused and login resolution still answers from config.
+ *
+ * The config maps remain as a fallback so behaviour is unchanged for any domain
+ * the table does not know, and so a database problem degrades to today's
+ * behaviour rather than failing the login.
+ *
+ * @returns {Promise<string>} the agency name, or NEEDS_REVIEW
+ */
+async function resolveAgencyForEmail (email) {
+  const fallback = () => grabAgencyFromEmail(email)
+
+  try {
+    if (!email || typeof email !== 'string' || !email.includes('@')) return fallback()
+
+    const db = require('../models/index')
+    if (!db || !db.AgencyDomain || !db.Agency) return fallback()
+
+    const domain = String(email).split('@').pop().trim().toLowerCase()
+    if (!domain) return fallback()
+
+    const row = await db.AgencyDomain.findOne({ where: { domain, active: true } })
+    if (!row) return fallback()
+
+    const agency = await db.Agency.findByPk(row.agencyId)
+    if (!agency || !agency.agency) return fallback()
+
+    logger.log('info', 'Resolved agency from the domain table', {
+      domain, agency: agency.agency, tag: 'resolveAgencyForEmail'
+    })
+    return agency.agency
+  } catch (e) {
+    logger.log('error', 'Domain table lookup failed, falling back to config', {
+      error: e.message, tag: 'resolveAgencyForEmail'
+    })
+    return fallback()
+  }
 }
 
 function grabAgencyFromEmail(email) {
@@ -887,6 +933,7 @@ module.exports = {
   passwordOnlyWhitelist: userOnPasswordOnlyWhitelist,
   translateCASAgencyName: translateCASAgencyName,
   grabAgencyFromEmail: grabAgencyFromEmail,
+  resolveAgencyForEmail: resolveAgencyForEmail,
   isKnownAgencyKey: isKnownAgencyKey,
   NEEDS_REVIEW: NEEDS_REVIEW,
   getGovernmentEmail: getGovernmentEmail,
