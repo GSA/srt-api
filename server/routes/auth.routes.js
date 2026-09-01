@@ -8,6 +8,8 @@ const { jsonToURI } = require('../utilities.js');
 
 const { Op } = require('sequelize');
 const logger = require('../config/winston')
+const emailPolicy = require('../shared/email_policy')
+const emailRoutes = require('./email.routes')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
 const ms = require('ms')
@@ -116,7 +118,7 @@ function getGovernmentEmail(emails) {
   return emails.find(email => email.endsWith('.gov') || email.endsWith('.mil')) || null;
 }
 
-function createUser(loginGovUser) {
+async function createUser(loginGovUser) {
   let now = new Date()
   let date = (now.getMonth() + 1) + "-" + now.getDate() + "-" + now.getFullYear()
 
@@ -126,12 +128,21 @@ function createUser(loginGovUser) {
 
   const user_email = gov_email || loginGovUser.email
 
+  const resolved_agency = await resolveAgencyForEmail(user_email)
+
+  // When the domain could not be mapped, keep it so an administrator can see
+  // what needs categorising. 'Needs Review' on its own is not actionable.
+  const unresolved_domain = (resolved_agency === NEEDS_REVIEW && user_email && user_email.includes('@'))
+    ? user_email.split('@')[1].toLowerCase()
+    : null
+
   let user_data = {
     'firstName': loginGovUser.given_name || null,
     'lastName': loginGovUser.family_name || null,
     'email': user_email,
     'password': null,
-    'agency': grabAgencyFromEmail(user_email),
+    'agency': resolved_agency,
+    'unresolvedDomain': unresolved_domain,
     'position': '',
     'userRole': 'Executive User', // If we need to handle user roles, we should set it to lowest setting and adjust
     'isRejected': false,
@@ -140,13 +151,83 @@ function createUser(loginGovUser) {
     'creationDate': date,
     'maxId': loginGovUser.sub
   }
+
+  // Personal addresses are declined on arrival when the policy is enabled, so an
+  // administrator is not left working through a queue of obvious rejections. The
+  // decline is reversible from the Users screen and the person is told how to ask
+  // for that, which matters for state and local staff who may have no way to hold
+  // a government address.
+  const policy = emailPolicy.evaluate(user_email)
+  if (policy.decline) {
+    user_data.isRejected = true
+    user_data.rejectionNote = policy.reason
+    // Matches the vocabulary the admin Users screen already uses, so an
+    // auto-declined account displays and filters exactly like one an
+    // administrator declined by hand, and can be changed the same way.
+    user_data.reviewStatus = 'Declined (Personal Email)'
+    logger.log('info', 'Auto-declining registration from a personal address', {
+      email: user_email, tag: 'auto-decline'
+    })
+  }
+
   return User.create(user_data)
     .then(u => {
+      if (policy.decline) {
+        // Not awaited. A mail failure must not fail the login, and
+        // notifyDeclined logs its own errors.
+        emailPolicy.notifyDeclined(user_email, emailRoutes, user_data.firstName)
+      }
       return u
     })
     .catch(e => {
       logger.log("error", 'error in: createUser', { error: e, tag: "createUser" })
     })
+}
+
+/**
+ * Resolve an email address to an agency, preferring the agency_domains table.
+ *
+ * grabAgencyFromEmail below reads the two hardcoded config maps, which between
+ * them cover 172 entries and cannot be changed without a deploy. The domain
+ * table is the replacement: it holds everything from Laura's spreadsheet and
+ * anything an administrator maps through the admin screen, and it is the reason
+ * the import was worth doing. Without this lookup those rows sit in the database
+ * unused and login resolution still answers from config.
+ *
+ * The config maps remain as a fallback so behaviour is unchanged for any domain
+ * the table does not know, and so a database problem degrades to today's
+ * behaviour rather than failing the login.
+ *
+ * @returns {Promise<string>} the agency name, or NEEDS_REVIEW
+ */
+async function resolveAgencyForEmail (email) {
+  const fallback = () => grabAgencyFromEmail(email)
+
+  try {
+    if (!email || typeof email !== 'string' || !email.includes('@')) return fallback()
+
+    const db = require('../models/index')
+    if (!db || !db.AgencyDomain || !db.Agency) return fallback()
+
+    const domain = String(email).split('@').pop().trim().toLowerCase()
+    if (!domain) return fallback()
+
+    const row = await db.AgencyDomain.findOne({ where: { domain, active: true } })
+    if (!row) return fallback()
+
+    const agency = await db.Agency.findByPk(row.agencyId)
+    if (!agency || !agency.agency) return fallback()
+
+    logger.log('info', 'Resolved agency from the domain table', {
+      domain, agency: agency.agency, tag: 'resolveAgencyForEmail'
+    })
+    return agency.agency
+  } catch (e) {
+    logger.log('error', 'Domain table lookup failed, falling back to config', {
+      error: e.message, tag: 'resolveAgencyForEmail'
+    })
+    return fallback()
+  }
 }
 
 function grabAgencyFromEmail(email) {
@@ -189,6 +270,21 @@ function grabAgencyFromEmail(email) {
     tag: 'grabAgencyFromEmail'
   });
 
+  // translateCASAgencyName returns its input unchanged when the lookup misses,
+  // which used to mean an unrecognised domain silently became an agency name:
+  // @wv.gov produced an agency called "wv", @gmail.com produced "gmail". Test
+  // dictionary membership instead of comparing strings, because 25 AGENCY_LOOKUP
+  // entries legitimately map to themselves (e.g. "department of agriculture").
+  if (!isKnownAgencyKey(agencyAbbreviance)) {
+    logger.log("info", "Unrecognised email domain, routing to review", {
+      email,
+      domain: fullDomain,
+      unresolvedKey: agencyAbbreviance,
+      tag: 'grabAgencyFromEmail'
+    });
+    return NEEDS_REVIEW;
+  }
+
   let agencyName = translateCASAgencyName(agencyAbbreviance);
   logger.log("info", "Resolved agency name", {
     abbreviation: agencyAbbreviance,
@@ -198,10 +294,34 @@ function grabAgencyFromEmail(email) {
 
   if (!agencyName) {
     logger.log("error", 'Agency name not found', { tag: "grabAgencyFromEmail" });
-    agencyName = "No Agency Found";
+    return NEEDS_REVIEW;
   }
 
   return agencyName;
+}
+
+/**
+ * Sentinel agency for users whose email domain is not yet mapped. These users
+ * are visible in admin for categorisation; they are deliberately not granted a
+ * solicitation feed until an administrator assigns a real agency, because the
+ * visibility check is an exact agency match and this value matches nothing.
+ */
+const NEEDS_REVIEW = 'Needs Review'
+
+/**
+ * True when the key resolves to a real AGENCY_LOOKUP entry (or an environment
+ * override), as opposed to falling through to getConfig's passthrough default.
+ */
+function isKnownAgencyKey(key) {
+  if (!key || typeof key !== 'string') return false
+  const lower = key.toLowerCase()
+  if (lower in process.env) return true
+
+  let dict = getConfig("AGENCY_LOOKUP", {})
+  if (typeof dict === 'string') {
+    try { dict = JSON.parse(dict) } catch (e) { return false }
+  }
+  return Object.prototype.hasOwnProperty.call(dict, lower)
 }
 
 
@@ -812,6 +932,10 @@ module.exports = {
   isGSAAdmin: isGSAAdmin,
   passwordOnlyWhitelist: userOnPasswordOnlyWhitelist,
   translateCASAgencyName: translateCASAgencyName,
+  grabAgencyFromEmail: grabAgencyFromEmail,
+  resolveAgencyForEmail: resolveAgencyForEmail,
+  isKnownAgencyKey: isKnownAgencyKey,
+  NEEDS_REVIEW: NEEDS_REVIEW,
   getGovernmentEmail: getGovernmentEmail,
 
   roles: roles,

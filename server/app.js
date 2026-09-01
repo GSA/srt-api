@@ -20,6 +20,8 @@ const pg = require('pg');
 const querystring = require('querystring');
 const ragRoutesFactory = require('./routes/rag.routes');
 const ragAnalyticsRoutesFactory = require('./routes/rag-analytics.routes');
+const adminAgencyRoutesFactory = require('./routes/admin.agency.routes');
+const adminEmailTemplateRoutesFactory = require('./routes/admin.email.templates.routes');
 const adminManagementRoutesFactory = require('./routes/admin.management.routes');
 
 const { Issuer, Strategy, generators } = require('openid-client');
@@ -74,7 +76,13 @@ let loginGovClient = Issuer.discover(config['login_gov_oidc']['issuer_url'])
       nonce: nonce,
       state: state,
       redirect_uri: config['login_gov_oidc']["redirect_uri"],
-      scope: "openid email profile",
+      // all_emails is required for getGovernmentEmail() in auth.routes.js to
+      // work. Without it Login.gov returns only the account's primary email, so
+      // a user whose primary is personal (gmail) but who also holds a verified
+      // .gov address arrives as the personal address and resolves to the wrong
+      // agency. This is why getGovernmentEmail has always received an empty
+      // array despite being correctly implemented and wired in.
+      scope: "openid email all_emails profile",
     }
 
     const client = new oidcIssuer.Client({
@@ -324,6 +332,29 @@ module.exports = {
     app.get('/api/admin/overview', token(), admin_only(), adminMgmt.getOverview)
     app.get('/api/admin/last-logins', token(), admin_only(), adminMgmt.getLastLogins)
     app.get('/api/admin/agencies', token(), admin_only(), adminMgmt.listAgencies)
+
+    // Agency hierarchy, domain mapping, solicitation access, and deviation
+    // inheritance. Everything here previously required a config change and a
+    // deploy. Admin only: these edits change who can see which solicitations.
+    const adminAgency = adminAgencyRoutesFactory(pgPool)
+    app.get('/api/admin/agency-management', token(), admin_only(), adminAgency.listAgencyManagement)
+    app.post('/api/admin/agencies', token(), admin_only(), adminAgency.createAgency)
+    app.put('/api/admin/agencies/:id', token(), admin_only(), adminAgency.updateAgency)
+    app.put('/api/admin/agencies/:id/scope', token(), admin_only(), adminAgency.setSolicitationScope)
+    app.put('/api/admin/agencies/:id/deviation', token(), admin_only(), adminAgency.setDeviationSource)
+    app.post('/api/admin/agency-domains', token(), admin_only(), adminAgency.createDomain)
+    app.put('/api/admin/agency-domains/:id', token(), admin_only(), adminAgency.updateDomain)
+    app.delete('/api/admin/agency-domains/:id', token(), admin_only(), adminAgency.deleteDomain)
+    app.get('/api/admin/needs-review', token(), admin_only(), adminAgency.listNeedsReview)
+    app.post('/api/admin/needs-review/resolve', token(), admin_only(), adminAgency.resolveNeedsReview)
+
+    // Admin email templates. Previously a hardcoded array in the Angular
+    // component, so a template could be edited for one send but never saved.
+    const adminEmailTemplates = adminEmailTemplateRoutesFactory(pgPool)
+    app.get('/api/admin/email-templates', token(), admin_only(), adminEmailTemplates.list)
+    app.post('/api/admin/email-templates', token(), admin_only(), adminEmailTemplates.create)
+    app.put('/api/admin/email-templates/:id', token(), admin_only(), adminEmailTemplates.update)
+    app.delete('/api/admin/email-templates/:id', token(), admin_only(), adminEmailTemplates.remove)
     app.post('/api/analytics/track', token(), adminMgmt.trackEvent)
     app.post('/api/analytics/track-batch', token(), adminMgmt.trackBatch)
     app.post('/api/admin/send-bulk-email', token(), admin_only(), adminMgmt.sendBulkEmail)
@@ -361,30 +392,30 @@ module.exports = {
 
     // Advanced RAG Analytics Routes for Dashboarding
     const ragAnalyticsRoutes = ragAnalyticsRoutesFactory(pgPool)
-    app.get('/api/rag-analytics/tri-state', ragAnalyticsRoutes.getTriState)
-    app.get('/api/rag-analytics/posture', ragAnalyticsRoutes.getPosture)
-    app.get('/api/rag-analytics/ict-taxonomy', ragAnalyticsRoutes.getIctTaxonomy)
-    app.get('/api/rag-analytics/document-intelligence', ragAnalyticsRoutes.getDocumentIntelligence)
-    app.get('/api/rag-analytics/vector-violations', ragAnalyticsRoutes.getVectorViolations)
-    app.get('/api/rag-analytics/agency-leaderboard', ragAnalyticsRoutes.getAgencyLeaderboard)
+    app.get('/api/rag-analytics/tri-state', token(), admin_only(), ragAnalyticsRoutes.getTriState)
+    app.get('/api/rag-analytics/posture', token(), admin_only(), ragAnalyticsRoutes.getPosture)
+    app.get('/api/rag-analytics/ict-taxonomy', token(), admin_only(), ragAnalyticsRoutes.getIctTaxonomy)
+    app.get('/api/rag-analytics/document-intelligence', token(), admin_only(), ragAnalyticsRoutes.getDocumentIntelligence)
+    app.get('/api/rag-analytics/vector-violations', token(), admin_only(), ragAnalyticsRoutes.getVectorViolations)
+    app.get('/api/rag-analytics/agency-leaderboard', token(), admin_only(), ragAnalyticsRoutes.getAgencyLeaderboard)
 
-    app.get('/api/rag-analytics/playground/status', ragAnalyticsRoutes.getPlaygroundStatus)
-    app.get('/api/rag-analytics/adhoc-usage', ragAnalyticsRoutes.getAdhocUsage)
-    app.get('/api/rag-analytics/stages', ragAnalyticsRoutes.listStages)
-    app.post('/api/rag-analytics/stages', ragAnalyticsRoutes.saveStage)
-    app.delete('/api/rag-analytics/stages/:stageId', ragAnalyticsRoutes.deleteStage)
-    app.post('/api/rag-analytics/stages/generate-examples', ragAnalyticsRoutes.generateExamples)
-    app.get('/api/rag-analytics/pipelines', ragAnalyticsRoutes.listPipelines)
-    app.post('/api/rag-analytics/pipelines', ragAnalyticsRoutes.savePipeline)
-    app.delete('/api/rag-analytics/pipelines/:templateId', ragAnalyticsRoutes.deletePipeline)
-    app.get('/api/rag-analytics/playground/list-models', ragAnalyticsRoutes.listPlaygroundModels)
-    app.post('/api/rag-analytics/playground/test-completion', ragAnalyticsRoutes.testPlaygroundCompletion)
-    app.post('/api/rag-analytics/playground/test-embeddings', ragAnalyticsRoutes.testPlaygroundEmbeddings)
-    app.post('/api/rag-analytics/playground/package-synthesis', ragAnalyticsRoutes.packageSynthesis)
-    app.post('/api/rag-analytics/playground/execute-pipeline', ragAnalyticsRoutes.executePipeline)
-    app.post('/api/rag-analytics/playground/execute-stage', ragAnalyticsRoutes.executeStage)
-    app.post('/api/rag-analytics/playground/generate-prompt', ragAnalyticsRoutes.generatePrompt)
-    app.post('/api/rag-analytics/playground/analyze', ragAnalyticsRoutes.playgroundAnalyze)
+    app.get('/api/rag-analytics/playground/status', token(), admin_only(), ragAnalyticsRoutes.getPlaygroundStatus)
+    app.get('/api/rag-analytics/adhoc-usage', token(), admin_only(), ragAnalyticsRoutes.getAdhocUsage)
+    app.get('/api/rag-analytics/stages', token(), admin_only(), ragAnalyticsRoutes.listStages)
+    app.post('/api/rag-analytics/stages', token(), admin_only(), ragAnalyticsRoutes.saveStage)
+    app.delete('/api/rag-analytics/stages/:stageId', token(), admin_only(), ragAnalyticsRoutes.deleteStage)
+    app.post('/api/rag-analytics/stages/generate-examples', token(), admin_only(), ragAnalyticsRoutes.generateExamples)
+    app.get('/api/rag-analytics/pipelines', token(), admin_only(), ragAnalyticsRoutes.listPipelines)
+    app.post('/api/rag-analytics/pipelines', token(), admin_only(), ragAnalyticsRoutes.savePipeline)
+    app.delete('/api/rag-analytics/pipelines/:templateId', token(), admin_only(), ragAnalyticsRoutes.deletePipeline)
+    app.get('/api/rag-analytics/playground/list-models', token(), admin_only(), ragAnalyticsRoutes.listPlaygroundModels)
+    app.post('/api/rag-analytics/playground/test-completion', token(), admin_only(), ragAnalyticsRoutes.testPlaygroundCompletion)
+    app.post('/api/rag-analytics/playground/test-embeddings', token(), admin_only(), ragAnalyticsRoutes.testPlaygroundEmbeddings)
+    app.post('/api/rag-analytics/playground/package-synthesis', token(), ragAnalyticsRoutes.packageSynthesis)
+    app.post('/api/rag-analytics/playground/execute-pipeline', token(), admin_only(), ragAnalyticsRoutes.executePipeline)
+    app.post('/api/rag-analytics/playground/execute-stage', token(), admin_only(), ragAnalyticsRoutes.executeStage)
+    app.post('/api/rag-analytics/playground/generate-prompt', token(), admin_only(), ragAnalyticsRoutes.generatePrompt)
+    app.post('/api/rag-analytics/playground/analyze', token(), ragAnalyticsRoutes.playgroundAnalyze)
     app.post('/api/rag-analytics/art-lookup', token(), ragAnalyticsRoutes.artLookup)
 
     app.use(expressWinston.errorLogger({
