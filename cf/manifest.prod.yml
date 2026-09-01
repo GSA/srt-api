@@ -2,7 +2,15 @@
 applications:
 - name: srt-api-prod
   memory: 1024M
-  disk_quota: 2048M
+  # The image is ~3.3G, mostly the Python venv, so 2048M is not enough to
+
+  # unpack it. Pushing with a smaller quota than the running app fails with
+
+  # "uncompressed layer size exceeds quota" and crash-loops the app, which is
+
+  # how production went down on 2026-09-01. Keep this in step with reality.
+
+  disk_quota: 4096M
 #  health-check-type: process # don't re-enable....move to port 8080 if you have problems
   instances: 1
   env:
