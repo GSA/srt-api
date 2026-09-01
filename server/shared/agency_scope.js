@@ -56,6 +56,28 @@ async function solicitationScopeFor (user, models) {
     // silently remove a user's access to their own agency's work.
     if (user.agency && !names.includes(user.agency)) names.push(user.agency)
 
+    // Alternate spellings of the same body. Solicitations arrive from SAM.gov
+    // with the agency written however the posting office wrote it, so an agency
+    // whose work is tagged "DEPT OF THE NAVY" is invisible to a user recorded
+    // as "Department of the Navy" unless the two are known to be the same.
+    //
+    // This only widens visibility where an alias row exists, so an agency with
+    // no aliases behaves exactly as before.
+    if (models.AgencyAlias) {
+      try {
+        const aliases = await models.AgencyAlias.findAll({ where: { agency_id: ids } })
+        for (const a of aliases) {
+          if (a.alias && !names.includes(a.alias)) names.push(a.alias)
+        }
+      } catch (e) {
+        // An alias lookup failure narrows visibility rather than failing the
+        // request, which matches how the rest of this function degrades.
+        logger.log('error', 'agency alias lookup failed, continuing without aliases', {
+          error: e.message, userId: user.id, tag: 'agency_scope'
+        })
+      }
+    }
+
     return names
   } catch (e) {
     // Visibility must never fail open or throw. Fall back to prior behaviour.

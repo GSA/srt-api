@@ -8,6 +8,8 @@ const { jsonToURI } = require('../utilities.js');
 
 const { Op } = require('sequelize');
 const logger = require('../config/winston')
+const emailPolicy = require('../shared/email_policy')
+const emailRoutes = require('./email.routes')
 // noinspection JSUnresolvedVariable
 const User = require('../models').User
 const ms = require('ms')
@@ -149,8 +151,29 @@ function createUser(loginGovUser) {
     'creationDate': date,
     'maxId': loginGovUser.sub
   }
+
+  // Personal addresses are declined on arrival when the policy is enabled, so an
+  // administrator is not left working through a queue of obvious rejections. The
+  // decline is reversible from the Users screen and the person is told how to ask
+  // for that, which matters for state and local staff who may have no way to hold
+  // a government address.
+  const policy = emailPolicy.evaluate(user_email)
+  if (policy.decline) {
+    user_data.isRejected = true
+    user_data.rejectionNote = policy.reason
+    user_data.reviewStatus = 'auto_declined'
+    logger.log('info', 'Auto-declining registration from a personal address', {
+      email: user_email, tag: 'auto-decline'
+    })
+  }
+
   return User.create(user_data)
     .then(u => {
+      if (policy.decline) {
+        // Not awaited. A mail failure must not fail the login, and
+        // notifyDeclined logs its own errors.
+        emailPolicy.notifyDeclined(user_email, emailRoutes)
+      }
       return u
     })
     .catch(e => {

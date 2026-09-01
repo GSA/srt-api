@@ -18,7 +18,7 @@ const { solicitationScopeFor, deviationSourceFor } = require('../shared/agency_s
 // Minimal stand-in for the sequelize models. Visibility resolution must not
 // depend on anything but these two tables, so a mock that only implements them
 // is also an assertion about coupling.
-function mockDb ({ agencies = [], scopes = [], throwOn = null } = {}) {
+function mockDb ({ agencies = [], scopes = [], aliases = [], throwOn = null } = {}) {
   return {
     Agency: {
       findAll: async ({ where }) => {
@@ -35,6 +35,13 @@ function mockDb ({ agencies = [], scopes = [], throwOn = null } = {}) {
       findAll: async ({ where }) => {
         if (throwOn === 'Scope.findAll') throw new Error('db down')
         return scopes.filter(s => s.agencyId === where.agencyId)
+      }
+    },
+    AgencyAlias: {
+      findAll: async ({ where }) => {
+        if (throwOn === 'Alias.findAll') throw new Error('db down')
+        const ids = Array.isArray(where.agency_id) ? where.agency_id : [where.agency_id]
+        return aliases.filter(a => ids.includes(a.agency_id))
       }
     }
   }
@@ -168,5 +175,58 @@ describe('visibility and deviation are independent', () => {
 
     expect(scope).toContain('Department of Health and Human Services')  // widened sight
     expect(deviation.agency).toBe('Centers for Medicare and Medicaid Services')  // unchanged
+  })
+})
+
+describe('alternate agency spellings', () => {
+
+  test('an alias makes differently-spelled solicitations visible', () => {
+    // The real case: SAM.gov posts Navy work as "DEPT OF THE NAVY" while the
+    // user is recorded as "Department of the Navy".
+    const user = { id: 40, agency: 'Department of the Navy', agencyId: 3 }
+    const db = mockDb({
+      agencies: [NAVY],
+      scopes: [{ agencyId: 3, visibleAgencyId: 3 }],
+      aliases: [{ agency_id: 3, alias: 'DEPT OF THE NAVY' }]
+    })
+    return solicitationScopeFor(user, db).then(scope => {
+      expect(scope).toContain('Department of the Navy')
+      expect(scope).toContain('DEPT OF THE NAVY')
+    })
+  })
+
+  test('an agency with no aliases is completely unaffected', () => {
+    const user = { id: 41, agency: 'Department of the Navy', agencyId: 3 }
+    const db = mockDb({
+      agencies: [NAVY], scopes: [{ agencyId: 3, visibleAgencyId: 3 }], aliases: []
+    })
+    return solicitationScopeFor(user, db).then(scope => {
+      expect(scope).toEqual(['Department of the Navy'])
+    })
+  })
+
+  test('aliases of another agency do not leak in', () => {
+    const user = { id: 42, agency: 'Department of the Navy', agencyId: 3 }
+    const db = mockDb({
+      agencies: [NAVY],
+      scopes: [{ agencyId: 3, visibleAgencyId: 3 }],
+      aliases: [{ agency_id: 999, alias: 'SOMEONE ELSE' }]
+    })
+    return solicitationScopeFor(user, db).then(scope => {
+      expect(scope).not.toContain('SOMEONE ELSE')
+    })
+  })
+
+  test('an alias lookup failure narrows rather than fails', () => {
+    const user = { id: 43, agency: 'Department of the Navy', agencyId: 3 }
+    const db = mockDb({
+      agencies: [NAVY],
+      scopes: [{ agencyId: 3, visibleAgencyId: 3 }],
+      aliases: [{ agency_id: 3, alias: 'DEPT OF THE NAVY' }],
+      throwOn: 'Alias.findAll'
+    })
+    return solicitationScopeFor(user, db).then(scope => {
+      expect(scope).toEqual(['Department of the Navy'])
+    })
   })
 })

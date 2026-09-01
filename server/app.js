@@ -21,6 +21,7 @@ const querystring = require('querystring');
 const ragRoutesFactory = require('./routes/rag.routes');
 const ragAnalyticsRoutesFactory = require('./routes/rag-analytics.routes');
 const adminAgencyRoutesFactory = require('./routes/admin.agency.routes');
+const adminEmailTemplateRoutesFactory = require('./routes/admin.email.templates.routes');
 const adminManagementRoutesFactory = require('./routes/admin.management.routes');
 
 const { Issuer, Strategy, generators } = require('openid-client');
@@ -346,6 +347,14 @@ module.exports = {
     app.delete('/api/admin/agency-domains/:id', token(), admin_only(), adminAgency.deleteDomain)
     app.get('/api/admin/needs-review', token(), admin_only(), adminAgency.listNeedsReview)
     app.post('/api/admin/needs-review/resolve', token(), admin_only(), adminAgency.resolveNeedsReview)
+
+    // Admin email templates. Previously a hardcoded array in the Angular
+    // component, so a template could be edited for one send but never saved.
+    const adminEmailTemplates = adminEmailTemplateRoutesFactory(pgPool)
+    app.get('/api/admin/email-templates', token(), admin_only(), adminEmailTemplates.list)
+    app.post('/api/admin/email-templates', token(), admin_only(), adminEmailTemplates.create)
+    app.put('/api/admin/email-templates/:id', token(), admin_only(), adminEmailTemplates.update)
+    app.delete('/api/admin/email-templates/:id', token(), admin_only(), adminEmailTemplates.remove)
     app.post('/api/analytics/track', token(), adminMgmt.trackEvent)
     app.post('/api/analytics/track-batch', token(), adminMgmt.trackBatch)
     app.post('/api/admin/send-bulk-email', token(), admin_only(), adminMgmt.sendBulkEmail)

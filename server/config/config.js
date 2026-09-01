@@ -105,6 +105,21 @@ module.exports = {
       'us.navy.mil': 'DEPT OF THE NAVY'
     },
     // keys for agency look should be all lower case
+    // Auto-decline of self-registrations from consumer mail providers.
+    //
+    // Off by default. Turning it on declines those registrations automatically
+    // and emails the person to say why and how to appeal. The decline sets
+    // isRejected, which an administrator can clear from the Users screen, so it
+    // is a filter on the approval queue rather than a permanent block. That
+    // distinction matters for state and local staff, who may have no government
+    // address available to them.
+    //
+    // Government addresses are never declined regardless of these settings.
+    autoDeclinePersonalEmail: false,
+    personalEmailExemptDomains: [],
+    personalEmailExemptAddresses: [],
+    srtSupportEmail: 'srt@gsa.gov',
+
     AGENCY_LOOKUP: {
       "department of test": "TEST, DEPARTMENT OF",
       "department of agriculture": "Department of Agriculture",
