@@ -13,6 +13,150 @@
 
 const auth = require('../routes/auth.routes')
 const { getGovernmentEmail, grabAgencyFromEmail, isKnownAgencyKey, NEEDS_REVIEW } = auth
+const { solicitationScopeFor, deviationSourceFor } = require('../shared/agency_scope')
+
+// ── Fixtures for the access and deviation scenarios ─────────────────
+//
+// A small but real hierarchy: two departments, their components, and a state
+// body that sits outside the federal structure entirely.
+
+const DOD  = { id: 1, agency: 'Department of Defense', active: true, parentId: null }
+const NAVY = { id: 2, agency: 'Department of the Navy', active: true, parentId: 1 }
+const DHS  = { id: 3, agency: 'Department of Homeland Security', active: true, parentId: null }
+const FEMA = { id: 4, agency: 'Federal Emergency Management Agency', active: true, parentId: 3 }
+const HHS  = { id: 5, agency: 'Department of Health and Human Services', active: true, parentId: null }
+const CMS  = { id: 6, agency: 'Centers for Medicare and Medicaid Services', active: true, parentId: 5 }
+const STATE = { id: 7, agency: 'Local, County, State Government', active: true, parentId: null }
+
+function mockDb ({ agencies = [], scopes = [], aliases = [] } = {}) {
+  return {
+    Agency: {
+      findAll: async ({ where }) => {
+        const ids = Array.isArray(where.id) ? where.id : [where.id]
+        return agencies.filter(a => ids.includes(a.id))
+      },
+      findByPk: async (id) => agencies.find(a => a.id === Number(id)) || null
+    },
+    AgencySolicitationScope: {
+      findAll: async ({ where }) => scopes.filter(x => x.agencyId === where.agencyId)
+    },
+    AgencyAlias: {
+      findAll: async ({ where }) => {
+        const ids = Array.isArray(where.agency_id) ? where.agency_id : [where.agency_id]
+        return aliases.filter(a => ids.includes(a.agency_id))
+      }
+    }
+  }
+}
+
+/** Every agency sees its own solicitations, which is how the data is seeded. */
+const selfScope = (...ids) => ids.map(id => ({ agencyId: id, visibleAgencyId: id }))
+
+// ── 6.1 to 6.6: access and deviation ────────────────────────────────
+
+describe('6.1 Navy', () => {
+  const db = mockDb({ agencies: [DOD, NAVY], scopes: selfScope(1, 2) })
+
+  test('a Navy user sees Navy solicitations and not DOD-wide ones', async () => {
+    const scope = await solicitationScopeFor({ id: 1, agency: NAVY.agency, agencyId: 2 }, db)
+    expect(scope).toEqual([NAVY.agency])
+    expect(scope).not.toContain(DOD.agency)
+  })
+
+  test("deviation falls back to DOD, because Navy sets none of its own", async () => {
+    const src = await deviationSourceFor({ id: 1, agency: NAVY.agency, agencyId: 2 }, db)
+    expect(src.agency).toBe(DOD.agency)
+  })
+})
+
+describe('6.2 CMS', () => {
+  // CMS is deliberately scoped to see HHS as well, which Navy is not. The rules
+  // are not uniform, which is why access is stored rather than derived.
+  const db = mockDb({
+    agencies: [HHS, CMS],
+    scopes: [...selfScope(5, 6), { agencyId: 6, visibleAgencyId: 5 }]
+  })
+
+  test('a CMS user sees both CMS and HHS solicitations', async () => {
+    const scope = await solicitationScopeFor({ id: 2, agency: CMS.agency, agencyId: 6 }, db)
+    expect(scope).toContain(CMS.agency)
+    expect(scope).toContain(HHS.agency)
+  })
+
+  test('deviation still falls back to HHS', async () => {
+    const src = await deviationSourceFor({ id: 2, agency: CMS.agency, agencyId: 6 }, db)
+    expect(src.agency).toBe(HHS.agency)
+  })
+})
+
+describe('6.3 FEMA', () => {
+  const db = mockDb({ agencies: [DHS, FEMA], scopes: selfScope(3, 4) })
+
+  test('a FEMA user sees FEMA solicitations only', async () => {
+    const scope = await solicitationScopeFor({ id: 3, agency: FEMA.agency, agencyId: 4 }, db)
+    expect(scope).toEqual([FEMA.agency])
+    expect(scope).not.toContain(DHS.agency)
+  })
+
+  test('deviation falls back to DHS', async () => {
+    const src = await deviationSourceFor({ id: 3, agency: FEMA.agency, agencyId: 4 }, db)
+    expect(src.agency).toBe(DHS.agency)
+  })
+})
+
+describe('6.4 state and local', () => {
+  const db = mockDb({ agencies: [STATE, DOD], scopes: selfScope(7, 1) })
+
+  test('a state user sees no federal solicitations', async () => {
+    const scope = await solicitationScopeFor({ id: 4, agency: STATE.agency, agencyId: 7 }, db)
+    expect(scope).toEqual([STATE.agency])
+    expect(scope).not.toContain(DOD.agency)
+  })
+
+  test('a state body inherits no federal deviation', async () => {
+    // Top of its own chain, so it owns its deviation rather than borrowing one.
+    const src = await deviationSourceFor({ id: 4, agency: STATE.agency, agencyId: 7 }, db)
+    expect(src.agency).toBe(STATE.agency)
+  })
+
+  test('a state user with no agency record still sees only their own agency', async () => {
+    // The realistic case today: resolved to Needs Review, so no agencyId at all.
+    const scope = await solicitationScopeFor({ id: 5, agency: NEEDS_REVIEW }, mockDb())
+    expect(scope).toEqual([NEEDS_REVIEW])
+  })
+})
+
+describe('6.5 a component with its own deviation', () => {
+  test('an explicit source overrides the parent chain', async () => {
+    const navyOwn = { ...NAVY, deviationSourceId: 2 }
+    const db = mockDb({ agencies: [DOD, navyOwn], scopes: selfScope(1, 2) })
+    const src = await deviationSourceFor({ id: 6, agency: NAVY.agency, agencyId: 2 }, db)
+    expect(src.agency).toBe(NAVY.agency)
+    expect(src.agency).not.toBe(DOD.agency)
+  })
+})
+
+describe('6.6 access and deviation are independent', () => {
+  test('inheriting a deviation upward grants no sight of the parent', async () => {
+    const db = mockDb({ agencies: [DOD, NAVY], scopes: selfScope(1, 2) })
+    const user = { id: 7, agency: NAVY.agency, agencyId: 2 }
+    const [scope, dev] = [await solicitationScopeFor(user, db), await deviationSourceFor(user, db)]
+    expect(dev.agency).toBe(DOD.agency)
+    expect(scope).not.toContain(DOD.agency)
+  })
+
+  test('being scoped to another agency does not change whose deviation applies', async () => {
+    const cmsOwn = { ...CMS, deviationSourceId: 6 }
+    const db = mockDb({
+      agencies: [HHS, cmsOwn],
+      scopes: [...selfScope(6), { agencyId: 6, visibleAgencyId: 5 }]
+    })
+    const user = { id: 8, agency: CMS.agency, agencyId: 6 }
+    const [scope, dev] = [await solicitationScopeFor(user, db), await deviationSourceFor(user, db)]
+    expect(scope).toContain(HHS.agency)
+    expect(dev.agency).toBe(CMS.agency)
+  })
+})
 
 // ── 6.7 to 6.10: which address SRT uses ─────────────────────────────
 
