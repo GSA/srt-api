@@ -46,6 +46,13 @@ function listFromConfig (key, fallback) {
   return v.map(x => String(x).trim().toLowerCase()).filter(Boolean)
 }
 
+/** True only for a real boolean true or the string "true". */
+function isEnabled (key) {
+  const v = getConfig(key, false)
+  if (typeof v === 'boolean') return v
+  return String(v).trim().toLowerCase() === 'true'
+}
+
 function domainOf (email) {
   if (!email || typeof email !== 'string' || !email.includes('@')) return null
   return email.split('@').pop().trim().toLowerCase() || null
@@ -60,7 +67,10 @@ function domainOf (email) {
 function evaluate (email) {
   const allow = { decline: false, reason: null }
 
-  if (!getConfig('autoDeclinePersonalEmail', false)) return allow
+  // Environment variables always arrive as strings, and getConfig prefers them
+  // over the config file. Without coercion the string "false" is truthy, so
+  // setting the flag to false to turn the feature OFF would switch it ON.
+  if (!isEnabled('autoDeclinePersonalEmail')) return allow
 
   const domain = domainOf(email)
   if (!domain) return allow
@@ -122,4 +132,4 @@ async function notifyDeclined (email, emailRoutes) {
   }
 }
 
-module.exports = { evaluate, notifyDeclined, domainOf, DEFAULT_PERSONAL_DOMAINS }
+module.exports = { evaluate, notifyDeclined, domainOf, isEnabled, DEFAULT_PERSONAL_DOMAINS }

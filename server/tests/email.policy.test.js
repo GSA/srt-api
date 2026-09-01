@@ -114,3 +114,22 @@ describe('the decline notice', () => {
     await expect(policy.notifyDeclined('someone@gmail.com', broken)).resolves.toBe(false)
   })
 })
+
+describe('the enable flag survives environment variable stringification', () => {
+  test('the string "false" does NOT enable the feature', () => {
+    // Env vars arrive as strings and getConfig prefers them over config. Naive
+    // truthiness would turn the feature on when someone set it to false.
+    settings = { autoDeclinePersonalEmail: 'false' }
+    expect(policy.evaluate('someone@gmail.com').decline).toBe(false)
+  })
+
+  test('the string "true" does enable it', () => {
+    settings = { autoDeclinePersonalEmail: 'true' }
+    expect(policy.evaluate('someone@gmail.com').decline).toBe(true)
+  })
+
+  test.each(['0', 'no', 'off', '', 'False'])('%s does not enable it', (v) => {
+    settings = { autoDeclinePersonalEmail: v }
+    expect(policy.evaluate('someone@gmail.com').decline).toBe(false)
+  })
+})
