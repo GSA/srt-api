@@ -443,6 +443,24 @@ async function getPredictions (filter, user) {
         { [Op.lt]: filter.endDate }
     }
 
+    // A temporary ceiling on how recent a solicitation may be.
+    //
+    // Ingestion stopped part-way through a run on 19 August, and records
+    // written after that point are incomplete, so they show misleading values
+    // in the review columns. Rather than delete anything, this hides them from
+    // the listing until the pipeline is fixed and the range can be re-ingested
+    // cleanly.
+    //
+    // Clearing solicitationPostedMaxDate removes the ceiling and restores the
+    // full listing. Nothing is deleted or modified by this filter.
+    const postedMax = getConfig('solicitationPostedMaxDate', null)
+    if (postedMax) {
+      logger.debug('Applying the temporary posted-date ceiling', { postedMax })
+      attributes.where.date = (attributes.where.date)
+        ? Object.assign(attributes.where.date, { [Op.lte]: postedMax })
+        : { [Op.lte]: postedMax }
+    }
+
     // Agency access control - check both agency and office fields.
     //
     // The scope comes from agency_solicitation_scope rather than the user's

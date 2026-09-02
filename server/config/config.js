@@ -115,6 +115,14 @@ module.exports = {
     // address available to them.
     //
     // Government addresses are never declined regardless of these settings.
+    // Temporary ceiling on the solicitation listing.
+    //
+    // Ingestion stopped mid-run on 19 August 2026 and the records written after
+    // that are incomplete, showing misleading review results. This hides them
+    // from the listing without deleting anything. Set to null once the pipeline
+    // is fixed and the affected range has been re-ingested.
+    solicitationPostedMaxDate: '2026-08-09',
+
     autoDeclinePersonalEmail: false,
     personalEmailExemptDomains: [],
     personalEmailExemptAddresses: [],
