@@ -38,6 +38,28 @@ function sendMessage (message) {
     delete message.text
   }
 
+  // Non-production safety net. When a redirect address is configured, every
+  // message goes there instead of its real recipient, with the intended address
+  // kept in the subject so a test still shows who it would have reached.
+  //
+  // This matters because staging holds real user records, currently twenty
+  // active accounts across GSA, DOI, USDA and State, and sends through a real
+  // SMTP relay. Without this, one test send reaches actual people at other
+  // agencies. Guarded on NODE_ENV so it can never apply in production, however
+  // the configuration is set.
+  const redirectTo = (env !== 'production')
+    ? (process.env.EMAIL_REDIRECT_TO || config.emailRedirectTo)
+    : null
+  
+  if (redirectTo) {
+    const intendedRecipient = message.to
+    message.to = redirectTo
+    message.subject = `[TEST -> ${intendedRecipient}] ${message.subject}`
+    logger.log('info', `Email redirected from ${intendedRecipient} to ${redirectTo}`, {
+      tag: 'email-redirect', intendedRecipient, redirectTo
+    })
+  }
+  
   // GSA internal SMTP relay (smtp.gsa.gov) — no auth required
   // Per Ted Kruelski: new DNS lookup per email for best load balancing
   let transporter = nodemailer.createTransport(config.emailServer)

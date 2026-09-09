@@ -454,6 +454,7 @@ module.exports = {
   },
   "clouddev": {
     "emailFrom": "srt-noreply@ses-ce93a4007031377b.appmail.cloud.gov",
+    "emailRedirectTo": "collin.schreyer@gsa.gov",
     "emailServer": {
       "host": "email-smtp-fips.us-gov-west-1.amazonaws.com",
       "port": 587,
@@ -498,6 +499,7 @@ module.exports = {
   },
   "cloudstaging": {
     "emailFrom": "crowley+srtstage@tcg.com",
+    "emailRedirectTo": "collin.schreyer@gsa.gov",
     "emailServer": {
       "host": "smtp.sendgrid.net",
       "port": 465,

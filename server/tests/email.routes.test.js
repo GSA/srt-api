@@ -1,3 +1,8 @@
+// Must be set before any require pulls in email.routes, which resolves its
+// transport at module load. Setting it in beforeAll is too late: the describe
+// bodies have already run and the real nodemailer is cached.
+process.env.MAIL_ENGINE = 'nodemailer-mock'
+
 const request = require('supertest')
 let appInstance = null // require('../app')();;
 const nodemailerMock = require('nodemailer-mock')
@@ -34,6 +39,44 @@ describe('/api/email', () => {
   afterAll(() => {
     return User.destroy({ where: { firstName: 'email-beforeAllUser' } })
   })
+
+  describe('non-production recipient redirect', () => {
+    let emailRoutes
+    beforeAll(() => { emailRoutes = require('../routes/email.routes') })
+    const ORIGINAL = process.env.EMAIL_REDIRECT_TO
+
+    afterEach(() => {
+      if (ORIGINAL === undefined) delete process.env.EMAIL_REDIRECT_TO
+      else process.env.EMAIL_REDIRECT_TO = ORIGINAL
+      nodemailerMock.mock.reset()
+    })
+
+    test('sends to the redirect address, not the real recipient', async () => {
+      // Staging holds real user records and uses a real relay, so an unredirected
+      // test send reaches actual people at other agencies.
+      process.env.EMAIL_REDIRECT_TO = 'redirect-target@gsa.gov'
+      await emailRoutes.sendMessage({
+        to: 'someone.real@agency.gov', subject: 'Hello', html: '<p>body</p>'
+      })
+      const sent = nodemailerMock.mock.getSentMail()
+      expect(sent.length).toBe(1)
+      expect(sent[0].to).toBe('redirect-target@gsa.gov')
+      // the intended recipient is preserved so a tester can still see who it would have reached
+      expect(sent[0].subject).toContain('someone.real@agency.gov')
+    })
+
+    test('leaves the recipient alone when no redirect is configured', async () => {
+      delete process.env.EMAIL_REDIRECT_TO
+      await emailRoutes.sendMessage({
+        to: 'someone.real@agency.gov', subject: 'Hello', html: '<p>body</p>'
+      })
+      const sent = nodemailerMock.mock.getSentMail()
+      expect(sent.length).toBe(1)
+      expect(sent[0].to).toBe('someone.real@agency.gov')
+      expect(sent[0].subject).toBe('Hello')
+    })
+  })
+
 
   test('/api/email', () => {
     // text: req.body.text,
