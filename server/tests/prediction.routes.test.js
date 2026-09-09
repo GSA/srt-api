@@ -881,6 +881,39 @@ test('prediction sorting', async () => {
 
   }
 
+  test("global filter requires every term, not one contiguous string", async () => {
+    // Regression: the filter used to be a single LIKE against searchText, which is
+    // a concatenation of several columns. A two-word search therefore only matched
+    // when those words sat next to each other in that exact order, so searching an
+    // agency plus an office returned nothing even when one row held both.
+    let {predictions} = await predictionRoutes.getPredictions({ first: 0, rows: 200 }, mocks.mockAdminUser)
+
+    // find a row whose agency and office contribute different words
+    let pick = null
+    for (const p of predictions) {
+      const a = (p.agency || '').toLowerCase().match(/[a-z]{4,}/)
+      const o = (p.office || '').toLowerCase().match(/[a-z]{4,}/)
+      if (a && o && a[0] !== o[0]) { pick = { a: a[0], o: o[0], row: p }; break }
+    }
+    if (!pick) { return }  // nothing in the fixture exercises this
+
+    const both = await predictionRoutes.getPredictions(
+      { first: 0, rows: 20000, globalFilter: `${pick.a} ${pick.o}` }, mocks.mockAdminUser)
+
+    const hit = both.predictions.some(p =>
+      (p.agency || '').toLowerCase().includes(pick.a) &&
+      (p.office || '').toLowerCase().includes(pick.o))
+
+    expect(hit).toBeTruthy()
+
+    // every returned row must contain both terms somewhere
+    for (const p of both.predictions) {
+      const blob = [p.solNum, p.noticeType, p.title, p.agency, p.office, p.reviewRec]
+        .join(' ').toLowerCase()
+      expect(blob.includes(pick.a) && blob.includes(pick.o)).toBeTruthy()
+    }
+  }, 30000)
+
   test("prediction global filter", async () => {
     // pick a word out of the titles.
     let {predictions} = await predictionRoutes.getPredictions({ first: 33, rows: 200 }, mocks.mockAdminUser)
@@ -953,7 +986,7 @@ test('prediction sorting', async () => {
       if ( ! allMatch ) {
         console.log (`Found a record that didn't match '${word}' in results for field ${field}`) // allowed output
       }
-      expect(allMatch).toBeTrue()
+      expect(allMatch).toBeTruthy()
     }
   }, 30000)
 

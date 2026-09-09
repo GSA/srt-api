@@ -392,7 +392,20 @@ async function getPredictions (filter, user) {
 
     if (filter.globalFilter) {
       logger.debug("Applying global filter", { searchText: filter.globalFilter.toLowerCase() })
-      attributes.where.searchText = { [Op.like]: `%${filter.globalFilter.toLowerCase()}%` }
+      // Split on whitespace and require every term. Previously this was one
+      // LIKE against the whole string, so a multi-word search only matched when
+      // those words happened to sit next to each other in that exact order.
+      // searchText is a concatenation of several columns, so "defense navy"
+      // never matched even though one row held both, agency being Department of
+      // Defense and office being Department of the Navy.
+      // LIKE wildcards in user input are escaped so a stray % does not match all.
+      const esc = (s) => s.replace(/[\\%_]/g, (c) => '\\' + c)
+      const terms = filter.globalFilter.toLowerCase().split(/\s+/).filter(Boolean).map(esc)
+      if (terms.length === 1) {
+        attributes.where.searchText = { [Op.like]: `%${terms[0]}%` }
+      } else if (terms.length > 1) {
+        attributes.where.searchText = { [Op.and]: terms.map(t => ({ [Op.like]: `%${t}%` })) }
+      }
     }
 
     for (let f of ['office', 'agency', 'title', 'solNum', 'reviewRec', 'id']) {
@@ -402,9 +415,19 @@ async function getPredictions (filter, user) {
     if (filter.filters) {
       logger.debug("Processing PrimeNG filters", { filters: filter.filters })
       for (let f in filter.filters) {
-        if (filter.filters.hasOwnProperty(f) && filter.filters[f].matchMode === 'equals') {
-          attributes.where[f] = {[Op.eq]: filter.filters[f].value}
-          logger.debug(`Applied filter for field ${f}`, { value: filter.filters[f].value })
+        if (filter.filters.hasOwnProperty(f)) {
+          const mode = filter.filters[f].matchMode
+          if (mode === 'equals') {
+            attributes.where[f] = {[Op.eq]: filter.filters[f].value}
+            logger.debug(`Applied filter for field ${f}`, { value: filter.filters[f].value })
+          } else if (mode === 'contains') {
+            // Case-insensitive substring. Agency and office names arrive from SAM.gov
+            // inconsistently cased and abbreviated (Department of Army, ARMY, Army),
+            // so an exact match would miss most of what the user meant.
+            const v = String(filter.filters[f].value).replace(/[\\%_]/g, (c) => '\\' + c)
+            attributes.where[f] = {[Op.iLike]: `%${v}%`}
+            logger.debug(`Applied contains filter for field ${f}`, { value: filter.filters[f].value })
+          }
         }
       }
     }
