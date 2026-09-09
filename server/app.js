@@ -357,6 +357,7 @@ module.exports = {
     app.delete('/api/admin/email-templates/:id', token(), admin_only(), adminEmailTemplates.remove)
     app.post('/api/analytics/track', token(), adminMgmt.trackEvent)
     app.post('/api/analytics/track-batch', token(), adminMgmt.trackBatch)
+    app.post('/api/admin/send-bulk-email/preview', token(), admin_only(), adminMgmt.previewRecipients)
     app.post('/api/admin/send-bulk-email', token(), admin_only(), adminMgmt.sendBulkEmail)
 
     // Feedback Routes

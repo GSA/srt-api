@@ -66,6 +66,45 @@ module.exports = function (pgPool) {
     }
   }
 
+
+  /**
+   * The single source of truth for who a bulk email goes to.
+   *
+   * Both the preview and the send call this, so the list an administrator is
+   * shown is by construction the list that receives the message. They used to be
+   * computed separately, and disagreed: the screen counted every user for the
+   * inactive mode while the send went to every ACTIVE user, so choosing
+   * "inactive" quietly mailed the entire active user base.
+   */
+  async function resolveRecipients ({ recipientMode, agency, role, inactivityDays }) {
+    // Deactivated and pending accounts never receive bulk mail.
+    const where = { isAccepted: true, isRejected: false }
+
+    // Previously agency was applied whenever it was present, so it could narrow
+    // a send that was not in agency mode at all.
+    if (recipientMode === 'agency' && agency) where.agency = agency
+
+    let users = await User.findAll({ where })
+
+    if (recipientMode === 'role' && role) {
+      users = users.filter(u => u.userRole === role)
+    }
+
+    if (recipientMode === 'inactive') {
+      // Dormancy is measured from recorded activity, the only signal available.
+      // There is no lastLogin column on the user record.
+      const days = parseInt(inactivityDays, 10) || 90
+      const r = await pgPool.query(
+        `SELECT DISTINCT lower(user_email) AS email
+           FROM user_activity
+          WHERE created_at >= NOW() - INTERVAL '1 day' * $1`, [days])
+      const recentlyActive = new Set(r.rows.map(x => x.email).filter(Boolean))
+      users = users.filter(u => u.email && !recentlyActive.has(u.email.toLowerCase()))
+    }
+
+    return users.filter(u => u.email)
+  }
+
   return {
 
     // ═════════════════════════════════════════════════════════════════
@@ -857,32 +896,64 @@ module.exports = function (pgPool) {
      * POST /api/admin/send-bulk-email
      * Send an email to filtered recipients using AWS SES.
      */
+    /**
+     * POST /api/admin/send-bulk-email/preview
+     * Returns exactly who a send with these options would reach, so the
+     * administrator reviews the actual list rather than a number.
+     */
+    previewRecipients: async function (req, res) {
+      try {
+        const { recipientMode, agency, role, inactivityDays } = req.body
+        const users = await resolveRecipients({ recipientMode, agency, role, inactivityDays })
+        const recipients = users.map(u => ({
+          id: u.id,
+          email: u.email,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          agency: u.agency,
+          userRole: u.userRole
+        }))
+        return res.status(200).json({ count: recipients.length, recipients })
+      } catch (err) {
+        logger.log('error', 'Error previewing bulk email recipients', {
+          error: err.message, tag: 'bulk-email'
+        })
+        return res.status(500).json({ error: 'Failed to preview recipients' })
+      }
+    },
+
     sendBulkEmail: async function (req, res) {
       try {
-        const { templateId, subject, body, recipientMode, agency, role, inactivityDays } = req.body
+        const { templateId, subject, body, recipientMode, agency, role, inactivityDays,
+                expectedRecipientCount } = req.body
 
         if (!subject || !body) {
           return res.status(400).json({ error: 'Subject and body are required' })
         }
 
-        // Get recipients based on mode
-        let where = { isAccepted: true, isRejected: false }
-        if (agency) where.agency = agency
-
-        let users = await User.findAll({ where })
-
-        if (role) {
-          users = users.filter(u => u.userRole === role)
-        }
-
-        if (recipientMode === 'inactive' && inactivityDays) {
-          logger.log('info', 'Inactive filter requested — sending to all active users for now', { tag: 'bulk-email' })
-        }
-
+        const users = await resolveRecipients({ recipientMode, agency, role, inactivityDays })
         const emails = users.map(u => u.email).filter(e => e)
 
         if (emails.length === 0) {
           return res.status(400).json({ error: 'No recipients found matching criteria' })
+        }
+
+        // Refuse to send to a different set than the administrator was shown.
+        // The preview and this handler share resolveRecipients, so a mismatch
+        // means the audience changed between review and send: someone was
+        // approved, deactivated, or became dormant in the interval. Sending
+        // anyway would deliver to people who were never on screen.
+        if (expectedRecipientCount !== undefined && expectedRecipientCount !== null &&
+            Number(expectedRecipientCount) !== emails.length) {
+          logger.log('warn', 'Bulk email blocked: recipient set changed after review', {
+            tag: 'bulk-email', admin: getAdminEmail(req),
+            expected: Number(expectedRecipientCount), actual: emails.length
+          })
+          return res.status(409).json({
+            error: 'The recipient list changed since you reviewed it.',
+            expected: Number(expectedRecipientCount),
+            actual: emails.length
+          })
         }
 
         // Send emails using nodemailer
