@@ -121,7 +121,14 @@ module.exports = {
     // that are incomplete, showing misleading review results. This hides them
     // from the listing without deleting anything. Set to null once the pipeline
     // is fixed and the affected range has been re-ingested.
-    solicitationPostedMaxDate: '2026-08-09',
+    // Ceiling on what users can see, while SAM.gov ingestion is degraded.
+    // Solicitations from 29 July onward were created without agency, office
+    // or url: 100% of rows every day from that date. Showing them gives
+    // dead SAM.gov links, blank agencies, and filters that appear broken
+    // because they are matching against empty fields.
+    // Everything through 27 July is complete. Clear this once the backfill
+    // has repopulated the missing records.
+    solicitationPostedMaxDate: '2026-07-28',
 
     autoDeclinePersonalEmail: false,
     personalEmailExemptDomains: [],
