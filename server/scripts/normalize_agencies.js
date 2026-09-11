@@ -373,14 +373,21 @@ async function main () {
       let cur = byId.get(r.parentId); let depth = 0
       while (cur && depth++ < 10) {
         if (cur.active !== false) {
+          // WHERE NOT EXISTS rather than ON CONFLICT: the unique constraint on
+          // (agencyId, visibleAgencyId) exists locally but not on staging, so
+          // ON CONFLICT errored there. This form needs no constraint at all.
           const ins = await q(`INSERT INTO agency_solicitation_scope ("agencyId","visibleAgencyId","createdAt","updatedAt")
-                               VALUES ($1,$2,NOW(),NOW()) ON CONFLICT ("agencyId","visibleAgencyId") DO NOTHING`, [r.id, cur.id])
+                               SELECT $1,$2,NOW(),NOW()
+                               WHERE NOT EXISTS (SELECT 1 FROM agency_solicitation_scope
+                                                 WHERE "agencyId"=$1 AND "visibleAgencyId"=$2)`, [r.id, cur.id])
           if (ins.rowCount) { done.scope++; if (done.scope <= 40) plan.push(`SEES   ${r.agency}  sees  ${cur.agency}`) }
         }
         cur = cur.parentId ? byId.get(cur.parentId) : null
       }
       await q(`INSERT INTO agency_solicitation_scope ("agencyId","visibleAgencyId","createdAt","updatedAt")
-               VALUES ($1,$1,NOW(),NOW()) ON CONFLICT DO NOTHING`, [r.id])
+               SELECT $1,$1,NOW(),NOW()
+               WHERE NOT EXISTS (SELECT 1 FROM agency_solicitation_scope
+                                 WHERE "agencyId"=$1 AND "visibleAgencyId"=$1)`, [r.id])
     }
 
     // F. Link users to a canonical agency by id.
