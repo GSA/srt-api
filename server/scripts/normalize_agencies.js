@@ -456,6 +456,29 @@ async function main () {
       }
     }
 
+    // Final hierarchy reconciliation. A fold repoints its loser's children, but
+    // a later phase can still assign a parent by name and resolve to a row that
+    // an earlier fold retired. Rather than depend on phase ordering, repoint any
+    // child left under an inactive parent to that parent's survivor -- recovered
+    // from agency_alias, which is the record of what folded into what -- and
+    // refuse to commit if any orphan survives.
+    const orphans = (await q(`SELECT a.id, a.agency, p.agency pname FROM "Agencies" a
+        JOIN "Agencies" p ON p.id = a."parentId" WHERE p.active IS DISTINCT FROM true`)).rows
+    for (const o of orphans) {
+      const s = (await q(`SELECT ag.id, ag.agency FROM agency_alias al JOIN "Agencies" ag ON ag.id = al.agency_id
+          WHERE lower(al.alias) = lower($1) AND ag.active IS DISTINCT FROM false LIMIT 1`, [o.pname])).rows[0]
+      if (!s) continue
+      await q('UPDATE "Agencies" SET "parentId"=$1, "updatedAt"=NOW() WHERE id=$2', [s.id, o.id])
+      console.log(`  REPARENT  ${o.agency}  ->  ${s.agency}   (was under folded ${o.pname})`)
+    }
+    const stillOrphaned = (await q(`SELECT a.agency, p.agency pname FROM "Agencies" a
+        JOIN "Agencies" p ON p.id = a."parentId" WHERE p.active IS DISTINCT FROM true`)).rows
+    if (stillOrphaned.length) {
+      console.log('\nHIERARCHY BROKEN. Refusing to apply.')
+      for (const o of stillOrphaned) console.log(`  ${o.agency} sits under ${o.pname}, which is not active`)
+      await q('ROLLBACK'); client.release(); await pool.end(); process.exit(2)
+    }
+
     if (losses.length) {
       console.log('\nVISIBILITY LOSS DETECTED. Refusing to apply.')
       for (const l of losses) console.log(`  ${l.name}: could match ${l.before} rows, now ${l.after}`)
