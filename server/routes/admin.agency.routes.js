@@ -108,16 +108,45 @@ module.exports = function (pgPool) {
 
         const byId = new Map(agencies.map(a => [a.id, a]))
 
-        // User counts still key on the agency name string, because Users.agency
-        // is the column the rest of the application reads. Users.agencyId is
-        // populated alongside it and will become authoritative once every user
-        // is backfilled.
-        const userRows = await pgPool.query(`
-          SELECT agency, COUNT(*) FILTER (WHERE "isAccepted" = true AND "isRejected" = false) AS active_users,
-                 COUNT(*) AS total_users
-          FROM "Users" GROUP BY agency
-        `)
-        const counts = new Map(userRows.rows.map(r => [r.agency, r]))
+        // Count against Users.agencyId, not the agency name. Folding duplicate
+        // spellings moved users onto the surviving agency by id and left
+        // Users.agency holding whatever it said before, so a name-keyed count
+        // reports 0 users for Navy while 12 people sit under it. Rows that have
+        // no agencyId yet still fall back to the name so they are not lost.
+        const [byIdRows, byNameRows] = await Promise.all([
+          pgPool.query(`
+            SELECT "agencyId" AS id,
+                   COUNT(*) FILTER (WHERE "isAccepted" = true AND "isRejected" = false) AS active_users,
+                   COUNT(*) AS total_users
+            FROM "Users" WHERE "agencyId" IS NOT NULL GROUP BY "agencyId"
+          `),
+          pgPool.query(`
+            SELECT agency,
+                   COUNT(*) FILTER (WHERE "isAccepted" = true AND "isRejected" = false) AS active_users,
+                   COUNT(*) AS total_users
+            FROM "Users" WHERE "agencyId" IS NULL GROUP BY agency
+          `)
+        ])
+        const countsById = new Map(byIdRows.rows.map(r => [Number(r.id), r]))
+        const counts = new Map(byNameRows.rows.map(r => [r.agency, r]))
+
+        // Solicitations naming each agency, counted across its canonical name
+        // and every alias, because that is exactly how the read path matches.
+        // This is the signal an administrator triaging the inherited list needs:
+        // a record with no domain and no users may still be the only thing
+        // attributing hundreds of solicitations. One grouped pass, and a failure
+        // degrades to "unknown" rather than taking the screen down.
+        const solByName = new Map()
+        try {
+          const solRows = await pgPool.query(`
+            SELECT agency AS nm, COUNT(*)::int AS n FROM solicitations WHERE agency IS NOT NULL GROUP BY agency
+            UNION ALL
+            SELECT office AS nm, COUNT(*)::int AS n FROM solicitations WHERE office IS NOT NULL GROUP BY office
+          `)
+          for (const r of solRows.rows) solByName.set(r.nm, (solByName.get(r.nm) || 0) + Number(r.n))
+        } catch (e) {
+          logger.log('warn', 'Could not count solicitations per agency', { error: e.message, tag: 'admin-agency' })
+        }
 
         const domainsByAgency = new Map()
         for (const d of domains) {
@@ -145,7 +174,11 @@ module.exports = function (pgPool) {
           const parent = a.parentId ? byId.get(a.parentId) : null
           const deviationId = await Agency.resolveDeviationSource(a.id)
           const deviationAgency = deviationId ? byId.get(deviationId) : null
-          const c = counts.get(a.agency) || {}
+          const c = countsById.get(a.id) || counts.get(a.agency) || {}
+          const agencyNames = [a.agency, ...(aliasesByAgency.get(a.id) || []).map(x => x.alias)]
+          const solicitationCount = solByName.size
+            ? agencyNames.reduce((sum, nm) => sum + (solByName.get(nm) || 0), 0)
+            : null
 
           // Absent scope rows mean "sees only itself", which is what the read
           // path falls back to. Report that explicitly so the UI never has to
@@ -164,6 +197,9 @@ module.exports = function (pgPool) {
             aliases: aliasesByAgency.get(a.id) || [],
             activeUsers: Number(c.active_users || 0),
             totalUsers: Number(c.total_users || 0),
+            // null means the count could not be computed, which the UI shows as
+            // "-" rather than as a confident zero.
+            solicitationCount,
             solicitationAccess: visibleIds.map(id => ({
               id, agency: byId.get(id) ? byId.get(id).agency : null
             })),
