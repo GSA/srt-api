@@ -26,11 +26,14 @@ const jwt = require('jsonwebtoken')
 
 const AGENCY_TYPES = [
   'federal_agency', 'federal_component', 'state_local',
-  'education', 'other', 'needs_review'
+  'education', 'personal', 'other', 'needs_review'
 ]
 
 /** Types that may exist at the top of the hierarchy with no parent. */
-const TOP_LEVEL_TYPES = ['federal_agency', 'state_local', 'education', 'other']
+// A component has to name a parent; everything else may stand alone. 'personal'
+// is top level because a personal mailbox belongs to no organisation -- that is
+// the whole point of filing it here.
+const TOP_LEVEL_TYPES = ['federal_agency', 'state_local', 'education', 'personal', 'other']
 
 function getAdminEmail (req) {
   try {
@@ -214,7 +217,12 @@ module.exports = function (pgPool) {
         logger.log('info', 'Admin listed agency management view', {
           tag: 'admin-agency', admin: getAdminEmail(req), count: rows.length
         })
-        return res.status(200).json({ agencies: rows, agencyTypes: AGENCY_TYPES })
+        // topLevelTypes ships with the list so the screen does not keep its own
+        // copy of which categories may stand alone. It had one, and a category
+        // added here would not have reached it.
+        return res.status(200).json({
+          agencies: rows, agencyTypes: AGENCY_TYPES, topLevelTypes: TOP_LEVEL_TYPES
+        })
       } catch (err) {
         logger.log('error', 'Failed to build agency management view', {
           error: err.message, tag: 'admin-agency'
