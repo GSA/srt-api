@@ -2,6 +2,7 @@
 const logger = require('../config/winston')
 // noinspection JSUnresolvedVariable
 const Agency = require('../models').Agency
+const AgencyDeviation = require('../models').AgencyDeviation
 const db = require('../models/index')
 const jwt = require('jsonwebtoken')
 
@@ -103,5 +104,29 @@ module.exports = {
         logger.log('error', 'error in: agencyList', { error: e, tag: 'agencyList' })
         return res.status(500).send({ error: 'Internal server error' })
       })
+  },
+
+  /**
+     * GET /api/agency_deviation/:agency_id
+     *
+     * Returns all agency_deviation records for the given agency ID.
+     *
+     * @param {Request} req - request
+     * @param {string} req.params.agency_id - agency ID to look up deviations for
+     * @param {Response} res - Response object
+     * @return Promise
+     */
+  get_agency_deviation: async function (req, res) {
+    try {
+      const records = await AgencyDeviation.findAll({
+        where: { agency_id: req.params.agency_id }
+      })
+      // No deviations found is a normal, valid result — not an error
+      return res.status(200).json(records) // records will be [] if none exist
+    } catch (error) {
+      logger.log('error', 'error in: get_agency_deviation', { error: error, tag: 'get_agency_deviation' })
+      return res.status(500).json({ error: 'Failed to fetch agency deviation records' })
+    }
   }
+    
 }

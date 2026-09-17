@@ -257,6 +257,7 @@ module.exports = {
 
     app.get('/api/agencies', token(), agencyRoutes.getAgency)
     app.put('/api/agencies', token(), agencyRoutes.putAgency)
+    app.get('/api/agency_deviation/:agency_id', token(), agencyRoutes.get_agency_deviation)
     app.get('/api/agencyList', token(), agencyRoutes.agencyList)
     app.post('/api/analytics', token(), admin_only(), analyticsRoutes.analytics)
     app.post('/api/Analytics', token(), admin_only(), analyticsRoutes.analytics)
